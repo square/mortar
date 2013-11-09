@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright 2013 Square Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+<module name="Checker">
+  <module name="FileTabCharacter"/>
+
+  <!-- Forbid trailing spaces. -->
+  <module name="RegexpSingleline">
+    <property name="format" value="\s+$"/>
+    <property name="message" value="Line has trailing spaces."/>
+  </module>
+
+  <!-- Space after 'for', 'if', 'catch', and 'switch'. -->
+  <module name="RegexpSingleline">
+    <property name="format" value="^\s*(for|if|switch|catch)[^ ]\("/>
+    <property name="message" value="Space needed before opening parenthesis."/>
+  </module>
+
+  <!-- For each spacing. -->
+  <module name="RegexpSingleline">
+    <property name="format" value="^\s*for \(.*?([^ ]:|:[^ ])"/>
+    <property name="message" value="Space needed around ':' character."/>
+  </module>
+
+  <!--
+    - Lets us turn off a rule like this:
+    - // CHECKSTYLE.OFF: LineLength blah blah blah.
+    - And back on:
+    - // CHECKSTYLE.ON: LineLength
+    -->
+  <module name="SuppressionCommentFilter">
+    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
+    <property name="checkFormat" value="$1"/>
+  </module>
+
+  <module name="TreeWalker">
+    <property name="cacheFile" value="${checkstyle.cache.file}"/>
+
+    <!-- Required by SuppressionCommentFilter. -->
+    <module name="FileContentsHolder"/>
+
+    <module name="LineLength">
+      <!-- IDEA allows JavaDoc to actually go to 103 characters. -->
+      <!-- http://youtrack.jetbrains.com/issue/IDEA-109737 -->
+      <property name="max" value="103"/>
+      <property name="ignorePattern" value="^import"/>
+    </module>
+
+    <!-- Naming conventions. -->
+    <module name="LocalFinalVariableName"/>
+    <module name="LocalVariableName"/>
+
+    <!-- Coding blunders. -->
+    <module name="CovariantEquals"/>
+    <module name="IllegalInstantiation"/>
+    <module name="RedundantThrows"/>
+    <module name="SimplifyBooleanExpression"/>
+    <module name="SimplifyBooleanReturn"/>
+
+    <!-- Whitespace checks. -->
+    <module name="GenericWhitespace"/>
+    <module name="MethodParamPad"/>
+    <module name="TypecastParenPad"/>
+
+    <!-- Modifer checks. -->
+    <module name="RedundantModifier"/>
+
+    <!-- Import checks. -->
+    <module name="AvoidStarImport"/>
+    <module name="IllegalImport"/>
+    <module name="RedundantImport"/>
+
+    <!-- Misc. checks. -->
+    <module name="UpperEll"/>
+  </module>
+</module>
