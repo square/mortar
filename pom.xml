@@ -21,9 +21,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.squareup.android</groupId>
+  <groupId>com.squareup.mortar</groupId>
   <artifactId>mortar-parent</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2</version>
   <packaging>pom</packaging>
 
   <name>Mortar (Parent)</name>
@@ -43,7 +43,7 @@
     <java.version>1.6</java.version>
 
     <!-- Dependencies -->
-    <android.version>4.2</android.version>
+    <android.version>4.1.1.4</android.version>
     <android.platform>17</android.platform>
     <dagger.version>1.0.1</dagger.version>
 
@@ -181,30 +181,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>square-nexus-snapshots</id>
-      <url>https://nexus.corp.squareup.com/content/repositories/snapshots</url>
-    </repository>
-    <repository>
-      <id>square-nexus-releases</id>
-      <url>https://nexus.corp.squareup.com/content/repositories/releases</url>
-    </repository>
-    <repository>
-      <id>square-android-public</id>
-      <url>https://nexus.corp.squareup.com/content/repositories/android-public</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>square-nexus-snapshots</id>
-      <url>https://nexus.corp.squareup.com/content/repositories/snapshots/</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>square-nexus-hermione</id>
-      <url>https://nexus.corp.squareup.com/content/repositories/android-hermione</url>
-    </pluginRepository>
-  </pluginRepositories>
 </project>
