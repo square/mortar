@@ -27,11 +27,11 @@ import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.AbstractViewPresenter;
-import mortar.BluePrint;
+import mortar.Blueprint;
 import mortar.HasMortarScope;
 
 @Screen(FriendView.class) //
-public class FriendScreen implements HasParent<FriendListScreen>, BluePrint {
+public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
   private final int index;
 
   public FriendScreen(int index) {

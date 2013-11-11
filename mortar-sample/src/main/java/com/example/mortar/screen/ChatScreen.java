@@ -34,7 +34,7 @@ import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.AbstractViewPresenter;
-import mortar.BluePrint;
+import mortar.Blueprint;
 import mortar.HasMortarScope;
 import mortar.PopupPresenter;
 import rx.Subscription;
@@ -42,7 +42,7 @@ import rx.util.functions.Action0;
 import rx.util.functions.Action1;
 
 @Screen(ChatView.class) //
-public class ChatScreen implements HasParent<ChatListScreen>, BluePrint {
+public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
   private final int conversationIndex;
 
   public ChatScreen(int conversationIndex) {

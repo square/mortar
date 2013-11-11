@@ -15,7 +15,7 @@
  */
 package mortar;
 
-public interface BluePrint {
+public interface Blueprint {
   String getMortarScopeName();
   Object getDaggerModule();
 }

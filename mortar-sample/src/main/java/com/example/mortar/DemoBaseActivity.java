@@ -17,7 +17,7 @@ package com.example.mortar;
 
 import android.app.Activity;
 import android.os.Bundle;
-import mortar.BluePrint;
+import mortar.Blueprint;
 import mortar.HasMortarScope;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
@@ -33,9 +33,9 @@ public abstract class DemoBaseActivity extends Activity implements HasMortarScop
   }
 
   /**
-   * Return the {@link BluePrint} that defines the {@link MortarScope} for this activity.
+   * Return the {@link mortar.Blueprint} that defines the {@link MortarScope} for this activity.
    */
-  protected abstract BluePrint getBluePrint();
+  protected abstract Blueprint getBluePrint();
 
   @Override protected void onResume() {
     super.onResume();

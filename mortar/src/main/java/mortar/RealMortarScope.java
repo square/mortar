@@ -74,13 +74,13 @@ class RealMortarScope implements MortarScope {
   }
 
   @Override
-  public MortarScope requireChild(BluePrint bluePrint) {
-    String childName = bluePrint.getMortarScopeName();
+  public MortarScope requireChild(Blueprint blueprint) {
+    String childName = blueprint.getMortarScopeName();
     MortarScope child = findChild(childName);
 
     if (child == null) {
       child =
-          new RealMortarScope(childName, this, validate, graph.plus(bluePrint.getDaggerModule()));
+          new RealMortarScope(childName, this, validate, graph.plus(blueprint.getDaggerModule()));
       children.put(childName, child);
     }
 

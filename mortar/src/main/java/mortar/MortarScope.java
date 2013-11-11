@@ -28,7 +28,7 @@ public interface MortarScope {
 
   MortarScope findChild(String name);
 
-  MortarScope requireChild(BluePrint bluePrint);
+  MortarScope requireChild(Blueprint blueprint);
 
   void destroy();
 }

@@ -59,10 +59,10 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     for (Bundler b : bundlers) b.onSave(getChildBundle(b, outState));
   }
 
-  @Override public MortarScope requireChild(BluePrint bluePrint) {
-    RealMortarScope unwrapped = (RealMortarScope) super.requireChild(bluePrint);
+  @Override public MortarScope requireChild(Blueprint blueprint) {
+    RealMortarScope unwrapped = (RealMortarScope) super.requireChild(blueprint);
     RealActivityChildScope childScope = new RealActivityChildScope(unwrapped);
-    replaceChild(bluePrint.getMortarScopeName(), childScope);
+    replaceChild(blueprint.getMortarScopeName(), childScope);
     register(childScope);
     return childScope;
   }

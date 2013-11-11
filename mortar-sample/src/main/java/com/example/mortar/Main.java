@@ -31,11 +31,11 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.AbstractViewPresenter;
-import mortar.BluePrint;
+import mortar.Blueprint;
 import mortar.MortarScope;
 import rx.util.functions.Action0;
 
-public class Main implements BluePrint {
+public class Main implements Blueprint {
   public Object getDaggerModule() {
     return new DaggerModule();
   }
@@ -75,7 +75,7 @@ public class Main implements BluePrint {
   @Singleton static class Presenter extends AbstractViewPresenter<Main.View>
       implements Flow.Listener {
     private static final String FLOW_KEY = "flow";
-    private static final BluePrint NO_SCREEN = new BluePrint() {
+    private static final Blueprint NO_SCREEN = new Blueprint() {
       @Override public String getMortarScopeName() {
         return "no-screen";
       }
@@ -89,7 +89,7 @@ public class Main implements BluePrint {
     private final ActionBarOwner actionBarOwner;
 
     private Flow flow;
-    private BluePrint currentScreen = NO_SCREEN;
+    private Blueprint currentScreen = NO_SCREEN;
 
     @Inject Presenter(Parcer<Object> flowParcer, ActionBarOwner actionBarOwner) {
       this.flowParcer = flowParcer;
@@ -122,7 +122,7 @@ public class Main implements BluePrint {
       View view = getView();
       if (view == null) return;
 
-      BluePrint newScreen = (BluePrint) backstack.current().getScreen();
+      Blueprint newScreen = (Blueprint) backstack.current().getScreen();
       if (newScreen.getMortarScopeName().equals(currentScreen.getMortarScopeName())) return;
 
       MortarScope parentScope = view.getMortarScope();

@@ -27,7 +27,7 @@ import com.example.mortar.view.ContainerView;
 import flow.Flow;
 import flow.Screens;
 import javax.inject.Inject;
-import mortar.BluePrint;
+import mortar.Blueprint;
 import mortar.Mortar;
 import mortar.MortarContextWrapper;
 import mortar.MortarScope;
@@ -42,7 +42,7 @@ public class MainActivity extends DemoBaseActivity implements Main.View, ActionB
 
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
-  @Override protected BluePrint getBluePrint() {
+  @Override protected Blueprint getBluePrint() {
     return new Main();
   }
 

@@ -33,12 +33,12 @@ public class Mortar {
 
   /**
    * Returns the existing {@link MortarActivityScope} scope for the given {@link Activity}, or
-   * uses the {@link BluePrint} to create one if none is found.
+   * uses the {@link Blueprint} to create one if none is found.
    */
   public static MortarActivityScope getActivityScope(MortarScope parentScope,
-      final BluePrint bluePrint) {
-    String name = bluePrint.getMortarScopeName();
-    RealMortarScope unwrapped = (RealMortarScope) parentScope.requireChild(bluePrint);
+      final Blueprint blueprint) {
+    String name = blueprint.getMortarScopeName();
+    RealMortarScope unwrapped = (RealMortarScope) parentScope.requireChild(blueprint);
 
     RealActivityScope activityScope;
     if (unwrapped instanceof MortarActivityScope) {

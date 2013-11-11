@@ -28,11 +28,11 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.AbstractViewPresenter;
-import mortar.BluePrint;
+import mortar.Blueprint;
 import mortar.HasMortarScope;
 
 @Screen(FriendListView.class) //
-public class FriendListScreen implements HasParent<ChatListScreen>, BluePrint {
+public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
 
   @Override public String getMortarScopeName() {
     return getClass().getName();
