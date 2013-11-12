@@ -20,6 +20,7 @@ import android.content.Context;
 import dagger.ObjectGraph;
 
 public class Mortar {
+
   private Mortar() {
   }
 
@@ -28,7 +29,7 @@ public class Mortar {
    * {@link android.app.Application} implementing {@link HasMortarScope}.
    */
   public static MortarScope createRootScope(boolean validate, Object... modules) {
-    return new RealMortarScope("Root", null, validate, ObjectGraph.create(modules));
+    return new RealMortarScope(MortarScope.ROOT_NAME, null, validate, ObjectGraph.create(modules));
   }
 
   /**

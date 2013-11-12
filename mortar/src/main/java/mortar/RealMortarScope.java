@@ -17,6 +17,7 @@ package mortar;
 
 import dagger.ObjectGraph;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,8 +80,15 @@ class RealMortarScope implements MortarScope {
     MortarScope child = findChild(childName);
 
     if (child == null) {
-      child =
-          new RealMortarScope(childName, this, validate, graph.plus(blueprint.getDaggerModule()));
+      Object daggerModule = blueprint.getDaggerModule();
+      ObjectGraph newGraph;
+      if (daggerModule instanceof Collection) {
+        Collection c = (Collection) daggerModule;
+        newGraph = graph.plus(c.toArray(new Object[c.size()]));
+      } else {
+        newGraph = graph.plus(daggerModule);
+      }
+      child = new RealMortarScope(childName, this, validate, newGraph);
       children.put(childName, child);
     }
 

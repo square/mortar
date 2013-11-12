@@ -18,6 +18,8 @@ package mortar;
 import dagger.ObjectGraph;
 
 public interface MortarScope {
+  String ROOT_NAME = "Root";
+
   String getName();
 
   ObjectGraph getObjectGraph();
