@@ -124,7 +124,75 @@ public class MortarActivityScopeTest {
     verify(earlyBundler).onDestroy();
     verify(lateBundler).onDestroy();
 
+    // destroy() is idemptotent
+
     activityScope.destroy();
+    verify(scoped, times(1)).onDestroy();
+    verify(earlyBundler, times(1)).onDestroy();
+    verify(lateBundler, times(1)).onDestroy();
+  }
+
+  @Test
+  public void childLifeCycle() {
+    MortarScope child = activityScope.requireChild(new ModuleAndBlueprint());
+
+    child.register(scoped);
+    child.register(earlyBundler);
+
+    // Load is always called immediately.
+    verify(earlyBundler).onLoad(isNull(Bundle.class));
+
+    activityScope.onCreate(null);
+    // Load is not called on create
+    verify(earlyBundler, times(1)).onLoad(isNull(Bundle.class));
+
+    // Load is not called again on resume. (Actually, I think this is a bug, but for now
+    // it's expected.)
+    activityScope.onResume();
+    verify(earlyBundler, times(2)).onLoad(isNull(Bundle.class));
+
+    Bundle out = new Bundle();
+    activityScope.onSaveInstanceState(out);
+    verify(earlyBundler, times(1)).onSave(earlyCaptor.capture());
+
+    assertThat(out.keySet()).hasSize(1);
+    Bundle firstTopBundle = out.getBundle("name");
+    assertThat(firstTopBundle.keySet()).hasSize(1);
+    assertThat(earlyCaptor.getValue()).isSameAs(firstTopBundle.getBundle("early"));
+
+    activityScope.onResume();
+    verify(earlyBundler, times(3)).onLoad(earlyCaptor.capture());
+
+    assertThat(earlyCaptor.getValue()).isSameAs(firstTopBundle.getBundle("early"));
+
+    // A new registrant shows up and gets the bundle right away.
+    child.register(lateBundler);
+    verify(lateBundler).onLoad(lateCaptor.capture());
+    assertThat(out.keySet()).hasSize(1);
+    assertThat(firstTopBundle.keySet()).hasSize(2);
+    assertThat(lateCaptor.getValue()).isSameAs(firstTopBundle.getBundle("late"));
+
+    // A new activity instance appears
+    Bundle fromNewActivity = new Bundle(out);
+    activityScope.onCreate(fromNewActivity);
+    activityScope.onResume();
+    verify(earlyBundler, times(4)).onLoad(lateCaptor.capture());
+    verify(lateBundler, times(2)).onLoad(lateCaptor.capture());
+
+    Bundle nextTopBundle = fromNewActivity.getBundle("name");
+    assertThat(earlyCaptor.getValue()).isSameAs(nextTopBundle.getBundle("early"));
+    assertThat(lateCaptor.getValue()).isSameAs(nextTopBundle.getBundle("late"));
+
+    verifyNoMoreInteractions(scoped);
+
+    activityScope.destroy();
+    verify(scoped).onDestroy();
+    verify(earlyBundler).onDestroy();
+    verify(lateBundler).onDestroy();
+
+    // recursive destroy() is idemptotent
+
+    child.destroy();
     verify(scoped, times(1)).onDestroy();
     verify(earlyBundler, times(1)).onDestroy();
     verify(lateBundler, times(1)).onDestroy();
