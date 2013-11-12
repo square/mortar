@@ -15,10 +15,11 @@
  */
 package mortar;
 
-import android.app.Activity;
 import android.os.Bundle;
 import java.util.HashSet;
 import java.util.Set;
+
+import static java.lang.String.format;
 
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private final Set<Bundler> bundlers = new HashSet<Bundler>();
@@ -33,6 +34,10 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   @Override public void register(Scoped scoped) {
     if (scoped instanceof Bundler) {
       Bundler b = (Bundler) scoped;
+      String mortarBundleKey = b.getMortarBundleKey();
+      if (mortarBundleKey == null || mortarBundleKey.trim().equals("")) {
+        throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
+      }
       b.onLoad(getChildBundle(b, latestSavedInstanceState));
       if (!bundlers.contains(b)) bundlers.add(b);
     }
@@ -40,8 +45,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     doRegister(scoped);
   }
 
-  @Override public <A extends Activity & HasMortarScope> void onCreate(A activity,
-      Bundle savedInstanceState) {
+  @Override public void onCreate(Bundle savedInstanceState) {
     latestSavedInstanceState = savedInstanceState;
     for (Bundler b : bundlers) {
       if (b instanceof RealActivityChildScope) {
@@ -50,7 +54,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     }
   }
 
-  @Override public <A extends Activity & HasMortarScope> void onResume(A activity) {
+  @Override public void onResume() {
     for (Bundler b : bundlers) b.onLoad(getChildBundle(b, latestSavedInstanceState));
   }
 

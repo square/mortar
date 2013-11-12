@@ -15,11 +15,12 @@
  */
 package mortar;
 
-import android.app.Activity;
 import android.os.Bundle;
 
 public interface MortarActivityScope extends MortarScope {
-  <A extends Activity & HasMortarScope> void onCreate(A activity, Bundle savedInstanceState);
-  <A extends Activity & HasMortarScope> void onResume(A activity);
+  void onCreate(Bundle savedInstanceState);
+
+  void onResume();
+
   void onSaveInstanceState(Bundle outState);
 }

@@ -108,12 +108,11 @@ class RealMortarScope implements MortarScope {
 
   @Override public void destroy() {
     for (Scoped s : tearDowns) s.onDestroy();
+    tearDowns.clear();
     if (parent != null) parent.onChildDestroyed(this);
 
     List<MortarScope> snapshot = new ArrayList<MortarScope>(children.values());
-    for (MortarScope child : snapshot) {
-      child.destroy();
-    }
+    for (MortarScope child : snapshot) child.destroy();
   }
 
   @Override public String toString() {
