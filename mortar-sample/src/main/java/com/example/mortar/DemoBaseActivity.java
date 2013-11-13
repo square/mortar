@@ -29,7 +29,7 @@ public abstract class DemoBaseActivity extends Activity implements HasMortarScop
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     activityScope = Mortar.getActivityScope(getParentScope(), getBluePrint());
-    activityScope.onCreate(this, savedInstanceState);
+    activityScope.onCreate(savedInstanceState);
   }
 
   /**
@@ -39,7 +39,7 @@ public abstract class DemoBaseActivity extends Activity implements HasMortarScop
 
   @Override protected void onResume() {
     super.onResume();
-    activityScope.onResume(this);
+    activityScope.onResume();
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {

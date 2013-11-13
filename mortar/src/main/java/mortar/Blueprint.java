@@ -15,7 +15,27 @@
  */
 package mortar;
 
+/**
+ * Defines a scope to be built via {@link MortarScope#requireChild(Blueprint)} or
+ * {@link Mortar#getActivityScope(MortarScope, Blueprint)}.
+ */
 public interface Blueprint {
+  /**
+   * Returns the name of the new scope. This can be used later to {@link
+   * MortarScope#findChild(String) find} it in its parent. If {@link
+   * MortarScope#requireChild(Blueprint)} is called again with a {@link Blueprint}
+   * of the same name, the original instance will be returned unless it has been
+   * {@link mortar.MortarScope#destroy() destroyed}.
+   */
   String getMortarScopeName();
+
+  /**
+   * Returns the {@literal @}{@link dagger.Module Module} that will define the scope
+   * of the new graph by being added to that of its parent. If the returned value
+   * is an instance of {@link java.util.Collection} its contents will be copied
+   * to an array first, allowing more than one module object to be returned.
+   *
+   * @see dagger.ObjectGraph#plus(Object...)
+   */
   Object getDaggerModule();
 }
