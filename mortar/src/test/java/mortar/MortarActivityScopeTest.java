@@ -85,7 +85,7 @@ public class MortarActivityScopeTest {
     // Load is not called on create
     verify(earlyBundler, times(1)).onLoad(isNull(Bundle.class));
 
-    // Load is not called again on resume. (Actually, I think this is a bug, but for now
+    // Load is called again on resume. (Actually, I think this is a bug, but for now
     // it's expected.)
     activityScope.onResume();
     verify(earlyBundler, times(2)).onLoad(isNull(Bundle.class));
@@ -112,7 +112,7 @@ public class MortarActivityScopeTest {
     Bundle fromNewActivity = new Bundle(out);
     activityScope.onCreate(fromNewActivity);
     activityScope.onResume();
-    verify(earlyBundler, times(4)).onLoad(lateCaptor.capture());
+    verify(earlyBundler, times(4)).onLoad(earlyCaptor.capture());
     verify(lateBundler, times(2)).onLoad(lateCaptor.capture());
     assertThat(earlyCaptor.getValue()).isSameAs(fromNewActivity.getBundle("early"));
     assertThat(lateCaptor.getValue()).isSameAs(fromNewActivity.getBundle("late"));
