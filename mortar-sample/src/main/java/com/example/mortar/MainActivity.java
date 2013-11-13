@@ -42,7 +42,7 @@ public class MainActivity extends DemoBaseActivity implements Main.View, ActionB
 
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
-  @Override protected Blueprint getBluePrint() {
+  @Override protected Blueprint getBlueprint() {
     return new Main();
   }
 

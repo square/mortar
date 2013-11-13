@@ -33,10 +33,10 @@ changes.
 ### The scope tree
 
 An app is structured as a tree of `MortarScope`s, each associated with a
-Dagger ObjectGraph. A scope is defined by a `BluePrint`, which provides its
+Dagger ObjectGraph. A scope is defined by a `Blueprint`, which provides its
 name and its Dagger
 [Module](http://square.github.io/dagger/javadoc/dagger/Module.html). Typically
-a BluePrint also declares the interface to be implemented by its main Activity
+a Blueprint also declares the interface to be implemented by its main Activity
 or View, as well as the ViewPresenter that drives it, but this is just a
 convention.
 
@@ -101,7 +101,7 @@ handle view creation.
  * @param nextScreen blueprint of the screen to show, must have Flow
  * annotation like {@literal @}Screen(R.layout.foo_screen)
  */
-showScreen(BluePrint nextScreen) {
+showScreen(Blueprint nextScreen) {
   View currentView = findViewById(android.R.id.content); // ick
   Mortar.getMortarScope(currentView).destroy();
 
@@ -171,7 +171,7 @@ public class MyView extends View implements MyScreen.View {
 ```java
 
 @Screen(MyView.class)
-public class MyScreen implements BluePrint {
+public class MyScreen implements Blueprint {
   @Override public String getMortarScopeName() {
     return getClass().getName();
   }
@@ -278,14 +278,14 @@ public abstract class MyBaseActivity extends Activity implements HasMortarScope 
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    activityScope = Mortar.getActivityScope(getParentScope(), getBluePrint());
+    activityScope = Mortar.getActivityScope(getParentScope(), getBlueprint());
     activityScope.onCreate(this, savedInstanceState);
   }
 
   /**
-   * Return the {@link BluePrint} that defines the {@link MortarScope} for this activity.
+   * Return the {@link Blueprint} that defines the {@link MortarScope} for this activity.
    */
-  protected abstract BluePrint getBluePrint();
+  protected abstract Blueprint getBlueprint();
 
   @Override protected void onResume() {
     super.onResume();

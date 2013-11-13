@@ -28,14 +28,14 @@ public abstract class DemoBaseActivity extends Activity implements HasMortarScop
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    activityScope = Mortar.getActivityScope(getParentScope(), getBluePrint());
+    activityScope = Mortar.getActivityScope(getParentScope(), getBlueprint());
     activityScope.onCreate(this, savedInstanceState);
   }
 
   /**
    * Return the {@link mortar.Blueprint} that defines the {@link MortarScope} for this activity.
    */
-  protected abstract Blueprint getBluePrint();
+  protected abstract Blueprint getBlueprint();
 
   @Override protected void onResume() {
     super.onResume();
