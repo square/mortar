@@ -29,7 +29,7 @@ class RealMortarScope implements MortarScope {
   protected final boolean validate;
 
   private final Set<Scoped> tearDowns = new HashSet<Scoped>();
-  private final Map<Object, MortarScope> children = new HashMap<Object, MortarScope>();
+  protected final Map<String, RealMortarScope> children = new HashMap<String, RealMortarScope>();
   private final ObjectGraph graph;
   private final RealMortarScope parent;
   private final String name;
@@ -70,14 +70,14 @@ class RealMortarScope implements MortarScope {
     return parent;
   }
 
-  @Override public MortarScope findChild(String childName) {
+  @Override public RealMortarScope findChild(String childName) {
     return children.get(childName);
   }
 
   @Override
   public MortarScope requireChild(Blueprint blueprint) {
     String childName = blueprint.getMortarScopeName();
-    MortarScope child = findChild(childName);
+    RealMortarScope child = findChild(childName);
 
     if (child == null) {
       Object daggerModule = blueprint.getDaggerModule();
@@ -95,7 +95,7 @@ class RealMortarScope implements MortarScope {
     return child;
   }
 
-  void replaceChild(String childName, MortarScope scope) {
+  void replaceChild(String childName, RealMortarScope scope) {
     if (scope.getParent() != this) {
       throw new IllegalArgumentException("Replacement scope must have receiver as parent");
     }

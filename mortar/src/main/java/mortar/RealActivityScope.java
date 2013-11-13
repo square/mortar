@@ -17,59 +17,94 @@ package mortar;
 
 import android.os.Bundle;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static java.lang.String.format;
 
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
-  private final Set<Bundler> bundlers = new HashSet<Bundler>();
+  private final Set<Bundler> unloaded = new HashSet<Bundler>();
+  protected final Set<Bundler> loaded = new HashSet<Bundler>();
 
-  private Bundle latestSavedInstanceState;
+  private boolean active;
+  protected Bundle latestSavedInstanceState;
 
-  RealActivityScope(RealMortarScope original) {
+  protected RealActivityScope(RealMortarScope original, boolean active) {
     super(original.getName(), ((RealMortarScope) original.getParent()), original.validate,
         original.getObjectGraph());
+    this.active = active;
   }
 
   @Override public void register(Scoped scoped) {
-    if (scoped instanceof Bundler) {
-      Bundler b = (Bundler) scoped;
-      String mortarBundleKey = b.getMortarBundleKey();
-      if (mortarBundleKey == null || mortarBundleKey.trim().equals("")) {
-        throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
-      }
-      b.onLoad(getChildBundle(b, latestSavedInstanceState));
-      if (!bundlers.contains(b)) bundlers.add(b);
+    doRegister(scoped);
+    if (!(scoped instanceof Bundler)) return;
+
+    Bundler b = (Bundler) scoped;
+    String mortarBundleKey = b.getMortarBundleKey();
+    if (mortarBundleKey == null || mortarBundleKey.trim().equals("")) {
+      throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
     }
 
-    doRegister(scoped);
+    if (loaded.contains(b) || unloaded.contains(b)) return;
+
+    if (active) {
+      b.onLoad(getChildBundle(b, latestSavedInstanceState));
+      loaded.add(b);
+    } else {
+      unloaded.add(b);
+    }
   }
 
   @Override public void onCreate(Bundle savedInstanceState) {
+    // Make note of the bundle to send it to bundlers when register is called.
     latestSavedInstanceState = savedInstanceState;
-    for (Bundler b : bundlers) {
-      if (b instanceof RealActivityChildScope) {
-        ((RealActivityChildScope) b).onCreate(getChildBundle(b, savedInstanceState));
-      }
+
+    for (RealMortarScope child : children.values()) {
+      if (!(child instanceof RealActivityScope)) continue;
+      ((RealActivityScope) child).onCreate(savedInstanceState);
     }
   }
 
   @Override public void onResume() {
-    for (Bundler b : bundlers) b.onLoad(getChildBundle(b, latestSavedInstanceState));
+    while (!unloaded.isEmpty()) {
+      Iterator<Bundler> i = unloaded.iterator();
+      while (i.hasNext()) {
+        Bundler b = i.next();
+        i.remove();
+        b.onLoad(getChildBundle(b, latestSavedInstanceState));
+        loaded.add(b);
+      }
+    }
+    active = true;
+
+    for (RealMortarScope child : children.values()) {
+      if (!(child instanceof RealActivityScope)) continue;
+      ((RealActivityScope) child).onResume();
+    }
   }
 
   @Override public void onSaveInstanceState(Bundle outState) {
+    for (RealMortarScope child : children.values()) {
+      if (!(child instanceof RealActivityScope)) continue;
+      ((RealActivityScope) child).onSaveInstanceState(outState);
+    }
+
+    active = false;
+
     latestSavedInstanceState = outState;
-    for (Bundler b : bundlers) b.onSave(getChildBundle(b, outState));
+    for (Bundler b : loaded) {
+      b.onSave(getChildBundle(b, outState));
+      unloaded.add(b);
+    }
+    loaded.clear();
   }
 
   @Override public MortarScope requireChild(Blueprint blueprint) {
     MortarScope unwrapped = super.requireChild(blueprint);
-    if (unwrapped instanceof RealActivityChildScope) return unwrapped;
+    if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityChildScope childScope = new RealActivityChildScope((RealMortarScope) unwrapped);
+    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped, active);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    register(childScope);
     return childScope;
   }
 
