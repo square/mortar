@@ -17,7 +17,6 @@ package mortar;
 
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.util.Log;
 
 /**
  * @param <D> the type of info this dialog displays. T must provide value-based implementations
@@ -39,7 +38,6 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     if (whatToShow == info || whatToShow != null && whatToShow.equals(info)) {
       // It's very likely this is a button bounce
       // http://stackoverflow.com/questions/2886407/dealing-with-rapid-tapping-on-buttons
-      Log.w(getMortarBundleKey(), "Already showing, ignoring redundant call");
       return;
     }
 

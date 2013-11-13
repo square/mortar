@@ -124,8 +124,6 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     @Override public void onSave(Bundle outState) {
       super.onSave(outState);
       ensureStopped();
-      // TODO this should be done for us, and for every presenter
-      dropView();
     }
 
     @Override public void onDestroy() {
