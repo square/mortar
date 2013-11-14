@@ -35,6 +35,9 @@ public class Mortar {
   /**
    * Returns the existing {@link MortarActivityScope} scope for the given {@link Activity}, or
    * uses the {@link Blueprint} to create one if none is found.
+   * <p/>
+   * It is expected that this method will be called from {@link Activity#onCreate}. Calling
+   * it at other times may lead to surprises.
    */
   public static MortarActivityScope getActivityScope(MortarScope parentScope,
       final Blueprint blueprint) {
@@ -46,7 +49,7 @@ public class Mortar {
       activityScope = (RealActivityScope) unwrapped;
     } else {
       RealMortarScope realParentScope = (RealMortarScope) parentScope;
-      activityScope = new RealActivityScope(unwrapped);
+      activityScope = new RealActivityScope(unwrapped, false);
       realParentScope.replaceChild(name, activityScope);
     }
 

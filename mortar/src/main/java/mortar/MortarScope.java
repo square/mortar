@@ -24,6 +24,10 @@ public interface MortarScope {
 
   ObjectGraph getObjectGraph();
 
+  /**
+   * Register the given to have its {@link mortar.Scoped#onDestroy()} method called from {@link
+   * #destroy()}. Redundant calls are no-ops.
+   */
   void register(Scoped scoped);
 
   MortarScope getParent();

@@ -14,6 +14,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+// Robolectric allows us to use Bundles.
 @RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class MortarActivityScopeTest {
 
@@ -75,44 +77,66 @@ public class MortarActivityScopeTest {
 
   @Test
   public void lifeCycle() {
-    activityScope.register(scoped);
-    activityScope.register(earlyBundler);
+    doTest(activityScope);
+  }
 
-    // Load is always called immediately.
-    verify(earlyBundler).onLoad(isNull(Bundle.class));
+  @Test
+  public void childLifeCycle() {
+    doTest((MortarActivityScope) activityScope.requireChild(new ModuleAndBlueprint()));
+  }
+
+  @Test
+  public void childCreatedWhileActive() {
+    activityScope.onCreate(null);
+    activityScope.onResume();
+    MortarScope child = activityScope.requireChild(new ModuleAndBlueprint());
+    child.register(earlyBundler);
+    verify(earlyBundler).onLoad(any(Bundle.class));
+  }
+
+  private void doTest(MortarActivityScope registerScope) {
+    registerScope.register(scoped);
+    registerScope.register(earlyBundler);
+
+    // Load is not called before resume.
+    verify(earlyBundler, times(0)).onLoad(any(Bundle.class));
 
     activityScope.onCreate(null);
-    // Load is not called on create
-    verify(earlyBundler, times(1)).onLoad(isNull(Bundle.class));
+    // Load is not called on create, because it's before resume. See?
+    verify(earlyBundler, times(0)).onLoad(any(Bundle.class));
 
-    // Load is not called again on resume. (Actually, I think this is a bug, but for now
-    // it's expected.)
+    // Resuming, now we can load
     activityScope.onResume();
-    verify(earlyBundler, times(2)).onLoad(isNull(Bundle.class));
+    verify(earlyBundler).onLoad(isNull(Bundle.class));
 
+    // When we save, the bundler gets its own bundle to write to.
     Bundle out = new Bundle();
     activityScope.onSaveInstanceState(out);
-    verify(earlyBundler, times(1)).onSave(earlyCaptor.capture());
+    verify(earlyBundler).onSave(earlyCaptor.capture());
 
     assertThat(out.keySet()).hasSize(1);
     assertThat(earlyCaptor.getValue()).isSameAs(out.getBundle("early"));
+    earlyCaptor.getAllValues().clear();
 
+    // Resuming the same activity instance, the out bundle is sent to load()
     activityScope.onResume();
-    verify(earlyBundler, times(3)).onLoad(earlyCaptor.capture());
-
+    verify(earlyBundler, times(2)).onLoad(earlyCaptor.capture());
     assertThat(earlyCaptor.getValue()).isSameAs(out.getBundle("early"));
+    earlyCaptor.getAllValues().clear();
 
     // A new registrant shows up and gets the bundle right away.
-    activityScope.register(lateBundler);
+    registerScope.register(lateBundler);
     verify(lateBundler).onLoad(lateCaptor.capture());
     assertThat(out.keySet()).hasSize(2);
     assertThat(lateCaptor.getValue()).isSameAs(out.getBundle("late"));
 
     // A new activity instance appears
+    activityScope.onSaveInstanceState(out);
     Bundle fromNewActivity = new Bundle(out);
+
     activityScope.onCreate(fromNewActivity);
     activityScope.onResume();
-    verify(earlyBundler, times(4)).onLoad(lateCaptor.capture());
+    verify(earlyBundler, times(3)).onLoad(earlyCaptor.capture());
     verify(lateBundler, times(2)).onLoad(lateCaptor.capture());
     assertThat(earlyCaptor.getValue()).isSameAs(fromNewActivity.getBundle("early"));
     assertThat(lateCaptor.getValue()).isSameAs(fromNewActivity.getBundle("late"));
@@ -127,72 +151,6 @@ public class MortarActivityScopeTest {
     // destroy() is idemptotent
 
     activityScope.destroy();
-    verify(scoped, times(1)).onDestroy();
-    verify(earlyBundler, times(1)).onDestroy();
-    verify(lateBundler, times(1)).onDestroy();
-  }
-
-  @Test
-  public void childLifeCycle() {
-    MortarScope child = activityScope.requireChild(new ModuleAndBlueprint());
-
-    child.register(scoped);
-    child.register(earlyBundler);
-
-    // Load is always called immediately.
-    verify(earlyBundler).onLoad(isNull(Bundle.class));
-
-    activityScope.onCreate(null);
-    // Load is not called on create
-    verify(earlyBundler, times(1)).onLoad(isNull(Bundle.class));
-
-    // Load is not called again on resume. (Actually, I think this is a bug, but for now
-    // it's expected.)
-    activityScope.onResume();
-    verify(earlyBundler, times(2)).onLoad(isNull(Bundle.class));
-
-    Bundle out = new Bundle();
-    activityScope.onSaveInstanceState(out);
-    verify(earlyBundler, times(1)).onSave(earlyCaptor.capture());
-
-    assertThat(out.keySet()).hasSize(1);
-    Bundle firstTopBundle = out.getBundle("name");
-    assertThat(firstTopBundle.keySet()).hasSize(1);
-    assertThat(earlyCaptor.getValue()).isSameAs(firstTopBundle.getBundle("early"));
-
-    activityScope.onResume();
-    verify(earlyBundler, times(3)).onLoad(earlyCaptor.capture());
-
-    assertThat(earlyCaptor.getValue()).isSameAs(firstTopBundle.getBundle("early"));
-
-    // A new registrant shows up and gets the bundle right away.
-    child.register(lateBundler);
-    verify(lateBundler).onLoad(lateCaptor.capture());
-    assertThat(out.keySet()).hasSize(1);
-    assertThat(firstTopBundle.keySet()).hasSize(2);
-    assertThat(lateCaptor.getValue()).isSameAs(firstTopBundle.getBundle("late"));
-
-    // A new activity instance appears
-    Bundle fromNewActivity = new Bundle(out);
-    activityScope.onCreate(fromNewActivity);
-    activityScope.onResume();
-    verify(earlyBundler, times(4)).onLoad(lateCaptor.capture());
-    verify(lateBundler, times(2)).onLoad(lateCaptor.capture());
-
-    Bundle nextTopBundle = fromNewActivity.getBundle("name");
-    assertThat(earlyCaptor.getValue()).isSameAs(nextTopBundle.getBundle("early"));
-    assertThat(lateCaptor.getValue()).isSameAs(nextTopBundle.getBundle("late"));
-
-    verifyNoMoreInteractions(scoped);
-
-    activityScope.destroy();
-    verify(scoped).onDestroy();
-    verify(earlyBundler).onDestroy();
-    verify(lateBundler).onDestroy();
-
-    // recursive destroy() is idemptotent
-
-    child.destroy();
     verify(scoped, times(1)).onDestroy();
     verify(earlyBundler, times(1)).onDestroy();
     verify(lateBundler, times(1)).onDestroy();
