@@ -87,7 +87,12 @@ activity's scope, say an `@Singleton FooEditor`, can be injected by the
 activity and any of its views, but is not accessible to the rest of the
 application.
 
-When a scope is destroyed, like when `MortarScope#destroy()` is called from an `Activity#finish()` method, it drops all references to its own object graph and makes its children do the same, freeing up everything to be GC'd. Each portion of the app has the convenience of global singletons, with no concerns that precious RAM is being consumed by things the user doesn't care about at the moment.
+When a scope is destroyed, like when `MortarScope#destroy()` is called from an
+`Activity#finish()` method, it drops all references to its own object graph
+and makes its children do the same, freeing up everything to be GC'd. Each 
+portion of the app has the convenience of global singletons, with no concerns 
+that precious RAM is being consumed by things the user doesn't care about at 
+the moment.
 
 ### Tiny…fragments…of scopes
 
@@ -148,7 +153,7 @@ public class MyView extends View implements MyScreen.View {
 
   public MyView(Context context) {
     super(context);
-    Mortar.inject(getContext(), this);
+    Mortar.inject(context, this);
 
     someText = (TextView) findById(R.id.some_text);
 
@@ -163,12 +168,16 @@ public class MyView extends View implements MyScreen.View {
     super.onAttachedToWindow();
     presenter.takeView(this);
   }
+  
+  @Override public MortarScope getMortarScope() {
+    return Mortar.getScope(getContext());
+  }
 
-  public String getSomeText() {
+  @Override public String getSomeText() {
     return someText.getText().toString();
   }
 
-  public void showResult(SomeResult result) {
+  @Override public void showResult(SomeResult result) {
     ...
   }
  }
@@ -191,7 +200,7 @@ public class MyScreen implements Blueprint {
   public class DaggerModule {
   }
 
-  public interface View extends HasGrenadeScope {
+  public interface View extends HasMortarScope {
     String getSomeText();
     void showResult(SomeResult r);
   }
@@ -203,7 +212,7 @@ public class MyScreen implements Blueprint {
     private SomeResult lastResult;
 
     @Inject
-    MyPresenter(SomeAsyncService service) {
+    Presenter(SomeAsyncService service) {
       this.service = service;
     }
 
@@ -221,7 +230,7 @@ public class MyScreen implements Blueprint {
     }
 
     public void someButtonClicked() {
-      someAsyncService.doSomethingAsync(getView().getSomeText(),
+      service.doSomethingAsync(getView().getSomeText(),
           new AsyncCallback<SomeResult>() {
             public void onResult(SomeResult result)
               lastResult = result;
