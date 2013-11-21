@@ -23,7 +23,7 @@ import android.os.Bundle;
  */
 public interface MortarActivityScope extends MortarScope {
   /**
-   * Registers the given to have its {@link mortar.Scoped#onDestroy()} method called. In addition,
+   * Registers the given to have its {@link Scoped#onDestroy()} method called. In addition,
    * if it is an instance of {@link Bundler}:
    * <ul>
    * <li>{@link Bundler#onLoad} is called immediately</li>
