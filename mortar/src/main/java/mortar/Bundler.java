@@ -27,24 +27,24 @@ public interface Bundler extends Scoped {
 
   /**
    * Called when this object is first {@link MortarScope#register registered}, and each time a
-   * new {@link android.app.Activity} instance is created (typically after a configuration change
-   * like rotation). Note that the receiver may outlive multiple activity instances, and so receive
-   * multiple calls to this method. It is also possible to receive several redundant calls
-   * before any call to {@link #onSave} (sorry, working on it). Always be idempotent.
+   * host {@link android.app.Activity} resumes (e.g. after a configuration change like rotation,
+   * or after the app is paused and resumed). Redundant calls to this method are par for the
+   * course, so implementations must be idempotent.
    *
-   * @param savedInstanceState written by the previous activity instance, or null if this is a
-   * fresh creation.
+   * @param savedInstanceState the state written by the most recent call to {@link #onSave}, or
+   * null if that has never happened.
    */
   void onLoad(Bundle savedInstanceState);
 
   /**
    * Called from the {@link android.app.Activity#onSaveInstanceState onSaveInstanceState} method
-   * of the current {@link android.app.Activity}. This is the receiver's sign that the activity
-   * is being torn down, and possibly the entire app along with it.
+   * of the host {@link android.app.Activity}. This is the receiver's sign that the
+   * activity is being torn down, and possibly the entire app along with it.
    * <p/>
-   * Note that receivers may outlive multiple activity instances, and so receive multiple calls
-   * of this method. Any precious state should be written out each time, as there is no way to
-   * know if the app is about to hibernate.
+   * Note that receivers are likely to outlive multiple activity instances, and so receive multiple
+   * calls of this method. Any state required to revive a new instance of the receiver in a new
+   * process should be written out each time, as there is no way to know if the app is about to
+   * hibernate.
    *
    * @param outState a bundle to write any state that needs to be restored if the plugin is
    * revived

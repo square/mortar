@@ -16,15 +16,24 @@
 package mortar;
 
 import android.os.Bundle;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static java.lang.String.format;
 
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
-  private final Set<Bundler> bundlers = new HashSet<Bundler>();
-
   private Bundle latestSavedInstanceState;
+
+  private enum State {
+    IDLE, LOADING, SAVING
+  }
+
+  private State state = State.IDLE;
+
+  private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
+  private Set<Bundler> bundlers = new HashSet<Bundler>();
 
   RealActivityScope(RealMortarScope original) {
     super(original.getName(), ((RealMortarScope) original.getParent()), original.validate,
@@ -32,44 +41,88 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   @Override public void register(Scoped scoped) {
-    if (scoped instanceof Bundler) {
-      Bundler b = (Bundler) scoped;
-      String mortarBundleKey = b.getMortarBundleKey();
-      if (mortarBundleKey == null || mortarBundleKey.trim().equals("")) {
-        throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
-      }
-      b.onLoad(getChildBundle(b, latestSavedInstanceState));
-      if (!bundlers.contains(b)) bundlers.add(b);
+    doRegister(scoped);
+    if (!(scoped instanceof Bundler)) return;
+
+    Bundler b = (Bundler) scoped;
+    String mortarBundleKey = b.getMortarBundleKey();
+    if (mortarBundleKey == null || mortarBundleKey.trim().equals("")) {
+      throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
     }
 
-    doRegister(scoped);
+    switch (state) {
+      case IDLE:
+        toloadThisTime.add(b);
+        doLoading();
+        break;
+      case LOADING:
+        if (!toloadThisTime.contains(b) && !bundlers.contains(b)) toloadThisTime.add(b);
+        break;
+      case SAVING:
+        bundlers.add(b);
+        break;
+
+      default:
+        throw new AssertionError("Unknown state " + state);
+    }
   }
 
   @Override public void onCreate(Bundle savedInstanceState) {
+    assertNotDead();
+
+    // Make note of the bundle to send it to bundlers when register is called.
     latestSavedInstanceState = savedInstanceState;
-    for (Bundler b : bundlers) {
-      if (b instanceof RealActivityChildScope) {
-        ((RealActivityChildScope) b).onCreate(getChildBundle(b, savedInstanceState));
-      }
+
+    for (RealMortarScope child : children.values()) {
+      if (!(child instanceof RealActivityScope)) continue;
+      ((RealActivityScope) child).onCreate(getChildBundle(child, savedInstanceState, false));
     }
   }
 
   @Override public void onResume() {
-    for (Bundler b : bundlers) b.onLoad(getChildBundle(b, latestSavedInstanceState));
+    assertNotDead();
+
+    toloadThisTime.addAll(bundlers);
+    doLoading();
+
+    for (RealMortarScope child : children.values()) {
+      if (!(child instanceof RealActivityScope)) continue;
+      ((RealActivityScope) child).onResume();
+    }
   }
 
   @Override public void onSaveInstanceState(Bundle outState) {
+    assertNotDead();
+    if (state != State.IDLE) {
+      throw new IllegalStateException("Cannot handle onSaveInstanceState while " + state);
+    }
+
     latestSavedInstanceState = outState;
-    for (Bundler b : bundlers) b.onSave(getChildBundle(b, outState));
+
+    state = State.SAVING;
+    for (Bundler b : new ArrayList<Bundler>(bundlers)) {
+      // If anyone's onSave method destroyed us, short circuit.
+      if (isDead()) return;
+
+      b.onSave(getChildBundle(b, latestSavedInstanceState, true));
+    }
+
+    for (RealMortarScope child : children.values()) {
+      if (!(child instanceof RealActivityScope)) return;
+      ((RealActivityScope) child).onSaveInstanceState(
+          getChildBundle(child, latestSavedInstanceState, true));
+    }
+
+    state = State.IDLE;
   }
 
   @Override public MortarScope requireChild(Blueprint blueprint) {
     MortarScope unwrapped = super.requireChild(blueprint);
-    if (unwrapped instanceof RealActivityChildScope) return unwrapped;
+    if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityChildScope childScope = new RealActivityChildScope((RealMortarScope) unwrapped);
+    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    register(childScope);
+    childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
     return childScope;
   }
 
@@ -81,13 +134,38 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     super.onChildDestroyed(child);
   }
 
-  static Bundle getChildBundle(Bundler bundler, Bundle bundle) {
-    return bundle == null ? null : getNamedBundle(bundler.getMortarBundleKey(), bundle);
+  private void doLoading() {
+    if (state != State.IDLE) {
+      throw new IllegalStateException("Cannot load while " + state);
+    }
+
+    // Call onLoad. Watch out for new registrants, and don't loop on re-registration.
+    // Also watch out for the scope getting destroyed from an onload, short circuit.
+
+    state = State.LOADING;
+    while (!toloadThisTime.isEmpty()) {
+      if (isDead()) return;
+
+      Bundler next = toloadThisTime.remove(0);
+      bundlers.add(next);
+      next.onLoad(getChildBundle(next, latestSavedInstanceState, false));
+    }
+    state = State.IDLE;
   }
 
-  private static Bundle getNamedBundle(String name, Bundle bundle) {
+  private Bundle getChildBundle(Bundler bundler, Bundle bundle, boolean eager) {
+    return getNamedBundle(bundler.getMortarBundleKey(), bundle, eager);
+  }
+
+  private Bundle getChildBundle(MortarScope scope, Bundle bundle, boolean eager) {
+    return getNamedBundle(scope.getName(), bundle, eager);
+  }
+
+  private Bundle getNamedBundle(String name, Bundle bundle, boolean eager) {
+    if (bundle == null) return null;
+
     Bundle child = bundle.getBundle(name);
-    if (child == null) {
+    if (eager && child == null) {
       child = new Bundle();
       bundle.putBundle(name, child);
     }

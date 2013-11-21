@@ -27,9 +27,11 @@ import java.util.Set;
 class RealMortarScope implements MortarScope {
 
   protected final boolean validate;
+  protected final Map<String, RealMortarScope> children = new HashMap<String, RealMortarScope>();
+
+  protected boolean dead;
 
   private final Set<Scoped> tearDowns = new HashSet<Scoped>();
-  private final Map<Object, MortarScope> children = new HashMap<Object, MortarScope>();
   private final ObjectGraph graph;
   private final RealMortarScope parent;
   private final String name;
@@ -48,6 +50,7 @@ class RealMortarScope implements MortarScope {
   }
 
   @Override public final ObjectGraph getObjectGraph() {
+    assertNotDead();
     return graph;
   }
 
@@ -63,21 +66,25 @@ class RealMortarScope implements MortarScope {
   }
 
   void doRegister(Scoped scoped) {
+    assertNotDead();
     tearDowns.add(scoped);
   }
 
-  @Override public MortarScope getParent() {
+  MortarScope getParent() {
     return parent;
   }
 
-  @Override public MortarScope findChild(String childName) {
+  @Override public RealMortarScope findChild(String childName) {
+    assertNotDead();
     return children.get(childName);
   }
 
   @Override
   public MortarScope requireChild(Blueprint blueprint) {
+    assertNotDead();
+
     String childName = blueprint.getMortarScopeName();
-    MortarScope child = findChild(childName);
+    RealMortarScope child = findChild(childName);
 
     if (child == null) {
       Object daggerModule = blueprint.getDaggerModule();
@@ -95,7 +102,7 @@ class RealMortarScope implements MortarScope {
     return child;
   }
 
-  void replaceChild(String childName, MortarScope scope) {
+  void replaceChild(String childName, RealMortarScope scope) {
     if (scope.getParent() != this) {
       throw new IllegalArgumentException("Replacement scope must have receiver as parent");
     }
@@ -107,6 +114,9 @@ class RealMortarScope implements MortarScope {
   }
 
   @Override public void destroy() {
+    if (dead) return;
+    dead = true;
+
     for (Scoped s : tearDowns) s.onDestroy();
     tearDowns.clear();
     if (parent != null) parent.onChildDestroyed(this);
@@ -116,6 +126,16 @@ class RealMortarScope implements MortarScope {
   }
 
   @Override public String toString() {
-    return getName();
+    return "RealMortarScope@" + System.identityHashCode(this) + "{" +
+        "name='" + getName() + '\'' +
+        '}';
+  }
+
+  boolean isDead() {
+    return dead;
+  }
+
+  void assertNotDead() {
+    if (isDead()) throw new IllegalStateException("Scope " + getName() + " was destroyed");
   }
 }

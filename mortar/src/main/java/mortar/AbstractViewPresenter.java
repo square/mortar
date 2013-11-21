@@ -27,6 +27,11 @@ public abstract class AbstractViewPresenter<V extends HasMortarScope>
    * constructor. Instead call it after construction when the view is known to be going
    * live, e.g. from {@link android.app.Activity#onCreate} or
    * {@link android.view.View#onAttachedToWindow()}.
+   * <p/>
+   * This presenter will be immediately {@link MortarActivityScope#register registered} (or
+   * re-registered), leading to an immediate call to {@link #onLoad}
+   *
+   * @see MortarActivityScope#register
    */
   @Override
   public final void takeView(V view) {

@@ -20,17 +20,46 @@ import dagger.ObjectGraph;
 public interface MortarScope {
   String ROOT_NAME = "Root";
 
+  /** Returns the name of this scope. */
   String getName();
 
+  /**
+   * Returns the {@link ObjectGraph} for this scope.
+   *
+   * @throws IllegalStateException if this scope has been destroyed
+   */
   ObjectGraph getObjectGraph();
 
+  /**
+   * Register the given {@link Scoped} instance to have its {@link Scoped#onDestroy()} method
+   * called from {@link #destroy()}. Redundant calls are safe, they will not lead to double
+   * registration.
+   *
+   * @throws IllegalStateException if this scope has been destroyed
+   */
   void register(Scoped scoped);
 
-  MortarScope getParent();
-
+  /**
+   * Returns the child instance whose name matches the given, or null if there is none.
+   *
+   * @throws IllegalStateException if this scope has been destroyed
+   */
   MortarScope findChild(String name);
 
+  /**
+   * Returns the existing child whose name matches the given {@link Blueprint}'s
+   * {@link Blueprint#getMortarScopeName()} value. If there is none, a new child is created
+   * based on {@link Blueprint#getDaggerModule()}. Note that {@link Blueprint#getDaggerModule()} is
+   * not called otherwise.
+   *
+   * @throws IllegalStateException if this scope has been destroyed
+   */
   MortarScope requireChild(Blueprint blueprint);
 
+  /**
+   * Sends {@link Scoped#onDestroy()} to all registrants and then clears the registration
+   * list. Recursively destroys all children. Parent scope drops its reference to this instance.
+   * Redundant calls to this method are safe.
+   */
   void destroy();
 }
