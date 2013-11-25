@@ -116,7 +116,8 @@ public class MortarScopeTest {
     }
   }
 
-  @Module(injects = DoImpossible.class) class Impossible implements Blueprint {
+  @Module(injects = DoImpossible.class, complete = false, library = true) class Impossible
+      implements Blueprint {
     @Override public String getMortarScopeName() {
       return "Impossible";
     }

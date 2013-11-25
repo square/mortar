@@ -35,6 +35,11 @@
       <artifactId>dagger</artifactId>
       <version>${dagger.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.squareup.dagger</groupId>
+      <artifactId>dagger-compiler</artifactId>
+      <version>${dagger.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
