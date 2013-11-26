@@ -72,7 +72,7 @@ public class Main implements Blueprint {
     void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction);
   }
 
-  @Singleton static class Presenter extends AbstractViewPresenter<Main.View>
+  @Singleton static class Presenter extends AbstractViewPresenter<View>
       implements Flow.Listener {
     private static final String FLOW_KEY = "flow";
     private static final Blueprint NO_SCREEN = new Blueprint() {

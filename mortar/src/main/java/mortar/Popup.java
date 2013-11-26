@@ -20,13 +20,8 @@ package mortar;
  *
  * @see PopupPresenter
  * @param <D> info to display
- * @param <R> result to report on dismissal
  */
-public interface Popup<D, R> extends HasMortarScope {
-  interface Listener<R> {
-    void onDismissed(R result);
-  }
-
+public interface Popup<D> extends HasMortarScope {
   /**
    * Show the given info. How to handle redundant calls is a decision to be made
    * per implementation. Some classes may throw {@link IllegalStateException}

@@ -67,14 +67,11 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     @Provides Chat provideConversation(Chats chats) {
       return chats.getChat(conversationIndex);
     }
-
-    @Provides
-    PopupPresenter<Confirmation, Boolean> provideConfirmer(Presenter presenter) {
-      return presenter.confirmer;
-    }
   }
 
   public interface View extends HasMortarScope {
+    ConfirmerPopup getConfirmerPopup(PopupPresenter<Confirmation, Boolean> presenter);
+
     ArrayAdapter<Message> getItems();
 
     void toast(String message);
@@ -119,6 +116,11 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       actionBar.setConfig(actionBarConfig);
 
       ensureRunning();
+    }
+
+    @Override public void takeView(View view) {
+      super.takeView(view);
+      confirmer.takeView(view.getConfirmerPopup(confirmer));
     }
 
     @Override public void onSave(Bundle outState) {

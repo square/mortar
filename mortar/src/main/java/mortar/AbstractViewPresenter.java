@@ -18,8 +18,7 @@ package mortar;
 import android.os.Bundle;
 import java.lang.ref.WeakReference;
 
-public abstract class AbstractViewPresenter<V extends HasMortarScope>
-    implements Bundler, ViewPresenter<V> {
+public abstract class AbstractViewPresenter<V extends HasMortarScope> implements Bundler {
   private WeakReference<V> view = new WeakReference<V>(null);
 
   /**
@@ -33,8 +32,7 @@ public abstract class AbstractViewPresenter<V extends HasMortarScope>
    *
    * @see MortarActivityScope#register
    */
-  @Override
-  public final void takeView(V view) {
+  public void takeView(V view) {
     if (view == null) throw new NullPointerException("view must not be null");
     this.view = new WeakReference<V>(view);
     view.getMortarScope().register(this);

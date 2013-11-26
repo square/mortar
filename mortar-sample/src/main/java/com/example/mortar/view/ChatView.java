@@ -32,27 +32,30 @@ import mortar.MortarScope;
 import mortar.PopupPresenter;
 
 public class ChatView extends ListView implements ChatScreen.View {
-  private final ConfirmerPopup confirmerPopup;
-
   @Inject ChatScreen.Presenter presenter;
-  @Inject PopupPresenter<Confirmation, Boolean> confirmerPresenter;
+
+  private ConfirmerPopup confirmerPopup;
 
   public ChatView(Context context, AttributeSet attrs) {
     super(context, attrs);
     Mortar.inject(context, this);
 
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-    confirmerPopup = new ConfirmerPopup(context, confirmerPresenter);
   }
 
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     presenter.takeView(this);
-    confirmerPresenter.takeView(confirmerPopup);
   }
 
   @Override public MortarScope getMortarScope() {
     return Mortar.getScope(getContext());
+  }
+
+  @Override
+  public ConfirmerPopup getConfirmerPopup(PopupPresenter<Confirmation, Boolean> presenter) {
+    if (confirmerPopup == null) confirmerPopup = new ConfirmerPopup(getContext(), presenter);
+    return confirmerPopup;
   }
 
   @Override public ArrayAdapter<Message> getItems() {

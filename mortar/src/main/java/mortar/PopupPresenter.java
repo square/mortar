@@ -24,7 +24,7 @@ import android.os.Parcelable;
  * to work properly.
  */
 public abstract class PopupPresenter<D extends Parcelable, R>
-    extends AbstractViewPresenter<Popup<D, R>> implements Popup.Listener<R> {
+    extends AbstractViewPresenter<Popup<D>> {
   private static String KEY = "popup";
   private static boolean WITH_FLOURISH = true;
 
@@ -42,7 +42,7 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     }
 
     whatToShow = info;
-    Popup<D, R> view = getView();
+    Popup<D> view = getView();
     if (view == null) return;
     view.show(whatToShow, WITH_FLOURISH);
   }
@@ -51,14 +51,14 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     if (whatToShow != null) {
       whatToShow = null;
 
-      Popup<D, R> popUp = getView();
+      Popup<D> popUp = getView();
       if (popUp == null) return;
 
       if (popUp.isShowing()) popUp.dismiss(WITH_FLOURISH);
     }
   }
 
-  @Override public final void onDismissed(R result) {
+  public final void onDismissed(R result) {
     whatToShow = null;
     onPopupResult(result);
   }
@@ -72,7 +72,7 @@ public abstract class PopupPresenter<D extends Parcelable, R>
 
     if (whatToShow == null) return;
 
-    Popup<D, R> view = getView();
+    Popup<D> view = getView();
     if (view == null) return;
 
     if (!view.isShowing()) view.show(whatToShow, !WITH_FLOURISH);
@@ -81,7 +81,7 @@ public abstract class PopupPresenter<D extends Parcelable, R>
   @Override public void onSave(Bundle outState) {
     if (whatToShow != null) outState.putParcelable(KEY, whatToShow);
 
-    Popup<D, R> popUp = getView();
+    Popup<D> popUp = getView();
     if (popUp == null) return;
 
     if (popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
@@ -89,7 +89,7 @@ public abstract class PopupPresenter<D extends Parcelable, R>
   }
 
   @Override public void onDestroy() {
-    Popup<D, R> popUp = getView();
+    Popup<D> popUp = getView();
     if (popUp != null && popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
     super.onDestroy();
   }

@@ -21,16 +21,17 @@ import android.content.DialogInterface;
 import mortar.Mortar;
 import mortar.MortarScope;
 import mortar.Popup;
+import mortar.PopupPresenter;
 
-public class ConfirmerPopup implements Popup<Confirmation, Boolean> {
+public class ConfirmerPopup implements Popup<Confirmation> {
   private final Context context;
-  private final Listener<Boolean> listener;
+  private final PopupPresenter<Confirmation, Boolean> presenter;
 
   private AlertDialog dialog;
 
-  public ConfirmerPopup(Context context, Listener<Boolean> listener) {
+  public ConfirmerPopup(Context context, PopupPresenter<Confirmation, Boolean> presenter) {
     this.context = context;
-    this.listener = listener;
+    this.presenter = presenter;
   }
 
   @Override public MortarScope getMortarScope() {
@@ -46,20 +47,20 @@ public class ConfirmerPopup implements Popup<Confirmation, Boolean> {
         .setPositiveButton(info.confirm, new DialogInterface.OnClickListener() {
           @Override public void onClick(DialogInterface d, int which) {
             dialog = null;
-            listener.onDismissed(true);
+            presenter.onDismissed(true);
           }
         })
         .setNegativeButton(info.cancel, new DialogInterface.OnClickListener() {
           @Override public void onClick(DialogInterface d, int which) {
             dialog = null;
-            listener.onDismissed(false);
+            presenter.onDismissed(false);
           }
         })
         .setCancelable(true)
         .setOnCancelListener(new DialogInterface.OnCancelListener() {
           @Override public void onCancel(DialogInterface d) {
             dialog = null;
-            listener.onDismissed(false);
+            presenter.onDismissed(false);
           }
         })
         .show();
