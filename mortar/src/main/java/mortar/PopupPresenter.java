@@ -65,6 +65,12 @@ public abstract class PopupPresenter<D extends Parcelable, R>
 
   abstract protected void onPopupResult(R result);
 
+  @Override public void takeView(Popup<D> view) {
+    Popup<D> oldView = getView();
+    if (oldView != null && oldView.isShowing()) oldView.dismiss(false);
+    super.takeView(view);
+  }
+
   @Override public void onLoad(Bundle savedInstanceState) {
     if (whatToShow == null && savedInstanceState != null) {
       whatToShow = savedInstanceState.getParcelable(KEY);
@@ -85,7 +91,6 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     if (popUp == null) return;
 
     if (popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
-    dropView();
   }
 
   @Override public void onDestroy() {
