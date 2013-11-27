@@ -89,7 +89,9 @@ class RealMortarScope implements MortarScope {
     if (child == null) {
       Object daggerModule = blueprint.getDaggerModule();
       ObjectGraph newGraph;
-      if (daggerModule instanceof Collection) {
+      if (daggerModule == null) {
+        newGraph = graph.plus();
+      } else if (daggerModule instanceof Collection) {
         Collection c = (Collection) daggerModule;
         newGraph = graph.plus(c.toArray(new Object[c.size()]));
       } else {

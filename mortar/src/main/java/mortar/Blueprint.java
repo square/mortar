@@ -32,8 +32,8 @@ public interface Blueprint {
   /**
    * Returns the {@literal @}{@link dagger.Module Module} that will define the scope
    * of the new graph by being added to that of its parent. If the returned value
-   * is an instance of {@link java.util.Collection} its contents will be copied
-   * to an array first, allowing more than one module object to be returned.
+   * is an instance of {@link java.util.Collection} its contents will be used as modules.
+   * Returns null if this scope needs no modules.
    *
    * @see dagger.ObjectGraph#plus(Object...)
    */
