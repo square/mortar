@@ -24,7 +24,7 @@ import android.os.Parcelable;
  * to work properly.
  */
 public abstract class PopupPresenter<D extends Parcelable, R>
-    extends AbstractViewPresenter<Popup<D>> {
+    extends ViewPresenter<Popup<D>> {
   private static String KEY = "popup";
   private static boolean WITH_FLOURISH = true;
 
