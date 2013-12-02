@@ -15,20 +15,22 @@
  */
 package mortar;
 
+import android.os.Parcelable;
+
 /**
  * Implemented by classes that run a popup display for a view, typically a dialog.
  *
  * @see PopupPresenter
  * @param <D> info to display
  */
-public interface Popup<D> extends HasMortarScope {
+public interface Popup<D extends Parcelable, R> extends HasMortarScope {
   /**
    * Show the given info. How to handle redundant calls is a decision to be made
    * per implementation. Some classes may throw {@link IllegalStateException}
    * if the popup is already visible. Others may update a visible display to reflect
    * the new info.
    */
-  void show(D info, boolean withFlourish);
+  void show(D info, boolean withFlourish, PopupPresenter<D, R> presenter);
 
   boolean isShowing();
 

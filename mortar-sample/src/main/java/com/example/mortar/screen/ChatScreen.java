@@ -70,7 +70,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
   }
 
   public interface View extends HasMortarScope {
-    ConfirmerPopup getConfirmerPopup(PopupPresenter<Confirmation, Boolean> presenter);
+    ConfirmerPopup getConfirmerPopup();
 
     ArrayAdapter<Message> getItems();
 
@@ -120,7 +120,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
     @Override public void takeView(View view) {
       super.takeView(view);
-      confirmer.takeView(view.getConfirmerPopup(confirmer));
+      confirmer.takeView(view.getConfirmerPopup());
     }
 
     @Override public void onSave(Bundle outState) {

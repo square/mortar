@@ -29,16 +29,16 @@ import com.example.mortar.screen.ChatScreen;
 import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarScope;
-import mortar.PopupPresenter;
 
 public class ChatView extends ListView implements ChatScreen.View {
   @Inject ChatScreen.Presenter presenter;
 
-  private ConfirmerPopup confirmerPopup;
+  private final ConfirmerPopup confirmerPopup;
 
   public ChatView(Context context, AttributeSet attrs) {
     super(context, attrs);
     Mortar.inject(context, this);
+    confirmerPopup = new ConfirmerPopup(context);
 
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
   }
@@ -53,8 +53,7 @@ public class ChatView extends ListView implements ChatScreen.View {
   }
 
   @Override
-  public ConfirmerPopup getConfirmerPopup(PopupPresenter<Confirmation, Boolean> presenter) {
-    if (confirmerPopup == null) confirmerPopup = new ConfirmerPopup(getContext(), presenter);
+  public ConfirmerPopup getConfirmerPopup() {
     return confirmerPopup;
   }
 

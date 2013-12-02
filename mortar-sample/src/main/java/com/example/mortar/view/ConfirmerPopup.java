@@ -23,15 +23,13 @@ import mortar.MortarScope;
 import mortar.Popup;
 import mortar.PopupPresenter;
 
-public class ConfirmerPopup implements Popup<Confirmation> {
+public class ConfirmerPopup implements Popup<Confirmation, Boolean> {
   private final Context context;
-  private final PopupPresenter<Confirmation, Boolean> presenter;
 
   private AlertDialog dialog;
 
-  public ConfirmerPopup(Context context, PopupPresenter<Confirmation, Boolean> presenter) {
+  public ConfirmerPopup(Context context) {
     this.context = context;
-    this.presenter = presenter;
   }
 
   @Override public MortarScope getMortarScope() {
@@ -39,7 +37,8 @@ public class ConfirmerPopup implements Popup<Confirmation> {
   }
 
   @Override
-  public void show(Confirmation info, boolean withFlourish) {
+  public void show(Confirmation info, boolean withFlourish,
+      final PopupPresenter<Confirmation, Boolean> presenter) {
     if (dialog != null) throw new IllegalStateException("Already showing, can't show " + info);
 
     dialog = new AlertDialog.Builder(context).setTitle(info.title)

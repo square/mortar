@@ -23,8 +23,7 @@ import android.os.Parcelable;
  * of {@link #hashCode()} and {@link #equals(Object)} in order for debouncing code in {@link #show}
  * to work properly.
  */
-public abstract class PopupPresenter<D extends Parcelable, R>
-    extends ViewPresenter<Popup<D>> {
+public abstract class PopupPresenter<D extends Parcelable, R> extends ViewPresenter<Popup<D, R>> {
   private static String KEY = "popup";
   private static boolean WITH_FLOURISH = true;
 
@@ -42,16 +41,16 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     }
 
     whatToShow = info;
-    Popup<D> view = getView();
+    Popup<D, R> view = getView();
     if (view == null) return;
-    view.show(whatToShow, WITH_FLOURISH);
+    view.show(whatToShow, WITH_FLOURISH, this);
   }
 
   public void dismiss() {
     if (whatToShow != null) {
       whatToShow = null;
 
-      Popup<D> popUp = getView();
+      Popup<D, R> popUp = getView();
       if (popUp == null) return;
 
       if (popUp.isShowing()) popUp.dismiss(WITH_FLOURISH);
@@ -65,8 +64,8 @@ public abstract class PopupPresenter<D extends Parcelable, R>
 
   abstract protected void onPopupResult(R result);
 
-  @Override public void takeView(Popup<D> view) {
-    Popup<D> oldView = getView();
+  @Override public void takeView(Popup<D, R> view) {
+    Popup<D, R> oldView = getView();
     if (oldView != null && oldView.isShowing()) oldView.dismiss(false);
     super.takeView(view);
   }
@@ -78,23 +77,23 @@ public abstract class PopupPresenter<D extends Parcelable, R>
 
     if (whatToShow == null) return;
 
-    Popup<D> view = getView();
+    Popup<D, R> view = getView();
     if (view == null) return;
 
-    if (!view.isShowing()) view.show(whatToShow, !WITH_FLOURISH);
+    if (!view.isShowing()) view.show(whatToShow, !WITH_FLOURISH, this);
   }
 
   @Override public void onSave(Bundle outState) {
     if (whatToShow != null) outState.putParcelable(KEY, whatToShow);
 
-    Popup<D> popUp = getView();
+    Popup<D, R> popUp = getView();
     if (popUp == null) return;
 
     if (popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
   }
 
   @Override public void onDestroy() {
-    Popup<D> popUp = getView();
+    Popup<D, R> popUp = getView();
     if (popUp != null && popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
     super.onDestroy();
   }
