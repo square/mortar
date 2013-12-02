@@ -26,7 +26,7 @@ import flow.HasParent;
 import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.AbstractViewPresenter;
+import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
 
@@ -63,7 +63,7 @@ public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
   }
 
   @Singleton
-  public static class Presenter extends AbstractViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<View> {
     private final User friend;
 
     @Inject Presenter(User friend) {

@@ -23,8 +23,7 @@ import android.os.Parcelable;
  * of {@link #hashCode()} and {@link #equals(Object)} in order for debouncing code in {@link #show}
  * to work properly.
  */
-public abstract class PopupPresenter<D extends Parcelable, R>
-    extends AbstractViewPresenter<Popup<D, R>> implements Popup.Listener<R> {
+public abstract class PopupPresenter<D extends Parcelable, R> extends ViewPresenter<Popup<D, R>> {
   private static String KEY = "popup";
   private static boolean WITH_FLOURISH = true;
 
@@ -44,7 +43,7 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     whatToShow = info;
     Popup<D, R> view = getView();
     if (view == null) return;
-    view.show(whatToShow, WITH_FLOURISH);
+    view.show(whatToShow, WITH_FLOURISH, this);
   }
 
   public void dismiss() {
@@ -58,12 +57,18 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     }
   }
 
-  @Override public final void onDismissed(R result) {
+  public final void onDismissed(R result) {
     whatToShow = null;
     onPopupResult(result);
   }
 
   abstract protected void onPopupResult(R result);
+
+  @Override public void takeView(Popup<D, R> view) {
+    Popup<D, R> oldView = getView();
+    if (oldView != null && oldView.isShowing()) oldView.dismiss(false);
+    super.takeView(view);
+  }
 
   @Override public void onLoad(Bundle savedInstanceState) {
     if (whatToShow == null && savedInstanceState != null) {
@@ -75,7 +80,7 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     Popup<D, R> view = getView();
     if (view == null) return;
 
-    if (!view.isShowing()) view.show(whatToShow, !WITH_FLOURISH);
+    if (!view.isShowing()) view.show(whatToShow, !WITH_FLOURISH, this);
   }
 
   @Override public void onSave(Bundle outState) {
@@ -85,7 +90,6 @@ public abstract class PopupPresenter<D extends Parcelable, R>
     if (popUp == null) return;
 
     if (popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
-    dropView();
   }
 
   @Override public void onDestroy() {

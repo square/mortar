@@ -16,11 +16,11 @@
 package com.example.mortar;
 
 import android.os.Bundle;
-import mortar.AbstractViewPresenter;
+import mortar.ViewPresenter;
 import mortar.HasMortarScope;
 import rx.util.functions.Action0;
 
-public class ActionBarOwner extends AbstractViewPresenter<ActionBarOwner.View> {
+public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
   private Config config;
 
   interface View extends HasMortarScope {

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+@SuppressWarnings("InnerClassMayBeStatic")
 public class MortarScopeTest {
   static class MyContext extends Activity implements HasMortarScope {
     @Override public MortarScope getMortarScope() {
@@ -135,6 +136,17 @@ public class MortarScopeTest {
 
     @Override public Object getDaggerModule() {
       return asList(new Delta(), new Echo());
+    }
+  }
+
+  class NoModules implements Blueprint {
+
+    @Override public String getMortarScopeName() {
+      return "Nothing";
+    }
+
+    @Override public Object getDaggerModule() {
+      return null;
     }
   }
 
@@ -324,7 +336,7 @@ public class MortarScopeTest {
   }
 
   @Test
-  public void requireChildWithOneModule() {
+  public void requireGrandchildWithOneModule() {
     MortarScope root = Mortar.createRootScope(false, new Able());
     MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
     MortarScope grandchild = child.requireChild(new Delta());
@@ -354,6 +366,26 @@ public class MortarScopeTest {
     assertThat(objectGraph.get(HasCarrot.class).string).isEqualTo(Carrot.class.getName());
     assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
     assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
+    try {
+      objectGraph.get(String.class);
+    } catch (IllegalArgumentException e) {
+      // pass
+      return;
+    }
+    fail("Expected IllegalArgumentException");
+  }
+
+  @Test
+  public void requireGrandchildWithNoModules() {
+    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
+    MortarScope grandchild = child.requireChild(new NoModules());
+
+    ObjectGraph objectGraph = grandchild.getObjectGraph();
+    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
+    assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
+    assertThat(objectGraph.get(HasCarrot.class).string).isEqualTo(Carrot.class.getName());
+
     try {
       objectGraph.get(String.class);
     } catch (IllegalArgumentException e) {
@@ -423,35 +455,35 @@ public class MortarScopeTest {
   }
 
   @Test
-  public void requireGranddhildWithOneModule() {
+  public void requireChildWithOneModule() {
     MortarScope root = Mortar.createRootScope(false, new Able());
     MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
-    MortarScope grandchild = child.requireChild(new Delta());
-    assertThat(grandchild.getObjectGraph().get(HasApple.class).string).isEqualTo(
-        Apple.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasBagel.class).string).isEqualTo(
-        Bagel.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasCarrot.class).string).isEqualTo(
-        Carrot.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasDogfood.class).string).isEqualTo(
-        Dogfood.class.getName());
+
+    ObjectGraph objectGraph = child.getObjectGraph();
+    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
+    assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
+    assertThat(objectGraph.get(HasCarrot.class).string).isEqualTo(Carrot.class.getName());
   }
 
   @Test
   public void requireChildWithMoreModules() {
     MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
-    MortarScope grandchild = child.requireChild(new MoreModules());
-    assertThat(grandchild.getObjectGraph().get(HasApple.class).string).isEqualTo(
-        Apple.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasBagel.class).string).isEqualTo(
-        Bagel.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasCarrot.class).string).isEqualTo(
-        Carrot.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasDogfood.class).string).isEqualTo(
-        Dogfood.class.getName());
-    assertThat(grandchild.getObjectGraph().get(HasEggplant.class).string).isEqualTo(
-        Eggplant.class.getName());
+    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new MoreModules());
+
+    ObjectGraph objectGraph = child.getObjectGraph();
+    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
+    assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
+    assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
+    assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
+  }
+
+  @Test
+  public void requireChildWithNoModules() {
+    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope child = root.requireChild(new NoModules());
+
+    ObjectGraph objectGraph = child.getObjectGraph();
+    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
   }
 
   @Test

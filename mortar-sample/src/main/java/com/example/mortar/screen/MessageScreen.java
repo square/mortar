@@ -29,7 +29,7 @@ import flow.HasParent;
 import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.AbstractViewPresenter;
+import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
 import rx.Observable;
@@ -72,7 +72,7 @@ public class MessageScreen implements HasParent<ChatScreen>, Blueprint {
   }
 
   @Singleton
-  public static class Presenter extends AbstractViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<View> {
     private final Flow flow;
     private final Observable<Message> messageSource;
 

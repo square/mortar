@@ -33,7 +33,7 @@ import flow.HasParent;
 import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.AbstractViewPresenter;
+import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
 import mortar.PopupPresenter;
@@ -67,21 +67,18 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     @Provides Chat provideConversation(Chats chats) {
       return chats.getChat(conversationIndex);
     }
-
-    @Provides
-    PopupPresenter<Confirmation, Boolean> provideConfirmer(Presenter presenter) {
-      return presenter.confirmer;
-    }
   }
 
   public interface View extends HasMortarScope {
+    ConfirmerPopup getConfirmerPopup();
+
     ArrayAdapter<Message> getItems();
 
     void toast(String message);
   }
 
   @Singleton
-  public static class Presenter extends AbstractViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<View> {
     private final Chat chat;
     private final Flow flow;
     private final ActionBarOwner actionBar;
@@ -119,6 +116,11 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       actionBar.setConfig(actionBarConfig);
 
       ensureRunning();
+    }
+
+    @Override public void takeView(View view) {
+      super.takeView(view);
+      confirmer.takeView(view.getConfirmerPopup());
     }
 
     @Override public void onSave(Bundle outState) {

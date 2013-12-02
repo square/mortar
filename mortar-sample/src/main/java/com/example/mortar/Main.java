@@ -30,7 +30,7 @@ import flow.Parcer;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.AbstractViewPresenter;
+import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.MortarScope;
 import rx.util.functions.Action0;
@@ -72,7 +72,7 @@ public class Main implements Blueprint {
     void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction);
   }
 
-  @Singleton static class Presenter extends AbstractViewPresenter<Main.View>
+  @Singleton static class Presenter extends ViewPresenter<View>
       implements Flow.Listener {
     private static final String FLOW_KEY = "flow";
     private static final Blueprint NO_SCREEN = new Blueprint() {
