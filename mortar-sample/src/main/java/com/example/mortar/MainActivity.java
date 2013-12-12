@@ -16,7 +16,6 @@
 package com.example.mortar;
 
 import android.app.ActionBar;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,7 +28,6 @@ import flow.Screens;
 import javax.inject.Inject;
 import mortar.Blueprint;
 import mortar.Mortar;
-import mortar.MortarContextWrapper;
 import mortar.MortarScope;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
@@ -66,8 +64,7 @@ public class MainActivity extends DemoBaseActivity implements Main.View, ActionB
 
   @Override
   public void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction) {
-    Context screenContext = new MortarContextWrapper(this, screenScope);
-    View screenView = Screens.createView(screenContext, screen);
+    View screenView = Screens.createView(screenScope.createContext(this), screen);
     containerView.displayView(screenView, direction);
   }
 
