@@ -15,6 +15,7 @@
  */
 package mortar;
 
+import android.content.Context;
 import dagger.ObjectGraph;
 
 public interface MortarScope {
@@ -55,6 +56,15 @@ public interface MortarScope {
    * @throws IllegalStateException if this scope has been destroyed
    */
   MortarScope requireChild(Blueprint blueprint);
+
+  /**
+   * Creates a new Context based on the given parent and this scope. e.g.:
+   * <pre><code>
+   * MortarScope childScope = getMortarScope.requireChild(new ChildBlueprint());
+   * MyView newChildView = new MyView(childScope.createContext(getContext());
+   * </code></pre>
+   */
+  Context createContext(Context parentContext);
 
   /**
    * Sends {@link Scoped#onDestroy()} to all registrants and then clears the registration

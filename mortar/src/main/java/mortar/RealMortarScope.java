@@ -15,6 +15,7 @@
  */
 package mortar;
 
+import android.content.Context;
 import dagger.ObjectGraph;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -102,6 +103,10 @@ class RealMortarScope implements MortarScope {
     }
 
     return child;
+  }
+
+  @Override public Context createContext(Context parentContext) {
+    return new MortarContextWrapper(parentContext, this);
   }
 
   void replaceChild(String childName, RealMortarScope scope) {
