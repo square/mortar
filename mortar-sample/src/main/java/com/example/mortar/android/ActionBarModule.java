@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.mortar;
+package com.example.mortar.android;
 
-import android.app.Application;
-import rx.plugins.RxJavaErrorHandler;
-import rx.plugins.RxJavaPlugins;
+import com.example.mortar.DemoActivity;
+import dagger.Module;
+import dagger.Provides;
+import javax.inject.Singleton;
 
-public class DemoApplication extends Application {
-  @Override public void onCreate() {
-    super.onCreate();
-
-    // So that exceptions thrown in RxJava onError methods don't have their stack traces swallowed.
-    RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler() {
-      @Override public void handleError(Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+@Module(injects = DemoActivity.class)
+public class ActionBarModule {
+  @Provides @Singleton ActionBarOwner provideActionBarOwner() {
+    return new ActionBarOwner();
   }
 }

@@ -16,6 +16,7 @@
 package mortar;
 
 import android.os.Bundle;
+import dagger.ObjectGraph;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,10 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
 
   private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
   private Set<Bundler> bundlers = new HashSet<Bundler>();
+
+  RealActivityScope(boolean validate, ObjectGraph objectGraph) {
+    super(validate, objectGraph);
+  }
 
   RealActivityScope(RealMortarScope original) {
     super(original.getName(), ((RealMortarScope) original.getParent()), original.validate,

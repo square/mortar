@@ -16,20 +16,21 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import com.example.mortar.App;
-import com.example.mortar.Main;
+import com.example.mortar.core.Main;
+import com.example.mortar.core.MainScope;
+import com.example.mortar.model.Chats;
 import com.example.mortar.model.User;
 import com.example.mortar.view.FriendListView;
-import dagger.Module;
+import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
 import flow.Screen;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
+import mortar.ViewPresenter;
 
 @Screen(FriendListView.class) //
 public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
@@ -39,12 +40,14 @@ public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
   }
 
   @Override public Object getDaggerModule() {
-    return new DaggerModule();
+    return new Module();
   }
 
-  @Module(injects = { FriendListView.class, FriendListScreen.Presenter.class },
-      addsTo = Main.DaggerModule.class)
-  public static class DaggerModule {
+  @dagger.Module(injects = FriendListView.class, addsTo = Main.Module.class)
+  public static class Module {
+    @Provides List<User> provideFriends(Chats chats) {
+      return chats.getFriends();
+    }
   }
 
   public interface View extends HasMortarScope {
@@ -56,7 +59,7 @@ public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
     private final List<User> friends;
     private final Flow flow;
 
-    @Inject Presenter(List<User> friends, @App Flow flow) {
+    @Inject Presenter(List<User> friends, @MainScope Flow flow) {
       this.friends = friends;
       this.flow = flow;
     }

@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package com.example.mortar;
+package com.example.mortar.core;
 
-public @interface App {
+import java.lang.annotation.Retention;
+import javax.inject.Qualifier;
+
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+@Retention(RUNTIME)
+@Qualifier
+public @interface RpcThread {
 }

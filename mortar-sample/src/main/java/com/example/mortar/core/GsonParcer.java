@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.mortar;
+package com.example.mortar.core;
 
 import android.os.Parcel;
 import android.os.Parcelable;

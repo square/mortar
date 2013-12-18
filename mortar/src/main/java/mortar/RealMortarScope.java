@@ -37,6 +37,10 @@ class RealMortarScope implements MortarScope {
   private final RealMortarScope parent;
   private final String name;
 
+  RealMortarScope(boolean validate, ObjectGraph objectGraph) {
+    this(MortarScope.ROOT_NAME, null, validate, objectGraph);
+  }
+
   RealMortarScope(String name, RealMortarScope parent, boolean validate, ObjectGraph graph) {
     this.graph = graph;
     this.parent = parent;

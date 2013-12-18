@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.mortar;
 
-import java.lang.annotation.Retention;
-import javax.inject.Qualifier;
+package com.example.mortar.core;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-@Retention(RUNTIME)
-@Qualifier
-public @interface MainThread {
+public @interface MainScope {
 }

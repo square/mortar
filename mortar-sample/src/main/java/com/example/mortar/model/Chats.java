@@ -15,7 +15,7 @@
  */
 package com.example.mortar.model;
 
-import com.example.mortar.MainThread;
+import com.example.mortar.core.MainThread;
 import dagger.Provides;
 import java.util.Collections;
 import java.util.List;

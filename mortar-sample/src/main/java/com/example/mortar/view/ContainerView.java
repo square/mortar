@@ -57,6 +57,10 @@ public class ContainerView extends FrameLayout {
     activeView = view;
   }
 
+  protected View getActiveView() {
+    return activeView;
+  }
+
   private void runAnimation(final View from, final View to, Flow.Direction direction) {
     disabled = true;
 

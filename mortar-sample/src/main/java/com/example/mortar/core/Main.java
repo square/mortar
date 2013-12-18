@@ -13,67 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.mortar;
+package com.example.mortar.core;
 
 import android.os.Bundle;
-import com.example.mortar.model.Chat;
+import com.example.mortar.android.ActionBarModule;
+import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.model.Chats;
-import com.example.mortar.model.User;
 import com.example.mortar.screen.ChatListScreen;
 import com.example.mortar.screen.FriendListScreen;
-import dagger.Module;
 import dagger.Provides;
 import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
 import flow.Parcer;
-import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.ViewPresenter;
 import mortar.Blueprint;
+import mortar.HasMortarScope;
 import mortar.MortarScope;
+import mortar.ViewPresenter;
 import rx.util.functions.Action0;
 
-public class Main implements Blueprint {
-  public Object getDaggerModule() {
-    return new DaggerModule();
-  }
+public class Main {
 
-  @Override public String getMortarScopeName() {
-    return getClass().getName();
-  }
-
-  @Module(injects = { MainActivity.class, Main.Presenter.class, ActionBarOwner.class },
-      addsTo = DemoApplication.ApplicationModule.class,
-      library = true)
-  public static class DaggerModule {
-
-    @Provides @Singleton ActionBarOwner provideActionBar() {
-      return new ActionBarOwner();
-    }
-
-    @Provides @App Flow provideAppFlow(Presenter presenter) {
+  @dagger.Module( //
+      includes = { CoreModule.class, ActionBarModule.class, Chats.Module.class },
+      injects = MainView.class,
+      library = true //
+  )
+  public static class Module {
+    @Provides @MainScope Flow provideFlow(Presenter presenter) {
       return presenter.flow;
     }
-
-    @Provides List<Chat> provideConversations(Chats chats) {
-      return chats.getAll();
-    }
-
-    @Provides List<User> provideFriends(Chats chats) {
-      return chats.getFriends();
-    }
   }
 
-  interface View extends ActionBarOwner.View {
-    void finish();
-
+  public interface View extends HasMortarScope {
     void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction);
   }
 
-  @Singleton static class Presenter extends ViewPresenter<View>
-      implements Flow.Listener {
+  @Singleton public static class Presenter extends ViewPresenter<View> implements Flow.Listener {
     private static final String FLOW_KEY = "flow";
     private static final Blueprint NO_SCREEN = new Blueprint() {
       @Override public String getMortarScopeName() {
@@ -142,21 +120,21 @@ public class Main implements Blueprint {
               onFriendsListPicked();
             }
           });
-      actionBarOwner.setConfig(new ActionBarOwner.Config(hasUp, title, menu));
+      actionBarOwner.setConfig(new ActionBarOwner.Config(false, hasUp, title, menu));
 
       view.displayScreen(newScreen, screenScope, direction);
     }
 
-    public void onBackPressed() {
-      if (!flow.goBack()) getView().finish();
-    }
-
-    public void onFriendsListPicked() {
-      flow.goTo(new FriendListScreen());
+    public boolean onRetreatSelected() {
+      return flow.goBack();
     }
 
     public boolean onUpPressed() {
       return flow.goUp();
+    }
+
+    public void onFriendsListPicked() {
+      flow.goTo(new FriendListScreen());
     }
   }
 }

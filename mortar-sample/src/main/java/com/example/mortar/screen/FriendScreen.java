@@ -16,19 +16,18 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import com.example.mortar.Main;
+import com.example.mortar.core.Main;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.User;
 import com.example.mortar.view.FriendView;
-import dagger.Module;
 import dagger.Provides;
 import flow.HasParent;
 import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
+import mortar.ViewPresenter;
 
 @Screen(FriendView.class) //
 public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
@@ -43,16 +42,15 @@ public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
   }
 
   @Override public Object getDaggerModule() {
-    return new DaggerModule();
+    return new Module();
   }
 
   @Override public FriendListScreen getParent() {
     return new FriendListScreen();
   }
 
-  @Module(injects = { FriendView.class, FriendScreen.Presenter.class },
-      addsTo = Main.DaggerModule.class)
-  public class DaggerModule {
+  @dagger.Module(injects = FriendView.class, addsTo = Main.Module.class)
+  public class Module {
     @Provides User provideFriend(Chats chats) {
       return chats.getFriend(index);
     }

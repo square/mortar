@@ -13,35 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.mortar;
+package com.example.mortar.android;
 
 import android.os.Bundle;
-import mortar.ViewPresenter;
 import mortar.HasMortarScope;
+import mortar.ViewPresenter;
 import rx.util.functions.Action0;
 
+/** Allows shared configuration of the Android ActionBar. */
 public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
-  private Config config;
+  public interface View extends HasMortarScope {
+    void setShowHomeEnabled(boolean enabled);
 
-  interface View extends HasMortarScope {
-    void setUpButtonEnabled(boolean b);
+    void setUpButtonEnabled(boolean enabled);
+
     void setTitle(CharSequence title);
+
     void setMenu(MenuAction action);
   }
 
   public static class Config {
+    public final boolean showHomeEnabled;
     public final boolean upButtonEnabled;
     public final CharSequence title;
     public final MenuAction action;
 
-    public Config(boolean upButtonEnabled, CharSequence title, MenuAction action) {
+    public Config(boolean showHomeEnabled, boolean upButtonEnabled, CharSequence title,
+        MenuAction action) {
+      this.showHomeEnabled = showHomeEnabled;
       this.upButtonEnabled = upButtonEnabled;
       this.title = title;
       this.action = action;
     }
 
     public Config withAction(MenuAction action) {
-      return new Config(upButtonEnabled, title, action);
+      return new Config(showHomeEnabled, upButtonEnabled, title, action);
     }
   }
 
@@ -53,6 +59,11 @@ public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
       this.title = title;
       this.action = action;
     }
+  }
+
+  private Config config;
+
+  ActionBarOwner() {
   }
 
   @Override public void onLoad(Bundle savedInstanceState) {
@@ -73,6 +84,7 @@ public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
     View view = getView();
     if (view == null) return;
 
+    view.setShowHomeEnabled(config.showHomeEnabled);
     view.setUpButtonEnabled(config.upButtonEnabled);
     view.setTitle(config.title);
     view.setMenu(config.action);

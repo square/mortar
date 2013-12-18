@@ -17,7 +17,7 @@ package mortar;
 
 /**
  * Defines a scope to be built via {@link MortarScope#requireChild(Blueprint)} or
- * {@link Mortar#getActivityScope(MortarScope, Blueprint)}.
+ * {@link Mortar#requireActivityScope(MortarScope, Blueprint)}.
  */
 public interface Blueprint {
   /**

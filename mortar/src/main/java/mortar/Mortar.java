@@ -19,17 +19,30 @@ import android.app.Activity;
 import android.content.Context;
 import dagger.ObjectGraph;
 
+/**
+ * Provides static bootstrap and integration methods. Simple apps with only one activity
+ * can core their tree of {@link MortarScope}s with an instance created by {@link
+ * #createRootActivityScope}. More unfortunate apps with multiple activities might need
+ * to create a core scope via {@link #createRootScope}, and use {@link #requireActivityScope}
+ * to provide a scope for each activity.
+ */
 public class Mortar {
 
   private Mortar() {
   }
 
+  /** Creates a core scope to live at the activity level. */
+  public static MortarActivityScope createRootActivityScope(boolean validate,
+      ObjectGraph objectGraph) {
+    return new RealActivityScope(validate, objectGraph);
+  }
+
   /**
-   * Creates the root scope, which must be an app-wide singleton. It is typically managed by an
-   * {@link android.app.Application} implementing {@link HasMortarScope}.
+   * Creates a core scope to live above the activity level, typically an app-wide singleton managed
+   * by a custom {@link android.app.Application}.
    */
-  public static MortarScope createRootScope(boolean validate, Object... modules) {
-    return new RealMortarScope(MortarScope.ROOT_NAME, null, validate, ObjectGraph.create(modules));
+  public static MortarScope createRootScope(boolean validate, ObjectGraph objectGraph) {
+    return new RealMortarScope(validate, objectGraph);
   }
 
   /**
@@ -39,7 +52,7 @@ public class Mortar {
    * It is expected that this method will be called from {@link Activity#onCreate}. Calling
    * it at other times may lead to surprises.
    */
-  public static MortarActivityScope getActivityScope(MortarScope parentScope,
+  public static MortarActivityScope requireActivityScope(MortarScope parentScope,
       final Blueprint blueprint) {
     String name = blueprint.getMortarScopeName();
     RealMortarScope unwrapped = (RealMortarScope) parentScope.requireChild(blueprint);
@@ -56,10 +69,16 @@ public class Mortar {
     return activityScope;
   }
 
+  /**
+   * A convenience wrapper for {@link #getScope} to simplify dynamic injection, typically
+   * for {@link Activity} and {@link android.view.View} instances that must be instantiated
+   * by Android.
+   */
   public static void inject(Context context, Object object) {
     getScope(context).getObjectGraph().inject(object);
   }
 
+  /** Find the scope for the given {@link Context}, which must implement {@link HasMortarScope}. */
   public static MortarScope getScope(Context context) {
     return ((HasMortarScope) context).getMortarScope();
   }

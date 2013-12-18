@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<com.example.mortar.view.ContainerView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.example.mortar.core.MainView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"

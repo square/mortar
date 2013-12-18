@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static dagger.ObjectGraph.create;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Arrays.asList;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -181,24 +182,24 @@ public class MortarScopeTest {
 
   @Test
   public void rootDoesNotValidate() {
-    Mortar.createRootScope(false, new Impossible());
+    Mortar.createRootScope(false, create(new Impossible()));
     // ta da!
   }
 
   @Test(expected = IllegalStateException.class)
   public void rootDoesValidate() {
-    Mortar.createRootScope(true, new Impossible());
+    Mortar.createRootScope(true, create(new Impossible()));
   }
 
   @Test
   public void rootScopeHasName() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     assertThat(scope.getName()).isSameAs(MortarScope.ROOT_NAME);
   }
 
   @Test
   public void createRootScopeUsesModules() {
-    MortarScope scope = Mortar.createRootScope(false, new Able(), new Baker());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able(), new Baker()));
     ObjectGraph objectGraph = scope.getObjectGraph();
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
@@ -213,7 +214,7 @@ public class MortarScopeTest {
 
   @Test
   public void destroyRoot() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.register(scoped);
     scope.destroy();
     verify(scoped).onDestroy();
@@ -221,34 +222,34 @@ public class MortarScopeTest {
 
   @Test
   public void activityDoesNotValidate() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    Mortar.getActivityScope(root, new Impossible());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    Mortar.requireActivityScope(root, new Impossible());
     // ta da!
   }
 
   @Test(expected = IllegalStateException.class)
   public void activityDoesValidate() {
-    MortarScope root = Mortar.createRootScope(true, new Able());
-    Mortar.getActivityScope(root, new Impossible());
+    MortarScope root = Mortar.createRootScope(true, create(new Able()));
+    Mortar.requireActivityScope(root, new Impossible());
   }
 
   @Test
   public void activityScopeName() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
 
     String bagel = Bagel.class.getName();
     assertThat(activityScope.getName()).isEqualTo(bagel);
     assertThat(root.findChild(bagel)).isSameAs(activityScope);
     assertThat(root.requireChild(new Baker())).isSameAs(activityScope);
-    assertThat(Mortar.getActivityScope(root, new Baker())).isSameAs(activityScope);
+    assertThat(Mortar.requireActivityScope(root, new Baker())).isSameAs(activityScope);
     assertThat(root.findChild("herman")).isNull();
   }
 
   @Test
   public void getActivityScopeWithOneModule() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     ObjectGraph objectGraph = activityScope.getObjectGraph();
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
@@ -263,8 +264,8 @@ public class MortarScopeTest {
 
   @Test
   public void getActivityScopeWithMoreModules() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new MoreModules());
+    MortarScope root = Mortar.createRootScope(false,create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new MoreModules());
     ObjectGraph objectGraph = activityScope.getObjectGraph();
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
@@ -280,9 +281,9 @@ public class MortarScopeTest {
 
   @Test
   public void destroyActivityScopeDirect() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     Baker blueprint = new Baker();
-    MortarScope activityScope = Mortar.getActivityScope(root, blueprint);
+    MortarScope activityScope = Mortar.requireActivityScope(root, blueprint);
     assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
     activityScope.register(scoped);
     activityScope.destroy();
@@ -292,9 +293,9 @@ public class MortarScopeTest {
 
   @Test
   public void destroyActivityScopeRecursive() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     Baker blueprint = new Baker();
-    MortarScope activityScope = Mortar.getActivityScope(root, blueprint);
+    MortarScope activityScope = Mortar.requireActivityScope(root, blueprint);
     assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
     activityScope.register(scoped);
     root.destroy();
@@ -309,23 +310,23 @@ public class MortarScopeTest {
 
   @Test
   public void activityChildDoesNotValidate() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     activityScope.requireChild(new Impossible());
     // ta da!
   }
 
   @Test(expected = IllegalStateException.class)
   public void activityChildDoesValidate() {
-    MortarScope root = Mortar.createRootScope(true, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(true, create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     activityScope.requireChild(new Impossible());
   }
 
   @Test
   public void activityChildScopeName() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     MortarScope child = activityScope.requireChild(new Charlie());
 
     String carrot = Carrot.class.getName();
@@ -337,8 +338,8 @@ public class MortarScopeTest {
 
   @Test
   public void requireGrandchildWithOneModule() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarScope child = Mortar.requireActivityScope(root, new Baker()).requireChild(new Charlie());
     MortarScope grandchild = child.requireChild(new Delta());
     ObjectGraph objectGraph = grandchild.getObjectGraph();
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
@@ -356,8 +357,8 @@ public class MortarScopeTest {
 
   @Test
   public void requireGrandchildWithMoreModules() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarScope child = Mortar.requireActivityScope(root, new Baker()).requireChild(new Charlie());
     MortarScope grandchild = child.requireChild(new MoreModules());
 
     ObjectGraph objectGraph = grandchild.getObjectGraph();
@@ -377,8 +378,8 @@ public class MortarScopeTest {
 
   @Test
   public void requireGrandchildWithNoModules() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarScope child = Mortar.requireActivityScope(root, new Baker()).requireChild(new Charlie());
     MortarScope grandchild = child.requireChild(new NoModules());
 
     ObjectGraph objectGraph = grandchild.getObjectGraph();
@@ -397,9 +398,9 @@ public class MortarScopeTest {
 
   @Test
   public void destroyActivityChildScopeDirect() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     Charlie blueprint = new Charlie();
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     MortarScope child = activityScope.requireChild(blueprint);
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
     child.register(scoped);
@@ -410,9 +411,9 @@ public class MortarScopeTest {
 
   @Test
   public void destroyActivityChildScopeRecursive() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     Charlie blueprint = new Charlie();
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     MortarScope child = activityScope.requireChild(blueprint);
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
     child.register(scoped);
@@ -428,23 +429,23 @@ public class MortarScopeTest {
 
   @Test
   public void activityGrandchildDoesNotValidate() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(false,create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     activityScope.requireChild(new Delta()).requireChild(new Impossible());
     // ta da!
   }
 
   @Test(expected = IllegalStateException.class)
   public void activityGrandchildDoesValidate() {
-    MortarScope root = Mortar.createRootScope(true, new Able());
-    MortarActivityScope activityScope = Mortar.getActivityScope(root, new Baker());
+    MortarScope root = Mortar.createRootScope(true, create(new Able()));
+    MortarActivityScope activityScope = Mortar.requireActivityScope(root, new Baker());
     activityScope.requireChild(new Delta()).requireChild(new Impossible());
   }
 
   @Test
   public void activityGrandchildScopeName() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
+    MortarScope root = Mortar.createRootScope(false,create(new Able()));
+    MortarScope child = Mortar.requireActivityScope(root, new Baker()).requireChild(new Charlie());
     MortarScope grandchild = child.requireChild(new Delta());
 
     String dogfood = Dogfood.class.getName();
@@ -456,8 +457,8 @@ public class MortarScopeTest {
 
   @Test
   public void requireChildWithOneModule() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new Charlie());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarScope child = Mortar.requireActivityScope(root, new Baker()).requireChild(new Charlie());
 
     ObjectGraph objectGraph = child.getObjectGraph();
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
@@ -467,8 +468,8 @@ public class MortarScopeTest {
 
   @Test
   public void requireChildWithMoreModules() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
-    MortarScope child = Mortar.getActivityScope(root, new Baker()).requireChild(new MoreModules());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarScope child = Mortar.requireActivityScope(root, new Baker()).requireChild(new MoreModules());
 
     ObjectGraph objectGraph = child.getObjectGraph();
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
@@ -479,7 +480,7 @@ public class MortarScopeTest {
 
   @Test
   public void requireChildWithNoModules() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     MortarScope child = root.requireChild(new NoModules());
 
     ObjectGraph objectGraph = child.getObjectGraph();
@@ -490,7 +491,7 @@ public class MortarScopeTest {
   public void handlesRecursiveDestroy() {
     final AtomicInteger i = new AtomicInteger(0);
 
-    final MortarScope scope = Mortar.createRootScope(false, new Able());
+    final MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.register(new Scoped() {
       @Override public void onDestroy() {
         i.incrementAndGet();
@@ -503,7 +504,7 @@ public class MortarScopeTest {
 
   @Test
   public void inject() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     when(context.getMortarScope()).thenReturn(root);
     HasApple apple = new HasApple();
     Mortar.inject(context, apple);
@@ -512,49 +513,49 @@ public class MortarScopeTest {
 
   @Test
   public void getScope() {
-    MortarScope root = Mortar.createRootScope(false, new Able());
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
     when(context.getMortarScope()).thenReturn(root);
     assertThat(Mortar.getScope(context)).isSameAs(root);
   }
 
   @Test
   public void canGetNameFromDestroyed() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.destroy();
     assertThat(scope.getName()).isEqualTo(MortarScope.ROOT_NAME);
   }
 
   @Test(expected = IllegalStateException.class)
   public void cannotGetObjectGraphFromDestroyed() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.destroy();
     scope.getObjectGraph();
   }
 
   @Test(expected = IllegalStateException.class)
   public void cannotRegisterOnDestroyed() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.destroy();
     scope.register(scoped);
   }
 
   @Test(expected = IllegalStateException.class)
   public void cannotFindChildFromDestroyed() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.destroy();
     scope.findChild("foo");
   }
 
   @Test(expected = IllegalStateException.class)
   public void cannotRequireChildFromDestroyed() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.destroy();
     scope.requireChild(new Able());
   }
 
   @Test
   public void destroyIsIdempotent() {
-    MortarScope scope = Mortar.createRootScope(false, new Able());
+    MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.destroy();
     scope.destroy();
     // Ta da.
