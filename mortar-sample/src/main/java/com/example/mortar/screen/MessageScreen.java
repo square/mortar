@@ -16,22 +16,21 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import com.example.mortar.Main;
-import com.example.mortar.MainThread;
 import com.example.mortar.R;
+import com.example.mortar.core.Main;
+import com.example.mortar.core.MainThread;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.Message;
 import com.example.mortar.view.MessageView;
-import dagger.Module;
 import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
 import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
+import mortar.ViewPresenter;
 import rx.Observable;
 import rx.Scheduler;
 import rx.util.functions.Action1;
@@ -55,11 +54,11 @@ public class MessageScreen implements HasParent<ChatScreen>, Blueprint {
   }
 
   @Override public Object getDaggerModule() {
-    return new DaggerModule();
+    return new Module();
   }
 
-  @Module(injects = { MessageView.class, MessageScreen.Presenter.class },
-      addsTo = Main.DaggerModule.class) class DaggerModule {
+  @dagger.Module(injects = MessageView.class, addsTo = Main.Module.class)
+  public class Module {
     @Provides Observable<Message> provideMessage(Chats chats, @MainThread Scheduler mainThread) {
       return chats.getChat(chatId).getMessage(messageId);
     }

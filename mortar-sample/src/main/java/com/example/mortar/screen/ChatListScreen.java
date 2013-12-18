@@ -16,18 +16,19 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import com.example.mortar.Main;
+import com.example.mortar.core.Main;
 import com.example.mortar.model.Chat;
+import com.example.mortar.model.Chats;
 import com.example.mortar.view.ChatListView;
-import dagger.Module;
+import dagger.Provides;
 import flow.Flow;
 import flow.Screen;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
+import mortar.ViewPresenter;
 
 @Screen(ChatListView.class) //
 public class ChatListScreen implements Blueprint {
@@ -37,12 +38,14 @@ public class ChatListScreen implements Blueprint {
   }
 
   @Override public Object getDaggerModule() {
-    return new DaggerModule();
+    return new Module();
   }
 
-  @Module(injects = { ChatListView.class, ChatListScreen.Presenter.class },
-      addsTo = Main.DaggerModule.class)
-  public static class DaggerModule {
+  @dagger.Module(injects = ChatListView.class, addsTo = Main.Module.class)
+  static class Module {
+    @Provides List<Chat> provideConversations(Chats chats) {
+      return chats.getAll();
+    }
   }
 
   public interface View extends HasMortarScope {

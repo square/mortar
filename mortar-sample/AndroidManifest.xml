@@ -32,7 +32,7 @@
       android:name=".DemoApplication"
       >
     <activity
-        android:name=".MainActivity"
+        android:name=".DemoActivity"
         android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
         >
       <intent-filter>

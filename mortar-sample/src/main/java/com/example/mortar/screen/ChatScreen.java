@@ -17,26 +17,25 @@ package com.example.mortar.screen;
 
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
-import com.example.mortar.ActionBarOwner;
-import com.example.mortar.App;
-import com.example.mortar.Main;
+import com.example.mortar.android.ActionBarOwner;
+import com.example.mortar.core.Main;
+import com.example.mortar.core.MainScope;
 import com.example.mortar.model.Chat;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.Message;
 import com.example.mortar.view.ChatView;
 import com.example.mortar.view.Confirmation;
 import com.example.mortar.view.ConfirmerPopup;
-import dagger.Module;
 import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
 import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.ViewPresenter;
 import mortar.Blueprint;
 import mortar.HasMortarScope;
 import mortar.PopupPresenter;
+import mortar.ViewPresenter;
 import rx.Subscription;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;
@@ -54,16 +53,15 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
   }
 
   @Override public Object getDaggerModule() {
-    return new DaggerModule();
+    return new Module();
   }
 
   @Override public ChatListScreen getParent() {
     return new ChatListScreen();
   }
 
-  @Module(injects = { ChatScreen.Presenter.class, ChatView.class, ConfirmerPopup.class },
-      addsTo = Main.DaggerModule.class)
-  public class DaggerModule {
+  @dagger.Module(injects = ChatView.class, addsTo = Main.Module.class)
+  public class Module {
     @Provides Chat provideConversation(Chats chats) {
       return chats.getChat(conversationIndex);
     }
@@ -87,7 +85,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     private Subscription running;
 
     @Inject
-    public Presenter(Chat chat, @App Flow flow, ActionBarOwner actionBar) {
+    public Presenter(Chat chat, @MainScope Flow flow, ActionBarOwner actionBar) {
       this.chat = chat;
       this.flow = flow;
       this.actionBar = actionBar;
@@ -108,8 +106,9 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       actionBarConfig =
           actionBarConfig.withAction(new ActionBarOwner.MenuAction("End", new Action0() {
             @Override public void call() {
-              confirmer.show(new Confirmation("End Chat",
-                  "Do you really want to leave this chat?", "Yes", "I guess not"));
+              confirmer.show(
+                  new Confirmation("End Chat", "Do you really want to leave this chat?", "Yes",
+                      "I guess not"));
             }
           }));
 

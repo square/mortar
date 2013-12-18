@@ -3,6 +3,7 @@ package mortar;
 
 import android.os.Bundle;
 import dagger.Module;
+import dagger.ObjectGraph;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,8 +90,8 @@ public class MortarActivityScopeTest {
   }
 
   private void resetScope() {
-    MortarScope root = Mortar.createRootScope(false, new ModuleAndBlueprint());
-    activityScope = Mortar.getActivityScope(root, new ModuleAndBlueprint());
+    MortarScope root = Mortar.createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint()));
+    activityScope = Mortar.requireActivityScope(root, new ModuleAndBlueprint());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -180,7 +181,7 @@ public class MortarActivityScopeTest {
   }
 
   class FauxActivity {
-    final MyBundler rootPresenter = new MyBundler("root");
+    final MyBundler rootPresenter = new MyBundler("core");
 
     MortarScope childScope;
     MyBundler childPresenter = new MyBundler("child");
