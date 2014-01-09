@@ -51,8 +51,4 @@ public class MainView extends ContainerView implements Main.View {
   public boolean onUpPressed() {
     return presenter.onUpPressed();
   }
-
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
-  }
 }

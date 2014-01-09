@@ -42,10 +42,6 @@ public class FriendListView extends ListView implements FriendListScreen.View {
     presenter.takeView(this);
   }
 
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
-  }
-
   @Override
   public void showFriends(List<User> friends) {
     Adapter adapter = new Adapter(getContext(), friends);

@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package mortar;
 
-package com.example.mortar.view;
+/**
+ * Similar to a {@link ViewPresenter}, but bound to a view that provides a custom scope.
+ */
+public abstract class ScopedViewPresenter<V extends HasMortarScope>
+    extends AbstractViewPresenter<V> {
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.widget.TextView;
-import com.example.mortar.screen.FriendScreen;
-import javax.inject.Inject;
-import mortar.Mortar;
-
-public class FriendView extends TextView implements FriendScreen.View {
-  @Inject FriendScreen.Presenter presenter;
-
-  public FriendView(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    Mortar.inject(context, this);
-  }
-
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
-    presenter.takeView(this);
+  @Override final MortarScope extractMortarScope(V v) {
+    return v.getMortarScope();
   }
 }

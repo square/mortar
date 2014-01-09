@@ -27,7 +27,6 @@ import com.example.mortar.screen.ChatListScreen;
 import java.util.List;
 import javax.inject.Inject;
 import mortar.Mortar;
-import mortar.MortarScope;
 
 public class ChatListView extends ListView implements ChatListScreen.View {
   @Inject ChatListScreen.Presenter presenter;
@@ -40,10 +39,6 @@ public class ChatListView extends ListView implements ChatListScreen.View {
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     presenter.takeView(this);
-  }
-
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
   }
 
   @Override public void showConversations(List<Chat> chats) {
