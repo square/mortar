@@ -29,8 +29,8 @@ import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.ViewPresenter;
+import mortar.HasContext;
 import rx.Observable;
 import rx.Scheduler;
 import rx.util.functions.Action1;
@@ -64,7 +64,7 @@ public class MessageScreen implements HasParent<ChatScreen>, Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
+  public interface View extends HasContext {
     void setUser(String user);
 
     void setMessage(String message);

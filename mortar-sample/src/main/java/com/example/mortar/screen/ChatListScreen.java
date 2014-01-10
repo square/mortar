@@ -27,8 +27,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.ViewPresenter;
+import mortar.HasContext;
 
 @Screen(ChatListView.class) //
 public class ChatListScreen implements Blueprint {
@@ -48,7 +48,7 @@ public class ChatListScreen implements Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
+  public interface View extends HasContext {
     void showConversations(List<Chat> chats);
   }
 

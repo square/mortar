@@ -23,7 +23,7 @@ import android.os.Parcelable;
  * @see PopupPresenter
  * @param <D> info to display
  */
-public interface Popup<D extends Parcelable, R> extends HasMortarScope {
+public interface Popup<D extends Parcelable, R> extends HasContext {
   /**
    * Show the given info. How to handle redundant calls is a decision to be made
    * per implementation. Some classes may throw {@link IllegalStateException}

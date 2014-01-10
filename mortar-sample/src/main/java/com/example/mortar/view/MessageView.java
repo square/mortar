@@ -27,7 +27,6 @@ import com.example.mortar.R;
 import com.example.mortar.screen.MessageScreen;
 import javax.inject.Inject;
 import mortar.Mortar;
-import mortar.MortarScope;
 
 public class MessageView extends LinearLayout implements MessageScreen.View {
   @Inject MessageScreen.Presenter presenter;
@@ -49,10 +48,6 @@ public class MessageView extends LinearLayout implements MessageScreen.View {
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     presenter.takeView(this);
-  }
-
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
   }
 
   @Override public void setUser(String user) {

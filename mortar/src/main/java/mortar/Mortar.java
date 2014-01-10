@@ -82,4 +82,8 @@ public class Mortar {
   public static MortarScope getScope(Context context) {
     return ((HasMortarScope) context).getMortarScope();
   }
+
+  public static MortarScope getScope(HasContext hasContext) {
+    return ((HasMortarScope) hasContext.getContext()).getMortarScope();
+  }
 }

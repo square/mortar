@@ -16,12 +16,12 @@
 package com.example.mortar.android;
 
 import android.os.Bundle;
+import mortar.ScopedViewPresenter;
 import mortar.HasMortarScope;
-import mortar.ViewPresenter;
 import rx.util.functions.Action0;
 
 /** Allows shared configuration of the Android ActionBar. */
-public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
+public class ActionBarOwner extends ScopedViewPresenter<ActionBarOwner.View> {
   public interface View extends HasMortarScope {
     void setShowHomeEnabled(boolean enabled);
 

@@ -48,10 +48,6 @@ public class ChatView extends ListView implements ChatScreen.View {
     presenter.takeView(this);
   }
 
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
-  }
-
   @Override
   public ConfirmerPopup getConfirmerPopup() {
     return confirmerPopup;
