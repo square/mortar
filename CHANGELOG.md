@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 0.5 *(2014-01-17)*
+Version 0.5 *(2014-01-10)*
 ----------------------------
   * API break: Simplified Presenter API, HasMortarScope renamed MortarContext and need not
     be implemented by view classes
