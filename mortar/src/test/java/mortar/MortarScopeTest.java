@@ -24,7 +24,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class MortarScopeTest {
-  static class MyContext extends Activity implements HasMortarScope {
+  static class MyContext extends Activity implements MortarContext {
     @Override public MortarScope getMortarScope() {
       throw new UnsupportedOperationException();
     }

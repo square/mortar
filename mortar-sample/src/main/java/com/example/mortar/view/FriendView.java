@@ -22,9 +22,8 @@ import android.widget.TextView;
 import com.example.mortar.screen.FriendScreen;
 import javax.inject.Inject;
 import mortar.Mortar;
-import mortar.MortarScope;
 
-public class FriendView extends TextView implements FriendScreen.View {
+public class FriendView extends TextView  {
   @Inject FriendScreen.Presenter presenter;
 
   public FriendView(Context context, AttributeSet attrs) {
@@ -35,9 +34,5 @@ public class FriendView extends TextView implements FriendScreen.View {
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     presenter.takeView(this);
-  }
-
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
   }
 }

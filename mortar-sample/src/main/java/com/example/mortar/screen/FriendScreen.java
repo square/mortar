@@ -26,7 +26,6 @@ import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.ViewPresenter;
 
 @Screen(FriendView.class) //
@@ -56,12 +55,8 @@ public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
-    void setText(CharSequence text);
-  }
-
   @Singleton
-  public static class Presenter extends ViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<FriendView> {
     private final User friend;
 
     @Inject Presenter(User friend) {
@@ -70,7 +65,7 @@ public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      View view = getView();
+      FriendView view = getView();
       if (view == null) return;
 
       view.setText(friend.name);

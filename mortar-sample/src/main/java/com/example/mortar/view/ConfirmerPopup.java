@@ -18,8 +18,6 @@ package com.example.mortar.view;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import mortar.Mortar;
-import mortar.MortarScope;
 import mortar.Popup;
 import mortar.PopupPresenter;
 
@@ -32,8 +30,8 @@ public class ConfirmerPopup implements Popup<Confirmation, Boolean> {
     this.context = context;
   }
 
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(context);
+  @Override public Context getContext() {
+    return context;
   }
 
   @Override

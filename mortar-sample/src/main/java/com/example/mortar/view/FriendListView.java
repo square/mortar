@@ -22,14 +22,13 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.example.mortar.screen.FriendListScreen;
 import com.example.mortar.model.User;
+import com.example.mortar.screen.FriendListScreen;
 import java.util.List;
 import javax.inject.Inject;
 import mortar.Mortar;
-import mortar.MortarScope;
 
-public class FriendListView extends ListView implements FriendListScreen.View {
+public class FriendListView extends ListView {
   @Inject FriendListScreen.Presenter presenter;
 
   public FriendListView(Context context, AttributeSet attrs) {
@@ -42,11 +41,6 @@ public class FriendListView extends ListView implements FriendListScreen.View {
     presenter.takeView(this);
   }
 
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
-  }
-
-  @Override
   public void showFriends(List<User> friends) {
     Adapter adapter = new Adapter(getContext(), friends);
 

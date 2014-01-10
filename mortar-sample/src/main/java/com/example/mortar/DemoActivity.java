@@ -28,6 +28,7 @@ import dagger.ObjectGraph;
 import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
+import mortar.MortarContext;
 import mortar.MortarScope;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
@@ -37,7 +38,8 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
  * and lets it know about up button and back button presses. Shares control of the {@link
  * ActionBar} via the {@link com.example.mortar.android.ActionBarOwner}.
  */
-public class DemoActivity extends Activity implements ActionBarOwner.View {
+// TODO: this is pretty confusing. Maybe move ActionBarOwner.View duties to an inner class.
+public class DemoActivity extends Activity implements MortarContext, ActionBarOwner.View {
   private ActionBarOwner.MenuAction actionBarMenuAction;
   private MortarActivityScope rootScope;
 

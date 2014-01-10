@@ -15,6 +15,6 @@
  */
 package mortar;
 
-public interface HasMortarScope {
+public interface MortarContext {
   MortarScope getMortarScope();
 }

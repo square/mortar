@@ -29,7 +29,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.ViewPresenter;
 
 @Screen(FriendListView.class) //
@@ -50,12 +49,8 @@ public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
-    void showFriends(List<User> friends);
-  }
-
   @Singleton
-  public static class Presenter extends ViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<FriendListView> {
     private final List<User> friends;
     private final Flow flow;
 
@@ -66,7 +61,7 @@ public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      View view = getView();
+      FriendListView view = getView();
       if (view == null) return;
 
       view.showFriends(friends);

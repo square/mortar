@@ -28,9 +28,8 @@ import com.example.mortar.model.Message;
 import com.example.mortar.screen.ChatScreen;
 import javax.inject.Inject;
 import mortar.Mortar;
-import mortar.MortarScope;
 
-public class ChatView extends ListView implements ChatScreen.View {
+public class ChatView extends ListView {
   @Inject ChatScreen.Presenter presenter;
 
   private final ConfirmerPopup confirmerPopup;
@@ -48,16 +47,11 @@ public class ChatView extends ListView implements ChatScreen.View {
     presenter.takeView(this);
   }
 
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
-  }
-
-  @Override
   public ConfirmerPopup getConfirmerPopup() {
     return confirmerPopup;
   }
 
-  @Override public ArrayAdapter<Message> getItems() {
+  public ArrayAdapter<Message> getItems() {
     @SuppressWarnings("unchecked") ArrayAdapter<Message> adapter =
         (ArrayAdapter<Message>) getAdapter();
 
@@ -75,7 +69,7 @@ public class ChatView extends ListView implements ChatScreen.View {
     return adapter;
   }
 
-  @Override public void toast(String message) {
+  public void toast(String message) {
     Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
   }
 }

@@ -23,7 +23,7 @@ import android.os.Parcelable;
  * of {@link #hashCode()} and {@link #equals(Object)} in order for debouncing code in {@link #show}
  * to work properly.
  */
-public abstract class PopupPresenter<D extends Parcelable, R> extends ViewPresenter<Popup<D, R>> {
+public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<Popup<D, R>> {
   private static String KEY = "popup";
   private static boolean WITH_FLOURISH = true;
 
@@ -63,6 +63,10 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends ViewPresen
   }
 
   abstract protected void onPopupResult(R result);
+
+  @Override protected MortarScope extractScope(Popup<D, R> view) {
+    return Mortar.getScope(view.getContext());
+  }
 
   @Override public void takeView(Popup<D, R> view) {
     Popup<D, R> oldView = getView();

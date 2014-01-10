@@ -15,53 +15,10 @@
  */
 package mortar;
 
-import android.os.Bundle;
-import java.lang.ref.WeakReference;
+import android.view.View;
 
-public abstract class ViewPresenter<V extends HasMortarScope> implements Bundler {
-  private WeakReference<V> view = new WeakReference<V>(null);
-
-  /**
-   * Called to give this presenter control of a view. Do not call this from the view's
-   * constructor. Instead call it after construction when the view is known to be going
-   * live, e.g. from {@link android.app.Activity#onCreate} or
-   * {@link android.view.View#onAttachedToWindow()}.
-   * <p/>
-   * This presenter will be immediately {@link MortarActivityScope#register registered} (or
-   * re-registered), leading to an immediate call to {@link #onLoad}
-   *
-   * @see MortarActivityScope#register
-   */
-  public void takeView(V view) {
-    if (view == null) throw new NullPointerException("view must not be null");
-    this.view = new WeakReference<V>(view);
-    view.getMortarScope().register(this);
-  }
-
-  /**
-   * Returns the view managed by this presenter, or null if the view has never been set or has been
-   * garbage collected.
-   */
-  protected final V getView() {
-    return view.get();
-  }
-
-  /** Called to surrender control of this view, e.g. when a dialog is dismissed. */
-  protected final void dropView() {
-    view.clear();
-  }
-
-  @Override public String getMortarBundleKey() {
-    return getClass().getName();
-  }
-
-  @Override public void onLoad(Bundle savedInstanceState) {
-  }
-
-  @Override public void onSave(Bundle outState) {
-  }
-
-  @Override public void onDestroy() {
-    dropView();
+public class ViewPresenter<V extends View> extends Presenter<V> {
+  @Override protected final MortarScope extractScope(V view) {
+    return Mortar.getScope(view.getContext());
   }
 }

@@ -15,6 +15,7 @@
  */
 package mortar;
 
+import android.content.Context;
 import android.os.Parcelable;
 
 /**
@@ -23,7 +24,7 @@ import android.os.Parcelable;
  * @see PopupPresenter
  * @param <D> info to display
  */
-public interface Popup<D extends Parcelable, R> extends HasMortarScope {
+public interface Popup<D extends Parcelable, R> {
   /**
    * Show the given info. How to handle redundant calls is a decision to be made
    * per implementation. Some classes may throw {@link IllegalStateException}
@@ -35,4 +36,6 @@ public interface Popup<D extends Parcelable, R> extends HasMortarScope {
   boolean isShowing();
 
   void dismiss(boolean withFlourish);
+
+  Context getContext();
 }

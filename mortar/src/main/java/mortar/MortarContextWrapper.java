@@ -19,7 +19,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 
-class MortarContextWrapper extends ContextWrapper implements HasMortarScope {
+class MortarContextWrapper extends ContextWrapper implements MortarContext {
   private final MortarScope scope;
 
   private LayoutInflater inflater;
