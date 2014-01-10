@@ -27,7 +27,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.ViewPresenter;
 
 @Screen(ChatListView.class) //
@@ -48,12 +47,8 @@ public class ChatListScreen implements Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
-    void showConversations(List<Chat> chats);
-  }
-
   @Singleton
-  public static class Presenter extends ViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<ChatListView> {
     private final Flow flow;
     private final List<Chat> chats;
 
@@ -64,7 +59,7 @@ public class ChatListScreen implements Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      View view = getView();
+      ChatListView view = getView();
       if (view == null) return;
 
       view.showConversations(chats);

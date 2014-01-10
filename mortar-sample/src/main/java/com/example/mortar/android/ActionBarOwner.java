@@ -16,13 +16,14 @@
 package com.example.mortar.android;
 
 import android.os.Bundle;
-import mortar.HasMortarScope;
-import mortar.ViewPresenter;
+import mortar.MortarContext;
+import mortar.MortarScope;
+import mortar.Presenter;
 import rx.util.functions.Action0;
 
 /** Allows shared configuration of the Android ActionBar. */
-public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
-  public interface View extends HasMortarScope {
+public class ActionBarOwner extends Presenter<ActionBarOwner.View> {
+  public interface View extends MortarContext {
     void setShowHomeEnabled(boolean enabled);
 
     void setUpButtonEnabled(boolean enabled);
@@ -78,6 +79,10 @@ public class ActionBarOwner extends ViewPresenter<ActionBarOwner.View> {
 
   public Config getConfig() {
     return config;
+  }
+
+  @Override protected MortarScope extractScope(View view) {
+    return view.getMortarScope();
   }
 
   private void update() {

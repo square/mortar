@@ -29,7 +29,6 @@ import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.ViewPresenter;
 import rx.Observable;
 import rx.Scheduler;
@@ -64,14 +63,8 @@ public class MessageScreen implements HasParent<ChatScreen>, Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
-    void setUser(String user);
-
-    void setMessage(String message);
-  }
-
   @Singleton
-  public static class Presenter extends ViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<MessageView> {
     private final Flow flow;
     private final Observable<Message> messageSource;
 
@@ -88,7 +81,7 @@ public class MessageScreen implements HasParent<ChatScreen>, Blueprint {
 
       messageSource.subscribe(new Action1<Message>() {
         @Override public void call(Message message) {
-          View view = getView();
+          MessageView view = getView();
           if (view == null) return;
           Presenter.this.message = message;
           view.setUser(message.from.name);

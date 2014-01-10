@@ -78,8 +78,11 @@ public class Mortar {
     getScope(context).getObjectGraph().inject(object);
   }
 
-  /** Find the scope for the given {@link Context}, which must implement {@link HasMortarScope}. */
+  /** Find the scope for the given {@link Context}, which must implement {@link MortarContext}. */
   public static MortarScope getScope(Context context) {
-    return ((HasMortarScope) context).getMortarScope();
+    // TODO catch class cast exception and wrap it with a more informative one explaining that
+    // such and such class must implement MortarContext.
+
+    return ((MortarContext) context).getMortarScope();
   }
 }

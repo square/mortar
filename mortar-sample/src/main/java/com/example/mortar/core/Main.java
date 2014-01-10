@@ -29,7 +29,6 @@ import flow.Parcer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.MortarScope;
 import mortar.ViewPresenter;
 import rx.util.functions.Action0;
@@ -47,11 +46,7 @@ public class Main {
     }
   }
 
-  public interface View extends HasMortarScope {
-    void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction);
-  }
-
-  @Singleton public static class Presenter extends ViewPresenter<View> implements Flow.Listener {
+  @Singleton public static class Presenter extends ViewPresenter<MainView> implements Flow.Listener {
     private static final String FLOW_KEY = "flow";
     private static final Blueprint NO_SCREEN = new Blueprint() {
       @Override public String getMortarScopeName() {
@@ -97,13 +92,13 @@ public class Main {
     }
 
     @Override public void go(Backstack backstack, Flow.Direction direction) {
-      View view = getView();
+      MainView view = getView();
       if (view == null) return;
 
       Blueprint newScreen = (Blueprint) backstack.current().getScreen();
       if (newScreen.getMortarScopeName().equals(currentScreen.getMortarScopeName())) return;
 
-      MortarScope parentScope = view.getMortarScope();
+      MortarScope parentScope = extractScope(view);
       if (currentScreen != NO_SCREEN) {
         parentScope.findChild(currentScreen.getMortarScopeName()).destroy();
         currentScreen = NO_SCREEN;

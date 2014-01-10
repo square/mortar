@@ -16,7 +16,6 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.core.Main;
 import com.example.mortar.core.MainScope;
@@ -25,7 +24,6 @@ import com.example.mortar.model.Chats;
 import com.example.mortar.model.Message;
 import com.example.mortar.view.ChatView;
 import com.example.mortar.view.Confirmation;
-import com.example.mortar.view.ConfirmerPopup;
 import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
@@ -33,7 +31,6 @@ import flow.Screen;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.HasMortarScope;
 import mortar.PopupPresenter;
 import mortar.ViewPresenter;
 import rx.Subscription;
@@ -67,16 +64,8 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     }
   }
 
-  public interface View extends HasMortarScope {
-    ConfirmerPopup getConfirmerPopup();
-
-    ArrayAdapter<Message> getItems();
-
-    void toast(String message);
-  }
-
   @Singleton
-  public static class Presenter extends ViewPresenter<View> {
+  public static class Presenter extends ViewPresenter<ChatView> {
     private final Chat chat;
     private final Flow flow;
     private final ActionBarOwner actionBar;
@@ -98,7 +87,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      View v = getView();
+      ChatView v = getView();
       if (v == null) return;
 
       ActionBarOwner.Config actionBarConfig = actionBar.getConfig();
@@ -117,7 +106,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       ensureRunning();
     }
 
-    @Override public void takeView(View view) {
+    @Override public void takeView(ChatView view) {
       super.takeView(view);
       confirmer.takeView(view.getConfirmerPopup());
     }
@@ -140,7 +129,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       if (running == null) {
         running = chat.getMessages().subscribe(new Action1<Message>() {
           @Override public void call(Message message) {
-            View view = getView();
+            ChatView view = getView();
             if (view == null) return;
             view.getItems().addAll(message);
           }

@@ -25,7 +25,7 @@ import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarScope;
 
-public class MainView extends ContainerView implements Main.View {
+public class MainView extends ContainerView {
   @Inject Main.Presenter presenter;
 
   public MainView(Context context, AttributeSet attrs) {
@@ -38,7 +38,6 @@ public class MainView extends ContainerView implements Main.View {
     presenter.takeView(this);
   }
 
-  @Override
   public void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction) {
     View screenView = Screens.createView(screenScope.createContext(getContext()), screen);
     displayView(screenView, direction);
@@ -50,9 +49,5 @@ public class MainView extends ContainerView implements Main.View {
 
   public boolean onUpPressed() {
     return presenter.onUpPressed();
-  }
-
-  @Override public MortarScope getMortarScope() {
-    return Mortar.getScope(getContext());
   }
 }
