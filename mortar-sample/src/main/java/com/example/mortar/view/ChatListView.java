@@ -41,6 +41,11 @@ public class ChatListView extends ListView {
     presenter.takeView(this);
   }
 
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    presenter.dropView(this);
+  }
+
   public void showConversations(List<Chat> chats) {
     Adapter adapter = new Adapter(getContext(), chats);
 

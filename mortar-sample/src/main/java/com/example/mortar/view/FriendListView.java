@@ -41,6 +41,11 @@ public class FriendListView extends ListView {
     presenter.takeView(this);
   }
 
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    presenter.dropView(this);
+  }
+
   public void showFriends(List<User> friends) {
     Adapter adapter = new Adapter(getContext(), friends);
 

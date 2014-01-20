@@ -20,21 +20,11 @@ import android.content.Context;
 import dagger.ObjectGraph;
 
 /**
- * Provides static bootstrap and integration methods. Simple apps with only one activity
- * can core their tree of {@link MortarScope}s with an instance created by {@link
- * #createRootActivityScope}. More unfortunate apps with multiple activities might need
- * to create a core scope via {@link #createRootScope}, and use {@link #requireActivityScope}
- * to provide a scope for each activity.
+ * Provides static bootstrap and integration methods.
  */
 public class Mortar {
 
   private Mortar() {
-  }
-
-  /** Creates a core scope to live at the activity level. */
-  public static MortarActivityScope createRootActivityScope(boolean validate,
-      ObjectGraph objectGraph) {
-    return new RealActivityScope(validate, objectGraph);
   }
 
   /**
