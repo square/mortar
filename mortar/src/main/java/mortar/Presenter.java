@@ -36,6 +36,8 @@ public abstract class Presenter<V> implements Bundler {
    * <p/>
    * This presenter will be immediately {@link MortarActivityScope#register registered} (or
    * re-registered), leading to an immediate call to {@link #onLoad}
+   * <p/>
+   * The presenter will retain the view in a {@link WeakReference}.
    *
    * @see MortarActivityScope#register
    */
@@ -55,7 +57,10 @@ public abstract class Presenter<V> implements Bundler {
     return view.get();
   }
 
-  /** Called to surrender control of this view, e.g. when a dialog is dismissed. */
+  /**
+   * Called to explicitly surrender control of this view, e.g. when a dialog is
+   * dismissed.
+   */
   protected final void dropView() {
     view.clear();
   }
