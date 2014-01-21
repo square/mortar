@@ -62,10 +62,10 @@
   </properties>
 
   <scm>
-    <url>http://git.squareup.com/android/mortar</url>
-    <connection>scm:git:git://git.squareup.com/android/mortar.git</connection>
-    <developerConnection>scm:git:ssh://git@git.squareup.com/android/mortar.git
-    </developerConnection>
+    <url>http://github.com/square/mortar/</url>
+    <connection>scm:git:git://github.com/square/mortar.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/square/mortar.git</developerConnection>
+    <tag>HEAD</tag>
   </scm>
 
   <dependencyManagement>
