@@ -83,6 +83,13 @@
       <artifactId>android</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.actionbarsherlock</groupId>
+      <artifactId>actionbarsherlock</artifactId>
+      <version>4.4.0</version>
+      <type>apklib</type>
+    </dependency>
   </dependencies>
 
   <build>

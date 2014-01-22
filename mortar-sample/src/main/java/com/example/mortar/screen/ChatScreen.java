@@ -140,7 +140,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
           @Override public void call(Message message) {
             ChatView view = getView();
             if (view == null) return;
-            view.getItems().addAll(message);
+            view.getItems().add(message);
           }
         });
       }

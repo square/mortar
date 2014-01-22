@@ -15,13 +15,13 @@
  */
 package com.example.mortar;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewGroup;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.core.Main;
 import com.example.mortar.core.MainView;
@@ -40,7 +40,7 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
  * and lets it know about up button and back button presses. Shares control of the {@link
  * ActionBar} via the {@link com.example.mortar.android.ActionBarOwner}.
  */
-public class DemoActivity extends Activity implements MortarContext, ActionBarOwner.View {
+public class DemoActivity extends SherlockActivity implements MortarContext, ActionBarOwner.View {
   private MortarActivityScope activityScope;
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
@@ -122,12 +122,12 @@ public class DemoActivity extends Activity implements MortarContext, ActionBarOw
   }
 
   @Override public void setShowHomeEnabled(boolean enabled) {
-    ActionBar actionBar = getActionBar();
+    ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
   }
 
   @Override public void setUpButtonEnabled(boolean enabled) {
-    ActionBar actionBar = getActionBar();
+    ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(enabled);
     actionBar.setHomeButtonEnabled(enabled);
   }
