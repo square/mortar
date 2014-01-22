@@ -46,7 +46,7 @@ public abstract class Presenter<V> implements Bundler {
    * cleared. Mismatched views are a no-op, not an error. This is to provide protection in the
    * not uncommon case that dropView and takeView are called out of order.
    * <p/>
-   * For example, an activity's views are attached during {@link android.app.Activity#onResume
+   * For example, an activity's views are attached after {@link android.app.Activity#onResume
    * onResume}, but are only detached some time after {@link android.app.Activity#onDestroy()
    * onDestroy}. It's possible for a view from one activity to be detached only after the window
    * for the next activity has its views attached&mdash;that is, after the next activity's onResume
