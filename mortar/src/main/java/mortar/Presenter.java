@@ -16,48 +16,55 @@
 package mortar;
 
 import android.os.Bundle;
-import java.lang.ref.WeakReference;
 
 public abstract class Presenter<V> implements Bundler {
-  /**
-   * Views are not required to detach themselves, because Android makes it very difficult
-   * to know when to do so (impossible on Gingerbread). And even if it were practical, we can't
-   * rely on every single view implementation remembering to do that bit of bookkeeping. Therefore
-   * we keep a weak reference to the view. If everyone else has forgotten about it, the presenter
-   * will too.
-   */
-  private WeakReference<V> view = new WeakReference<V>(null);
+  private V view = null;
 
   /**
    * Called to give this presenter control of a view. Do not call this from the view's
    * constructor. Instead call it after construction when the view is known to be going
-   * live, e.g. from {@link android.app.Activity#onCreate} or
-   * {@link android.view.View#onAttachedToWindow()}.
+   * live, e.g. from {@link android.view.View#onAttachedToWindow()} or from
+   * {@link android.app.Activity#onCreate}.
    * <p/>
    * This presenter will be immediately {@link MortarActivityScope#register registered} (or
-   * re-registered), leading to an immediate call to {@link #onLoad}
+   * re-registered), leading to an immediate call to {@link #onLoad}. It is expected that
+   * {@link #dropView(Object)} will be called with the same argument when the view is
+   * no longer active, e.g. from {@link android.view.View#onAttachedToWindow()} or from
+   * {@link android.app.Activity#onDestroy()}.
    *
    * @see MortarActivityScope#register
    */
   public void takeView(V view) {
-    if (view == null) throw new NullPointerException("view must not be null");
-    this.view = new WeakReference<V>(view);
+    if (view == null) throw new NullPointerException("new view must not be null");
+    this.view = view;
     extractScope(view).register(this);
+  }
+
+  /**
+   * Called to surrender control of this view, e.g. when a dialog is dismissed. If and only if the
+   * given view matches the last passed to {@link #takeView}, the reference to the view is
+   * cleared. Mismatched views are a no-op, not an error. This is to provide protection in the
+   * not uncommon case that dropView and takeView are called out of order.
+   * <p/>
+   * For example, an activity's views are attached after {@link android.app.Activity#onResume
+   * onResume}, but are only detached some time after {@link android.app.Activity#onDestroy()
+   * onDestroy}. It's possible for a view from one activity to be detached only after the window
+   * for the next activity has its views attached&mdash;that is, after the next activity's onResume
+   * call.
+   */
+  public void dropView(V view) {
+    if (view == null) throw new NullPointerException("dropped view must not be null");
+    if (view == this.view) this.view = null;
   }
 
   protected abstract MortarScope extractScope(V view);
 
   /**
    * Returns the view managed by this presenter, or null if the view has never been set or has been
-   * garbage collected.
+   * {@link #dropView dropped}.
    */
   protected final V getView() {
-    return view.get();
-  }
-
-  /** Called to surrender control of this view, e.g. when a dialog is dismissed. */
-  protected final void dropView() {
-    view.clear();
+    return view;
   }
 
   @Override public String getMortarBundleKey() {
@@ -71,6 +78,6 @@ public abstract class Presenter<V> implements Bundler {
   }
 
   @Override public void onDestroy() {
-    dropView();
+    this.view = null;
   }
 }

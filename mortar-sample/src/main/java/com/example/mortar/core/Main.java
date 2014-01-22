@@ -15,97 +15,52 @@
  */
 package com.example.mortar.core;
 
-import android.os.Bundle;
 import com.example.mortar.android.ActionBarModule;
 import com.example.mortar.android.ActionBarOwner;
-import com.example.mortar.model.Chats;
 import com.example.mortar.screen.ChatListScreen;
 import com.example.mortar.screen.FriendListScreen;
+import com.example.mortar.util.FlowOwner;
 import dagger.Provides;
-import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
 import flow.Parcer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import mortar.MortarScope;
-import mortar.ViewPresenter;
 import rx.util.functions.Action0;
 
-public class Main {
+public class Main implements Blueprint {
+
+  @Override public String getMortarScopeName() {
+    return getClass().getName();
+  }
+
+  @Override public Object getDaggerModule() {
+    return new Module();
+  }
 
   @dagger.Module( //
-      includes = { CoreModule.class, ActionBarModule.class, Chats.Module.class },
+      includes = ActionBarModule.class,
       injects = MainView.class,
+      addsTo = ApplicationModule.class, //
       library = true //
   )
   public static class Module {
     @Provides @MainScope Flow provideFlow(Presenter presenter) {
-      return presenter.flow;
+      return presenter.getFlow();
     }
   }
 
-  @Singleton public static class Presenter extends ViewPresenter<MainView> implements Flow.Listener {
-    private static final String FLOW_KEY = "flow";
-    private static final Blueprint NO_SCREEN = new Blueprint() {
-      @Override public String getMortarScopeName() {
-        return "no-screen";
-      }
-
-      @Override public Object getDaggerModule() {
-        throw new UnsupportedOperationException();
-      }
-    };
-
-    private final Parcer<Object> flowParcer;
+  @Singleton public static class Presenter extends FlowOwner<Blueprint, MainView> {
     private final ActionBarOwner actionBarOwner;
 
-    private Flow flow;
-    private Blueprint currentScreen = NO_SCREEN;
-
     @Inject Presenter(Parcer<Object> flowParcer, ActionBarOwner actionBarOwner) {
-      this.flowParcer = flowParcer;
+      super(flowParcer);
       this.actionBarOwner = actionBarOwner;
     }
 
-    @Override public void onLoad(Bundle savedInstanceState) {
-      super.onLoad(savedInstanceState);
-
-      if (flow == null) {
-        Backstack backstack = savedInstanceState == null ? Backstack.single(new ChatListScreen())
-            : Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), flowParcer);
-
-        flow = new Flow(backstack, this);
-      }
-
-      go(flow.getBackstack(), Flow.Direction.FORWARD);
-    }
-
-    @Override public void onSave(Bundle outState) {
-      outState.putParcelable(FLOW_KEY, flow.getBackstack().getParcelable(flowParcer));
-      // Clear the current screen to force us to show it at the next load.
-      currentScreen = NO_SCREEN;
-    }
-
-    @Override public void onDestroy() {
-    }
-
-    @Override public void go(Backstack backstack, Flow.Direction direction) {
-      MainView view = getView();
-      if (view == null) return;
-
-      Blueprint newScreen = (Blueprint) backstack.current().getScreen();
-      if (newScreen.getMortarScopeName().equals(currentScreen.getMortarScopeName())) return;
-
-      MortarScope parentScope = extractScope(view);
-      if (currentScreen != NO_SCREEN) {
-        parentScope.findChild(currentScreen.getMortarScopeName()).destroy();
-        currentScreen = NO_SCREEN;
-      }
-
-      MortarScope screenScope = parentScope.requireChild(newScreen);
-      currentScreen = newScreen;
+    @Override public void showScreen(Blueprint newScreen, Flow.Direction direction) {
+      super.showScreen(newScreen, direction);
 
       boolean hasUp = newScreen instanceof HasParent;
       String title = newScreen.getClass().getSimpleName();
@@ -116,20 +71,14 @@ public class Main {
             }
           });
       actionBarOwner.setConfig(new ActionBarOwner.Config(false, hasUp, title, menu));
-
-      view.displayScreen(newScreen, screenScope, direction);
     }
 
-    public boolean onRetreatSelected() {
-      return flow.goBack();
-    }
-
-    public boolean onUpPressed() {
-      return flow.goUp();
+    @Override protected Blueprint getFirstScreen() {
+      return new ChatListScreen();
     }
 
     public void onFriendsListPicked() {
-      flow.goTo(new FriendListScreen());
+      getFlow().goTo(new FriendListScreen());
     }
   }
 }

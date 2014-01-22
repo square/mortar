@@ -85,6 +85,16 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       };
     }
 
+    @Override public void takeView(ChatView view) {
+      super.takeView(view);
+      confirmer.takeView(view.getConfirmerPopup());
+    }
+
+    @Override public void dropView(ChatView view) {
+      confirmer.dropView(view.getConfirmerPopup());
+      super.dropView(view);
+    }
+
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
       ChatView v = getView();
@@ -106,11 +116,6 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       ensureRunning();
     }
 
-    @Override public void takeView(ChatView view) {
-      super.takeView(view);
-      confirmer.takeView(view.getConfirmerPopup());
-    }
-
     @Override public void onSave(Bundle outState) {
       super.onSave(outState);
       ensureStopped();
@@ -127,11 +132,15 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
     private void ensureRunning() {
       if (running == null) {
+        // If we're resuming with an existing view it's already showing some of the
+        // messages. Clear it out. Hacky demo code, what can I say?
+        getView().getItems().clear();
+
         running = chat.getMessages().subscribe(new Action1<Message>() {
           @Override public void call(Message message) {
             ChatView view = getView();
             if (view == null) return;
-            view.getItems().addAll(message);
+            view.getItems().add(message);
           }
         });
       }

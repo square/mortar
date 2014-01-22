@@ -59,10 +59,11 @@
     <module name="FileContentsHolder"/>
 
     <module name="LineLength">
-      <!-- IDEA allows JavaDoc to actually go to 103 characters. -->
+      <!-- IDEA allows comments to actually go to 103 characters. -->
       <!-- http://youtrack.jetbrains.com/issue/IDEA-109737 -->
       <property name="max" value="103"/>
-      <property name="ignorePattern" value="^import"/>
+      <!-- Ignore imports and javadoc. -->
+      <property name="ignorePattern" value="(^import|^ *\* *[^ ]+$)"/>
     </module>
 
     <!-- Naming conventions. -->

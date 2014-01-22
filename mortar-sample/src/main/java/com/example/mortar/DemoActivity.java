@@ -15,22 +15,24 @@
  */
 package com.example.mortar;
 
-import android.app.ActionBar;
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewGroup;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.core.Main;
 import com.example.mortar.core.MainView;
-import dagger.ObjectGraph;
 import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarContext;
 import mortar.MortarScope;
 
+import static android.content.Intent.ACTION_MAIN;
+import static android.content.Intent.CATEGORY_LAUNCHER;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
 /**
@@ -38,22 +40,25 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
  * and lets it know about up button and back button presses. Shares control of the {@link
  * ActionBar} via the {@link com.example.mortar.android.ActionBarOwner}.
  */
-// TODO: this is pretty confusing. Maybe move ActionBarOwner.View duties to an inner class.
-public class DemoActivity extends Activity implements MortarContext, ActionBarOwner.View {
+public class DemoActivity extends SherlockActivity implements MortarContext, ActionBarOwner.View {
+  private MortarActivityScope activityScope;
   private ActionBarOwner.MenuAction actionBarMenuAction;
-  private MortarActivityScope rootScope;
 
   @Inject ActionBarOwner actionBarOwner;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    ObjectGraph objectGraph = ObjectGraph.create(new Main.Module());
-    rootScope = Mortar.createRootActivityScope(BuildConfig.DEBUG, objectGraph);
-    rootScope.onCreate(savedInstanceState);
+    if (isWrongInstance()) {
+      finish();
+      return;
+    }
 
+    MortarScope parentScope = ((DemoApplication) getApplication()).getRootScope();
+    activityScope = Mortar.requireActivityScope(parentScope, new Main());
     Mortar.inject(this, this);
 
+    activityScope.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
     actionBarOwner.takeView(this);
@@ -61,22 +66,17 @@ public class DemoActivity extends Activity implements MortarContext, ActionBarOw
 
   @Override protected void onResume() {
     super.onResume();
-    rootScope.onResume();
+    activityScope.onResume();
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    rootScope.onSaveInstanceState(outState);
-  }
-
-  @Override public void finish() {
-    super.finish();
-    rootScope.destroy();
-    rootScope = null;
+    activityScope.onSaveInstanceState(outState);
   }
 
   /** Inform the view about back events. */
   @Override public void onBackPressed() {
+    // Give the view a chance to handle going back. If it declines the honor, let super do its thing.
     MainView view = getMainView();
     if (!view.onBackPressed()) super.onBackPressed();
   }
@@ -91,7 +91,7 @@ public class DemoActivity extends Activity implements MortarContext, ActionBarOw
     return super.onOptionsItemSelected(item);
   }
 
-  /** Configure the action bar menu as required by {@link #setMenu} */
+  /** Configure the action bar menu as required by {@link ActionBarOwner.View}. */
   @Override public boolean onCreateOptionsMenu(Menu menu) {
     if (actionBarMenuAction != null) {
       menu.add(actionBarMenuAction.title)
@@ -106,21 +106,28 @@ public class DemoActivity extends Activity implements MortarContext, ActionBarOw
     return true;
   }
 
-  //
-  // ActionBarOwner.View responsibilities
-  //
+  @Override protected void onDestroy() {
+    super.onDestroy();
+
+    actionBarOwner.dropView(this);
+
+    if (isFinishing() && activityScope != null) {
+      activityScope.destroy();
+      activityScope = null;
+    }
+  }
 
   @Override public MortarScope getMortarScope() {
-    return rootScope;
+    return activityScope;
   }
 
   @Override public void setShowHomeEnabled(boolean enabled) {
-    ActionBar actionBar = getActionBar();
+    ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
   }
 
   @Override public void setUpButtonEnabled(boolean enabled) {
-    ActionBar actionBar = getActionBar();
+    ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(enabled);
     actionBar.setHomeButtonEnabled(enabled);
   }
@@ -130,6 +137,21 @@ public class DemoActivity extends Activity implements MortarContext, ActionBarOw
       actionBarMenuAction = action;
       invalidateOptionsMenu();
     }
+  }
+
+  /**
+   * Dev tools and the play store (and others?) launch with a different intent, and so
+   * lead to a redundant instance of this activity being spawned. <a
+   * href="http://stackoverflow.com/questions/17702202/find-out-whether-the-current-activity-will-be-task-root-eventually-after-pendin"
+   * >Details</a>.
+   */
+  private boolean isWrongInstance() {
+    if (!isTaskRoot()) {
+      Intent intent = getIntent();
+      boolean isMainAction = intent.getAction() != null && intent.getAction().equals(ACTION_MAIN);
+      return intent.hasCategory(CATEGORY_LAUNCHER) && isMainAction;
+    }
+    return false;
   }
 
   private MainView getMainView() {

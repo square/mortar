@@ -50,6 +50,11 @@ public class MessageView extends LinearLayout {
     presenter.takeView(this);
   }
 
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    presenter.dropView(this);
+  }
+
   public void setUser(String user) {
     userView.setText(user);
   }

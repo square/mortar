@@ -35,4 +35,9 @@ public class FriendView extends TextView  {
     super.onAttachedToWindow();
     presenter.takeView(this);
   }
+
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    presenter.dropView(this);
+  }
 }

@@ -17,15 +17,14 @@ package com.example.mortar.core;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.View;
-import com.example.mortar.view.ContainerView;
-import flow.Flow;
-import flow.Screens;
+import android.view.ViewGroup;
+import com.example.mortar.util.FlowOwner;
+import com.example.mortar.util.FlowOwnerView;
 import javax.inject.Inject;
+import mortar.Blueprint;
 import mortar.Mortar;
-import mortar.MortarScope;
 
-public class MainView extends ContainerView {
+public class MainView extends FlowOwnerView<Blueprint> {
   @Inject Main.Presenter presenter;
 
   public MainView(Context context, AttributeSet attrs) {
@@ -38,16 +37,11 @@ public class MainView extends ContainerView {
     presenter.takeView(this);
   }
 
-  public void displayScreen(Object screen, MortarScope screenScope, Flow.Direction direction) {
-    View screenView = Screens.createView(screenScope.createContext(getContext()), screen);
-    displayView(screenView, direction);
+  @Override protected ViewGroup getContainer() {
+    return this;
   }
 
-  public boolean onBackPressed() {
-    return presenter.onRetreatSelected();
-  }
-
-  public boolean onUpPressed() {
-    return presenter.onUpPressed();
+  @Override protected FlowOwner<Blueprint, MainView> getPresenter() {
+    return presenter;
   }
 }

@@ -47,6 +47,11 @@ public class ChatView extends ListView {
     presenter.takeView(this);
   }
 
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    presenter.dropView(this);
+  }
+
   public ConfirmerPopup getConfirmerPopup() {
     return confirmerPopup;
   }

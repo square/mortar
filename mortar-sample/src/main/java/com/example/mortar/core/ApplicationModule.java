@@ -17,6 +17,7 @@ package com.example.mortar.core;
 
 import android.os.Handler;
 import android.os.Looper;
+import com.example.mortar.model.Chats;
 import com.example.mortar.model.QuoteService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,8 +31,8 @@ import retrofit.converter.GsonConverter;
 import rx.Scheduler;
 import rx.concurrency.ExecutorScheduler;
 
-@Module(library = true)
-public class CoreModule {
+@Module(includes = Chats.Module.class, library = true)
+public class ApplicationModule {
   @Provides @Singleton @MainThread Scheduler provideMainThread() {
     final Handler handler = new Handler(Looper.getMainLooper());
     return new ExecutorScheduler(new Executor() {

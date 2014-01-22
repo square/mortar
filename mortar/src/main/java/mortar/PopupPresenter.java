@@ -68,10 +68,10 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
     return Mortar.getScope(view.getContext());
   }
 
-  @Override public void takeView(Popup<D, R> view) {
+  @Override public void dropView(Popup<D, R> view) {
     Popup<D, R> oldView = getView();
-    if (oldView != null && oldView.isShowing()) oldView.dismiss(false);
-    super.takeView(view);
+    if (oldView == view && oldView.isShowing()) oldView.dismiss(false);
+    super.dropView(view);
   }
 
   @Override public void onLoad(Bundle savedInstanceState) {
