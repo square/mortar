@@ -5,8 +5,8 @@ Android apps into composable modules. It is not a framework: there are no
 abstract Application or Activity classes here. Mortar eschews magic.
 
 Rather, Mortar is a simple library that makes it easy to pair thin views with
-dedicated controllers (ViewPresenters), isolated from most of the vagaries of
-the Activity life cycle. The patterns it encourages  have evolved in
+dedicated controllers (Presenters), isolated from most of the vagaries of
+the Activity life cycle. The patterns it encourages have evolved in
 parallel across several Android teams at Square.
 
 Mortar relies on Dagger, and of course the Android runtime, but those are its
@@ -15,13 +15,19 @@ only direct dependencies. That said, it works very well with
 [Flow](https://github.com/square/flow) and
 [RxJava](https://github.com/Netflix/RxJava).
 [Butterknife](http://jakewharton.github.io/butterknife/) can be a fun partner
-too. (Use of all of these libraries is illustrated in the sample app.)
+too. (Use of most of these libraries is illustrated in the sample app.)
 
-**Full disclosure**: This stuff is in rapid development, and has been open sourced
-at an earlier time in its life than is typical for Square. While we have a lot
-of code written in this style, only a small portion is using Mortar per se.
-That is changing, and as its use broadens bugs will be fixed and apis may
-be tweaked.
+**Full disclosure**: This stuff is in rapid development, and has been open
+sourced at an earlier time in its life than is typical for Square. While we
+have a lot of code written in this style, we are still in the process of
+migrating to Mortar per se. As its use broadens bugs will be fixed and apis
+will be broken. 
+
+## Show me the code
+
+Before wading into how and why a Mortar app works, let's look at a typical
+piece of one. 
+
 
 ## Moving Parts
 
@@ -29,12 +35,11 @@ _This writeup presumes you are pretty familiar with
 [Dagger](http://square.github.io/dagger/)._
 
 A Mortar app has only a handful of Activity classes, maybe only a single one.
-It does not have Fragments or Loaders, at least not at Square.
-Instead its UI is built of Activities and Views, which inject whatever
-services they need. Typically, though this is not required, these Activities
-and Views are thin things that delegate most of their interesting work to
-injected `ViewPresenters`, which simplify life by surviving configuration
-changes.
+It does not have Fragments or Loaders, at least not at Square. Instead its UI
+is built primarily of plain old Views, which inject whatever services they
+need. Typically, though this is not required, these Views are thin things that
+delegate most of their interesting work to injected controllers called
+`Presenters`, which simplify life by surviving configuration changes.
 
 ### The scope tree
 
@@ -42,9 +47,8 @@ An app is structured as a tree of `MortarScope`s, each associated with a
 Dagger ObjectGraph. A scope is defined by a `Blueprint`, which provides its
 name and its Dagger
 [Module](http://square.github.io/dagger/javadoc/dagger/Module.html). Typically
-a Blueprint also declares the interface to be implemented by its main Activity
-or View, as well as the ViewPresenter that drives it, but this is just a
-convention.
+a Blueprint also defines Presenter class that drives the main View rendered
+for the scope, but this is just a convention.
 
 For example, an app might have a top level global scope that allows the
 injection of fundamental services; a child of that which manages objects that
@@ -65,13 +69,13 @@ that's the entire lifecyle that Mortar apps need to deal with:
 
 Note in particular that an activity's scope is not destroyed when a particular
 instance of that activity is destroyed. It sticks around until someone calls
-`MortarScope#destroy()`, typically in the `Activity#finish` method. Any
-objects registered at or below the activity scope will survive any number of
-onLoad and onSave calls as the phone is rotated, as the app pauses, etc. Of
-course process death and resurrection can strike at any time, so each onSave()
-call should archive as if it were the last, and each onLoad() should check to
-see if it's really a reload. But that's a lot simpler than the usual
-gymnastics.
+`MortarScope#destroy()`, typically in the `Activity#onDestroy` method if
+`isFinishing()` is true. Any objects registered at or below the activity scope
+will survive any number of onLoad and onSave calls as the device is rotated, as
+the app pauses, etc. Of course process death and resurrection can strike at
+any time, so each onSave() call should archive as if it were the last, and
+each onLoad() should check to see if it's really a reload. But that's a lot
+simpler than the usual gymnastics.
 
 ### Singletons where you want them
 
@@ -114,7 +118,7 @@ handle view creation.
  */
 showScreen(Blueprint nextScreen) {
   View currentView = findViewById(android.R.id.content); // ick
-  Mortar.getMortarScope(currentView).destroy();
+  Mortar.getMortarScope(currentView.getContext()).destroy();
 
   MortarScope newScope = Mortar.getMortarScope(this).requireChild(nextScreen);
   Context newContext = new MortarContextWrapper(this, newScope);
@@ -130,12 +134,11 @@ the transition between these two views. You'd just…do it.
 ### Take control
 
 This view-centered approach to composition doesn't mean that Mortar apps are
-untestable. It's trivial to move all the interesting parts of a view or
-activity over to a `ViewPresenter` controller. And because presenters survive
-config changes like rotation, they can be a lot easier to work with than code
-trapped over in Context-land. To do this a view injects its presenter, and
-lets it know when the view is ready to roll, typically from
-`onAttachedToWindow()` (or `onCreate()` in an activity).
+untestable. It's trivial to move all the interesting parts of a view  over to
+a `Presenter` controller. And because presenters survive config changes like
+rotation, they can be a lot easier to work with than code trapped over in
+Context-land. To do this a view injects its presenter, and lets it know when
+the view is ready to roll, typically from `onAttachedToWindow()`.
 
 Here's an example, with one small conceit—we're using
 [Flow](https://github.com/square/flow)'s [@Screen](https://github.com/square/f
@@ -168,6 +171,11 @@ public class MyView extends View implements MyScreen.View {
     super.onAttachedToWindow();
     presenter.takeView(this);
   }
+
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    presenter.dropView(this);
+  }
   
   @Override public MortarScope getMortarScope() {
     return Mortar.getScope(getContext());
@@ -195,18 +203,17 @@ public class MyScreen implements Blueprint {
     return new DaggerModule();
   }
 
-  @Module(injects = { Presenter.class, MyView.class },
-      addsTo = MyActivity.Module.class)
+  @Module(injects = MyView.class, addsTo = MyActivity.Module.class)
   public class DaggerModule {
   }
 
-  public interface View extends HasMortarScope {
+  public interface View extends MortarContext {
     String getSomeText();
     void showResult(SomeResult r);
   }
 
   @Singleton
-  public class Presenter extends AbstractViewPresenter<View> {
+  public class Presenter extends ViewPresenter<View> {
     private final SomeAsyncService service;
 
     private SomeResult lastResult;
@@ -253,7 +260,7 @@ public class MyScreen implements Blueprint {
 
 Mortar requires a bit of wiring to do its job. Its main trick is to require a
 custom `Application` subclass and all participating activities to implement
-the `HasMortarScope` interface. This allows every activity and view to find
+the `MortarContext` interface. This allows every activity and view to find
 its controlling scope via its `Context`.
 
 So, your app must have a custom Application subclass…
@@ -267,7 +274,7 @@ So, your app must have a custom Application subclass…
 …that hosts the root scope:
 
 ```java
-public class MyApplication extends Application implements HasMortarScope {
+public class MyApplication extends Application implements MortarContext {
   private MortarScope applicationScope;
 
   @Override public void onCreate() {
@@ -288,7 +295,7 @@ create or restore a `MortarActivityScope` specialized to broker the services
 of the bundle.
 
 ```java
-public abstract class MyBaseActivity extends Activity implements HasMortarScope {
+public abstract class MyBaseActivity extends Activity implements MortarContext {
   private MortarActivityScope activityScope;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -312,10 +319,12 @@ public abstract class MyBaseActivity extends Activity implements HasMortarScope 
     activityScope.onSaveInstanceState(outState);
   }
 
-  @Override public void finish() {
-    super.finish();
-    activityScope.destroy();
-    activityScope = null;
+  @Override public void onDestroy() {
+    super.onDestroy();
+    if (isFinishing) {
+      activityScope.destroy();
+      activityScope = null;
+    }
   }
 
   @Override public MortarScope getMortarScope() {
