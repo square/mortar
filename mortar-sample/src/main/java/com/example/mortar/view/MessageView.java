@@ -43,10 +43,6 @@ public class MessageView extends LinearLayout {
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
     Views.inject(this);
-  }
-
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 

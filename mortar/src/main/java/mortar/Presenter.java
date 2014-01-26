@@ -21,15 +21,15 @@ public abstract class Presenter<V> implements Bundler {
   private V view = null;
 
   /**
-   * Called to give this presenter control of a view. Do not call this from the view's
-   * constructor. Instead call it after construction when the view is known to be going
-   * live, e.g. from {@link android.view.View#onAttachedToWindow()} or from
-   * {@link android.app.Activity#onCreate}.
+   * Called to give this presenter control of a view. Call it when the view is known to be going
+   * live, e.g. from {@link android.app.Activity#onCreate} for an activity, {@link
+   * android.view.View#onFinishInflate()} for a view created through inflation, or in the view
+   * constructor otherwise.
    * <p/>
    * This presenter will be immediately {@link MortarActivityScope#register registered} (or
    * re-registered), leading to an immediate call to {@link #onLoad}. It is expected that
    * {@link #dropView(Object)} will be called with the same argument when the view is
-   * no longer active, e.g. from {@link android.view.View#onAttachedToWindow()} or from
+   * no longer active, e.g. from {@link android.view.View#onDetachedFromWindow()} or from
    * {@link android.app.Activity#onDestroy()}.
    *
    * @see MortarActivityScope#register

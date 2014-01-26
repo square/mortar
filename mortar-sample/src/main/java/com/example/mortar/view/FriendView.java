@@ -29,10 +29,6 @@ public class FriendView extends TextView  {
   public FriendView(Context context, AttributeSet attrs) {
     super(context, attrs);
     Mortar.inject(context, this);
-  }
-
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 
