@@ -60,8 +60,6 @@ public class Main implements Blueprint {
     }
 
     @Override public void showScreen(Blueprint newScreen, Flow.Direction direction) {
-      super.showScreen(newScreen, direction);
-
       boolean hasUp = newScreen instanceof HasParent;
       String title = newScreen.getClass().getSimpleName();
       ActionBarOwner.MenuAction menu =
@@ -71,6 +69,8 @@ public class Main implements Blueprint {
             }
           });
       actionBarOwner.setConfig(new ActionBarOwner.Config(false, hasUp, title, menu));
+
+      super.showScreen(newScreen, direction);
     }
 
     @Override protected Blueprint getFirstScreen() {
