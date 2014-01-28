@@ -27,9 +27,10 @@ public interface Bundler extends Scoped {
 
   /**
    * Called when this object is first {@link MortarScope#register registered}, and each time a
-   * host {@link android.app.Activity} is re-created (e.g. after a configuration change like
-   * rotation, or after the app is paused and resumed). Redundant calls to this method are par for
-   * the course, so implementations must be idempotent.
+   * host {@link android.app.Activity} {@link MortarActivityScope#onCreate(android.os.Bundle)}
+   * is called (e.g. after a configuration change like rotation, or after the app process is
+   * respawned). Redundant calls to this method are par for the course, so implementations must
+   * be idempotent.
    *
    * @param savedInstanceState the state written by the most recent call to {@link #onSave}, or
    * null if that has never happened.
@@ -37,9 +38,8 @@ public interface Bundler extends Scoped {
   void onLoad(Bundle savedInstanceState);
 
   /**
-   * Called from the {@link android.app.Activity#onSaveInstanceState onSaveInstanceState} method
-   * of the host {@link android.app.Activity}. This is the receiver's sign that the
-   * activity is being torn down, and possibly the entire app along with it.
+   * Called from the {@link MortarActivityScope#onSaveInstanceState}. This is the receiver's
+   * sign that the activity might be torn down, and possibly the entire app along with it.
    * <p/>
    * Note that receivers are likely to outlive multiple activity instances, and so receive multiple
    * calls of this method. Any state required to revive a new instance of the receiver in a new

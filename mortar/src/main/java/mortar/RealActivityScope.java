@@ -26,18 +26,11 @@ import static java.lang.String.format;
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Bundle latestSavedInstanceState;
 
-  private enum State {
+  private enum LoadingState {
     IDLE, LOADING, SAVING
   }
 
-
-  Okay. Right now you get called for register, and again from oncreate.
-  1. Try no eager call to load from register before create and after save.
-  2. Try making Presenter register a private bundler, and have it defeat
-     calls to onload while view == null
-
-
-  private State state = State.IDLE;
+  private LoadingState loadingState = LoadingState.IDLE;
 
   private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
   private Set<Bundler> bundlers = new HashSet<Bundler>();
@@ -57,7 +50,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
     }
 
-    switch (state) {
+    switch (loadingState) {
       case IDLE:
         toloadThisTime.add(b);
         doLoading();
@@ -70,7 +63,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
         break;
 
       default:
-        throw new AssertionError("Unknown state " + state);
+        throw new AssertionError("Unknown state " + loadingState);
     }
   }
 
@@ -91,13 +84,13 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
 
   @Override public void onSaveInstanceState(Bundle outState) {
     assertNotDead();
-    if (state != State.IDLE) {
-      throw new IllegalStateException("Cannot handle onSaveInstanceState while " + state);
+    if (loadingState != LoadingState.IDLE) {
+      throw new IllegalStateException("Cannot handle onSaveInstanceState while " + loadingState);
     }
 
     latestSavedInstanceState = outState;
 
-    state = State.SAVING;
+    loadingState = LoadingState.SAVING;
     for (Bundler b : new ArrayList<Bundler>(bundlers)) {
       // If anyone's onSave method destroyed us, short circuit.
       if (isDead()) return;
@@ -111,7 +104,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
           getChildBundle(child, latestSavedInstanceState, true));
     }
 
-    state = State.IDLE;
+    loadingState = LoadingState.IDLE;
   }
 
   @Override public MortarScope requireChild(Blueprint blueprint) {
@@ -133,14 +126,14 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   private void doLoading() {
-    if (state != State.IDLE) {
-      throw new IllegalStateException("Cannot load while " + state);
+    if (loadingState != LoadingState.IDLE) {
+      throw new IllegalStateException("Cannot load while " + loadingState);
     }
 
     // Call onLoad. Watch out for new registrants, and don't loop on re-registration.
     // Also watch out for the scope getting destroyed from an onload, short circuit.
 
-    state = State.LOADING;
+    loadingState = LoadingState.LOADING;
     while (!toloadThisTime.isEmpty()) {
       if (isDead()) return;
 
@@ -148,7 +141,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       bundlers.add(next);
       next.onLoad(getChildBundle(next, latestSavedInstanceState, false));
     }
-    state = State.IDLE;
+    loadingState = LoadingState.IDLE;
   }
 
   private Bundle getChildBundle(Bundler bundler, Bundle bundle, boolean eager) {

@@ -17,68 +17,97 @@ package mortar;
 
 import android.os.Bundle;
 
-public abstract class Presenter<V> implements Bundler {
+public abstract class Presenter<V> {
   private V view = null;
+
+  private Bundler registration = new Bundler() {
+    @Override public String getMortarBundleKey() {
+      return getClass().getName();
+    }
+
+    @Override public void onLoad(Bundle savedInstanceState) {
+      if (getView() != null) Presenter.this.onLoad(savedInstanceState);
+    }
+
+    @Override public void onSave(Bundle outState) {
+      Presenter.this.onSave(outState);
+    }
+
+    @Override public void onDestroy() {
+      Presenter.this.onDestroy();
+    }
+  };
 
   /**
    * Called to give this presenter control of a view, ideally from {@link
    * android.view.View#onFinishInflate}. If a view is to be re-used, you might
    * make an additional call from {@link android.view.View#onAttachedToWindow()}.
-   * (Redundant calls will safely no-op.)
+   * (Redundant calls will safely no-op.) Sets the view that will be returned from {@link
+   * #getView()}.
    * <p/>
-   * This presenter will be immediately {@link MortarActivityScope#register registered} (or
-   * re-registered), leading to an immediate call to {@link #onLoad}. It is expected that
-   * {@link #dropView(Object)} will be called with the same argument when the view is
-   * no longer active, e.g. from {@link android.view.View#onDetachedFromWindow()}.
+   * This presenter will be immediately {@link MortarActivityScope#register registered}
+   * (or re-registered) with the given view's scope, leading to an immediate call to {@link
+   * #onLoad}. {@link #onLoad} will also be called from
+   * {@link MortarActivityScope#onCreate} if {@link #getView()} is non-null, so it's generally
+   * a good idea to call {@link MortarActivityScope#onCreate} before {@link
+   * android.app.Activity#setContentView}.
+   * <p/>
+   * It is expected that {@link #dropView(Object)} will be called with the same argument when the
+   * view is no longer active, e.g. from {@link android.view.View#onDetachedFromWindow()}.
    *
    * @see MortarActivityScope#register
    */
   public final void takeView(V view) {
     if (view == null) throw new NullPointerException("new view must not be null");
+
     if (this.view != view) {
       this.view = view;
-      extractScope(view).register(this);
+      extractScope(view).register(registration);
     }
   }
 
   /**
    * Called to surrender control of this view, e.g. when a dialog is dismissed. If and only if the
    * given view matches the last passed to {@link #takeView}, the reference to the view is
-   * cleared. Mismatched views are a no-op, not an error. This is to provide protection in the
-   * not uncommon case that dropView and takeView are called out of order.
+   * cleared.
    * <p/>
-   * For example, an activity's views are attached after {@link android.app.Activity#onResume
-   * onResume}, but are only detached some time after {@link android.app.Activity#onDestroy()
-   * onDestroy}. It's possible for a view from one activity to be detached only after the window
-   * for the next activity has its views attached&mdash;that is, after the next activity's onResume
-   * call.
+   * Mismatched views are a no-op, not an error. This is to provide protection in the
+   * not uncommon case that dropView and takeView are called out of order. For example, an
+   * activity's views are typically inflated in {@link
+   * android.app.Activity#onCreate}, but are only detached some time after {@link
+   * android.app.Activity#onDestroy() onDestroy}. It's possible for a view from one activity to be
+   * detached well after the window for the next activity has its views inflated&mdash;that is,
+   * after the next activity's onResume call.
    */
   public void dropView(V view) {
     if (view == null) throw new NullPointerException("dropped view must not be null");
     if (view == this.view) this.view = null;
   }
 
+  /** Called by {@link #takeView}. Given a view instance, return its {@link MortarScope}. */
   protected abstract MortarScope extractScope(V view);
 
   /**
-   * Returns the view managed by this presenter, or null if the view has never been set or has been
-   * {@link #dropView dropped}.
+   * Returns the view managed by this presenter, or null if {@link #takeView} has never been
+   * called, or after {@link #dropView}.
    */
-  public final V getView() {
+  protected final V getView() {
     return view;
   }
 
-  @Override public String getMortarBundleKey() {
-    return getClass().getName();
+  /**
+   * Like {@link Bundler#onLoad}, but called only when {@link #getView()} is not null.
+   * See {@link #takeView} for details.
+   */
+  protected void onLoad(Bundle savedInstanceState) {
   }
 
-  @Override public void onLoad(Bundle savedInstanceState) {
+  /** Like {@link Bundler#onSave}. */
+  protected void onSave(Bundle outState) {
   }
 
-  @Override public void onSave(Bundle outState) {
-  }
-
-  @Override public void onDestroy() {
+  /** Like {@link Bundler#onDestroy}. */
+  protected void onDestroy() {
     this.view = null;
   }
 }
