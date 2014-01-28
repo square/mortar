@@ -16,6 +16,7 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
+import com.example.mortar.R;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.core.Main;
 import com.example.mortar.core.MainScope;
@@ -27,7 +28,7 @@ import com.example.mortar.view.Confirmation;
 import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
-import flow.Screen;
+import flow.Layout;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
@@ -37,7 +38,7 @@ import rx.Subscription;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;
 
-@Screen(ChatView.class) //
+@Layout(R.layout.chat_view) //
 public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
   private final int conversationIndex;
 

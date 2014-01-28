@@ -42,8 +42,8 @@ public class ChatView extends ListView {
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
   }
 
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
+  @Override protected void onFinishInflate() {
+    super.onFinishInflate();
     presenter.takeView(this);
   }
 

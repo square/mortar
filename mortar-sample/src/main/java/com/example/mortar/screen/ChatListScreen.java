@@ -16,20 +16,21 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
+import com.example.mortar.R;
 import com.example.mortar.core.Main;
 import com.example.mortar.model.Chat;
 import com.example.mortar.model.Chats;
 import com.example.mortar.view.ChatListView;
 import dagger.Provides;
 import flow.Flow;
-import flow.Screen;
+import flow.Layout;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
 import mortar.ViewPresenter;
 
-@Screen(ChatListView.class) //
+@Layout(R.layout.chat_list_view) //
 public class ChatListScreen implements Blueprint {
 
   @Override public String getMortarScopeName() {

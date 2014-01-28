@@ -16,19 +16,20 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
+import com.example.mortar.R;
 import com.example.mortar.core.Main;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.User;
 import com.example.mortar.view.FriendView;
 import dagger.Provides;
 import flow.HasParent;
-import flow.Screen;
+import flow.Layout;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
 import mortar.ViewPresenter;
 
-@Screen(FriendView.class) //
+@Layout(R.layout.friend_view) //
 public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
   private final int index;
 
