@@ -24,7 +24,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.example.mortar.R;
 import flow.Flow;
-import flow.Screens;
+import flow.Layouts;
 import mortar.Blueprint;
 import mortar.Mortar;
 import mortar.MortarScope;
@@ -42,7 +42,7 @@ import static android.view.animation.AnimationUtils.loadAnimation;
  * }</pre></code>
  *
  * @param <S> the type of the screens that serve as a {@link Blueprint} for subview. Must
- * be annotated with {@link flow.Screen}, suitable for use with {@link Screens#createView}.
+ * be annotated with {@link flow.Layout}, suitable for use with {@link flow.Layouts#createView}.
  */
 public abstract class FlowOwnerView<S extends Blueprint> extends FrameLayout {
 
@@ -72,7 +72,7 @@ public abstract class FlowOwnerView<S extends Blueprint> extends FrameLayout {
 
     // Create the new child.
     Context childContext = newChildScope.createContext(getContext());
-    newChild = Screens.createView(childContext, screen);
+    newChild = Layouts.createView(childContext, screen);
 
     setAnimation(direction, oldChild, newChild);
 
