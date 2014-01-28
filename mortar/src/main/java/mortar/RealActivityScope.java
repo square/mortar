@@ -16,7 +16,6 @@
 package mortar;
 
 import android.os.Bundle;
-import dagger.ObjectGraph;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,14 +30,17 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     IDLE, LOADING, SAVING
   }
 
+
+  Okay. Right now you get called for register, and again from oncreate.
+  1. Try no eager call to load from register before create and after save.
+  2. Try making Presenter register a private bundler, and have it defeat
+     calls to onload while view == null
+
+
   private State state = State.IDLE;
 
   private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
   private Set<Bundler> bundlers = new HashSet<Bundler>();
-
-  RealActivityScope(boolean validate, ObjectGraph objectGraph) {
-    super(validate, objectGraph);
-  }
 
   RealActivityScope(RealMortarScope original) {
     super(original.getName(), ((RealMortarScope) original.getParent()), original.validate,
@@ -61,7 +63,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
         doLoading();
         break;
       case LOADING:
-        if (!toloadThisTime.contains(b) && !bundlers.contains(b)) toloadThisTime.add(b);
+        if (!toloadThisTime.contains(b)) toloadThisTime.add(b);
         break;
       case SAVING:
         bundlers.add(b);
@@ -78,21 +80,12 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     // Make note of the bundle to send it to bundlers when register is called.
     latestSavedInstanceState = savedInstanceState;
 
-    for (RealMortarScope child : children.values()) {
-      if (!(child instanceof RealActivityScope)) continue;
-      ((RealActivityScope) child).onCreate(getChildBundle(child, savedInstanceState, false));
-    }
-  }
-
-  @Override public void onResume() {
-    assertNotDead();
-
     toloadThisTime.addAll(bundlers);
     doLoading();
 
     for (RealMortarScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) continue;
-      ((RealActivityScope) child).onResume();
+      ((RealActivityScope) child).onCreate(getChildBundle(child, savedInstanceState, false));
     }
   }
 

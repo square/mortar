@@ -21,23 +21,24 @@ public abstract class Presenter<V> implements Bundler {
   private V view = null;
 
   /**
-   * Called to give this presenter control of a view. Do not call this from the view's
-   * constructor. Instead call it after construction when the view is known to be going
-   * live, e.g. from {@link android.view.View#onAttachedToWindow()} or from
-   * {@link android.app.Activity#onCreate}.
+   * Called to give this presenter control of a view, ideally from {@link
+   * android.view.View#onFinishInflate}. If a view is to be re-used, you might
+   * make an additional call from {@link android.view.View#onAttachedToWindow()}.
+   * (Redundant calls will safely no-op.)
    * <p/>
    * This presenter will be immediately {@link MortarActivityScope#register registered} (or
    * re-registered), leading to an immediate call to {@link #onLoad}. It is expected that
    * {@link #dropView(Object)} will be called with the same argument when the view is
-   * no longer active, e.g. from {@link android.view.View#onAttachedToWindow()} or from
-   * {@link android.app.Activity#onDestroy()}.
+   * no longer active, e.g. from {@link android.view.View#onDetachedFromWindow()}.
    *
    * @see MortarActivityScope#register
    */
-  public void takeView(V view) {
+  public final void takeView(V view) {
     if (view == null) throw new NullPointerException("new view must not be null");
-    this.view = view;
-    extractScope(view).register(this);
+    if (this.view != view) {
+      this.view = view;
+      extractScope(view).register(this);
+    }
   }
 
   /**
@@ -63,7 +64,7 @@ public abstract class Presenter<V> implements Bundler {
    * Returns the view managed by this presenter, or null if the view has never been set or has been
    * {@link #dropView dropped}.
    */
-  protected final V getView() {
+  public final V getView() {
     return view;
   }
 

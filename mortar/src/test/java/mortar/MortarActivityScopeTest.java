@@ -23,8 +23,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class MortarActivityScopeTest {
 
-  public static final String BUNDLER = "bundler";
-
   private static class MyBundler implements Bundler {
     final String name;
 
@@ -32,10 +30,6 @@ public class MortarActivityScopeTest {
     Bundle lastLoaded;
     Bundle lastSaved;
     boolean destroyed;
-
-    MyBundler() {
-      this(BUNDLER);
-    }
 
     public MyBundler(String name) {
       this.name = name;
@@ -133,12 +127,7 @@ public class MortarActivityScopeTest {
     baker.reset();
 
     activityScope.onCreate(null);
-    // Create does not effect bundlers.
-    assertThat(able.loaded).isFalse();
-    assertThat(baker.loaded).isFalse();
-
-    // Resuming, we load again
-    activityScope.onResume();
+    // Create loads all registrants.
     assertThat(able.loaded).isTrue();
     assertThat(able.lastLoaded).isNull();
     able.reset();
@@ -153,11 +142,6 @@ public class MortarActivityScopeTest {
     assertThat(baker.lastSaved).isNotNull();
     assertThat(able.lastSaved).isNotSameAs(baker.lastSaved);
 
-    // Resuming the same activity instance, the out bundle is sent to load()
-    activityScope.onResume();
-    assertThat(able.lastLoaded).isSameAs(able.lastSaved);
-    assertThat(baker.lastLoaded).isSameAs(baker.lastSaved);
-
     // If the bundler is re-registered, it loads again.
     able.lastLoaded = null;
     registerScope.register(able);
@@ -170,7 +154,6 @@ public class MortarActivityScopeTest {
     Bundle fromNewActivity = new Bundle(saved);
 
     activityScope.onCreate(fromNewActivity);
-    activityScope.onResume();
     assertThat(able.lastLoaded).isNotNull();
 
     verifyNoMoreInteractions(scoped);
@@ -197,7 +180,6 @@ public class MortarActivityScopeTest {
   @Test public void childInfoSurvivesProcessDeath() {
     FauxActivity activity = new FauxActivity();
     activity.create(null);
-    activityScope.onResume();
     Bundle bundle = new Bundle();
     activityScope.onSaveInstanceState(bundle);
 
@@ -210,7 +192,7 @@ public class MortarActivityScopeTest {
     assertThat(activity.childPresenter.lastLoaded).isNotNull();
   }
 
-  @Test public void handlesRegisterFromOnLoadBeforeResume() {
+  @Test public void handlesRegisterFromOnLoadBeforeCreate() {
     final MyBundler bundler = new MyBundler("inner");
 
     activityScope.register(new MyBundler("outer") {
@@ -223,20 +205,17 @@ public class MortarActivityScopeTest {
     // The recursive register call loaded immediately.
     assertThat(bundler.loaded).isTrue();
 
-    // And it was registered: a resume call reloads it.
+    // And it was registered: a create call reloads it.
     bundler.reset();
-    Bundle b = new Bundle();
-    activityScope.onSaveInstanceState(b);
-    activityScope.onResume();
+    activityScope.onCreate(null);
 
-    assertThat(bundler.loaded).isNotNull();
+    assertThat(bundler.loaded).isTrue();
   }
 
-  @Test public void handlesRegisterFromOnLoadAfterResume() {
+  @Test public void handlesRegisterFromOnLoadAfterCreate() {
     final MyBundler bundler = new MyBundler("inner");
 
     activityScope.onCreate(null);
-    activityScope.onResume();
 
     activityScope.register(new MyBundler("outer") {
       @Override public void onLoad(Bundle savedInstanceState) {
@@ -247,11 +226,11 @@ public class MortarActivityScopeTest {
     // The recursive register call loaded immediately.
     assertThat(bundler.loaded).isTrue();
 
-    // And it was registered: a resume call reloads it.
+    // And it was registered: the next create call reloads it.
     bundler.reset();
     Bundle b = new Bundle();
     activityScope.onSaveInstanceState(b);
-    activityScope.onResume();
+    activityScope.onCreate(b);
 
     assertThat(bundler.loaded).isNotNull();
   }
@@ -260,7 +239,6 @@ public class MortarActivityScopeTest {
     final MyBundler bundler = new MyBundler("inner");
 
     activityScope.onCreate(null);
-    activityScope.onResume();
 
     activityScope.register(new MyBundler("outer") {
       @Override public void onSave(Bundle outState) {
@@ -270,15 +248,16 @@ public class MortarActivityScopeTest {
     });
     assertThat(bundler.loaded).isFalse();
 
-    activityScope.onSaveInstanceState(new Bundle());
-    // Nothing should happen until resume
+    Bundle bundle = new Bundle();
+    activityScope.onSaveInstanceState(bundle);
+    // Nothing should happen until create
     assertThat(bundler.loaded).isFalse();
 
-    activityScope.onResume();
-    assertThat(bundler.loaded).isTrue();
+    activityScope.onCreate(bundle);
+    assertThat(bundler.loaded).isNotNull();
   }
 
-  @Test public void handlesReregistrationBeforeResume() {
+  @Test public void handlesReregistrationBeforeCreate() {
     final AtomicInteger i = new AtomicInteger(0);
 
     activityScope.register(new Bundler() {
@@ -287,8 +266,7 @@ public class MortarActivityScopeTest {
       }
 
       @Override public void onLoad(Bundle savedInstanceState) {
-        i.incrementAndGet();
-        activityScope.register(this);
+        if (i.incrementAndGet() < 1) activityScope.register(this);
       }
 
       @Override public void onSave(Bundle outState) {
@@ -302,16 +280,13 @@ public class MortarActivityScopeTest {
 
     Bundle b = new Bundle();
     activityScope.onCreate(b);
-    activityScope.onResume();
-    // Sure, it's a redundant call, but it's not an infinite loop. I think that's fine for
-    // a corner case, esp. since onLoad() is requried to be idempotent.
+
     assertThat(i.get()).isEqualTo(2);
   }
 
-  @Test public void handlesReregistrationAfterResume() {
+  @Test public void handlesReregistrationAfterCreate() {
     Bundle b = new Bundle();
     activityScope.onCreate(b);
-    activityScope.onResume();
 
     final AtomicInteger i = new AtomicInteger(0);
 
@@ -321,8 +296,7 @@ public class MortarActivityScopeTest {
       }
 
       @Override public void onLoad(Bundle savedInstanceState) {
-        assertThat(i.incrementAndGet()).isEqualTo(1);
-        activityScope.register(this);
+        if (i.incrementAndGet() < 1) activityScope.register(this);
       }
 
       @Override public void onSave(Bundle outState) {
@@ -340,7 +314,6 @@ public class MortarActivityScopeTest {
   @Test public void handlesReregistrationFromOnSave() {
     Bundle b = new Bundle();
     activityScope.onCreate(b);
-    activityScope.onResume();
 
     final AtomicInteger loads = new AtomicInteger(0);
     final AtomicInteger saves = new AtomicInteger(0);
@@ -365,13 +338,14 @@ public class MortarActivityScopeTest {
     });
     assertThat(loads.get()).isEqualTo(1);
 
-    activityScope.onSaveInstanceState(new Bundle());
+    Bundle newBundle = new Bundle();
+    activityScope.onSaveInstanceState(newBundle);
 
-    // No load should happen until resume
+    // No load should happen until next create
     assertThat(saves.get()).isEqualTo(1);
     assertThat(loads.get()).isEqualTo(1);
 
-    activityScope.onResume();
+    activityScope.onCreate(newBundle);
     assertThat(loads.get()).isEqualTo(2);
   }
 
@@ -403,7 +377,6 @@ public class MortarActivityScopeTest {
 
     Bundle b = new Bundle();
     activityScope.onCreate(b);
-    activityScope.onResume();
 
     assertThat(loads.get()).isEqualTo(3);
     assertThat(destroys.get()).isEqualTo(2);
@@ -437,7 +410,6 @@ public class MortarActivityScopeTest {
 
     Bundle b = new Bundle();
     activityScope.onCreate(b);
-    activityScope.onResume();
     activityScope.onSaveInstanceState(b);
 
     assertThat(saves.get()).isEqualTo(1);
@@ -448,12 +420,6 @@ public class MortarActivityScopeTest {
   public void cannotOnCreateDestroyed() {
     activityScope.destroy();
     activityScope.onCreate(null);
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void cannotOnResumeDestroyed() {
-    activityScope.destroy();
-    activityScope.onResume();
   }
 
   @Test(expected = IllegalStateException.class)

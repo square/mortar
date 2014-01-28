@@ -37,23 +37,15 @@ public interface MortarActivityScope extends MortarScope {
 
   /**
    * To be called from the host {@link android.app.Activity}'s {@link
-   * android.app.Activity#onCreate}. Makes note of the {@link Bundle} to be used when {@link
-   * #onResume} is called.
+   * android.app.Activity#onCreate}. Calls the registrants' {@link Bundler#onLoad} methods.
+   * Makes note of the {@link Bundle} to be used for later registrations.
    */
   void onCreate(Bundle savedInstanceState);
 
   /**
    * To be called from the host {@link android.app.Activity}'s {@link
-   * android.app.Activity#onResume()}. Calls the registrants' {@link Bundler#onLoad} methods
-   * from last {@link Bundle} passed to {@link #onCreate} or {@link #onSaveInstanceState}.
-   */
-  void onResume();
-
-  /**
-   * To be called from the host {@link android.app.Activity}'s {@link
    * android.app.Activity#onSaveInstanceState}. Calls the registrants' {@link Bundler#onSave}
-   * methods, and makes note of the given {@link Bundle} to be used when {@link #onResume} is next
-   * called.
+   * methods
    */
   void onSaveInstanceState(Bundle outState);
 }

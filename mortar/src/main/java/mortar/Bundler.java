@@ -27,9 +27,9 @@ public interface Bundler extends Scoped {
 
   /**
    * Called when this object is first {@link MortarScope#register registered}, and each time a
-   * host {@link android.app.Activity} resumes (e.g. after a configuration change like rotation,
-   * or after the app is paused and resumed). Redundant calls to this method are par for the
-   * course, so implementations must be idempotent.
+   * host {@link android.app.Activity} is re-created (e.g. after a configuration change like
+   * rotation, or after the app is paused and resumed). Redundant calls to this method are par for
+   * the course, so implementations must be idempotent.
    *
    * @param savedInstanceState the state written by the most recent call to {@link #onSave}, or
    * null if that has never happened.

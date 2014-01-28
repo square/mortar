@@ -89,11 +89,6 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
   @Override public void onSave(Bundle outState) {
     if (whatToShow != null) outState.putParcelable(KEY, whatToShow);
-
-    Popup<D, R> popUp = getView();
-    if (popUp == null) return;
-
-    if (popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
   }
 
   @Override public void onDestroy() {
