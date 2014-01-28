@@ -34,10 +34,6 @@ public class FriendListView extends ListView {
   public FriendListView(Context context, AttributeSet attrs) {
     super(context, attrs);
     Mortar.inject(context, this);
-  }
-
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 

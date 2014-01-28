@@ -40,10 +40,6 @@ public class ChatView extends ListView {
     confirmerPopup = new ConfirmerPopup(context);
 
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-  }
-
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 
