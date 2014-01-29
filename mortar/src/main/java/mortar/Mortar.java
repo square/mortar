@@ -19,9 +19,9 @@ import android.app.Activity;
 import android.content.Context;
 import dagger.ObjectGraph;
 
-/**
- * Provides static bootstrap and integration methods.
- */
+import static java.lang.String.format;
+
+/** Provides static bootstrap and integration methods. */
 public class Mortar {
 
   private Mortar() {
@@ -70,8 +70,11 @@ public class Mortar {
 
   /** Find the scope for the given {@link Context}, which must implement {@link MortarContext}. */
   public static MortarScope getScope(Context context) {
-    // TODO catch class cast exception and wrap it with a more informative one explaining that
-    // such and such class must implement MortarContext.
+    if (!(context instanceof MortarContext)) {
+      throw new IllegalArgumentException(
+          format("Mortar requires %s (and all Contexts) to implement %s",
+              context.getClass().getName(), MortarContext.class.getName()));
+    }
 
     return ((MortarContext) context).getMortarScope();
   }
