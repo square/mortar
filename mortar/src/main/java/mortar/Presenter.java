@@ -40,10 +40,9 @@ public abstract class Presenter<V> {
 
   /**
    * Called to give this presenter control of a view, ideally from {@link
-   * android.view.View#onFinishInflate}. If a view is to be re-used, you might
-   * make an additional call from {@link android.view.View#onAttachedToWindow()}.
-   * (Redundant calls will safely no-op.) Sets the view that will be returned from {@link
-   * #getView()}.
+   * android.view.View#onFinishInflate}. If a view is to be re-used, make an additional call from
+   * {@link android.view.View#onAttachedToWindow()}. (Redundant calls will safely no-op.) Sets the
+   * view that will be returned from {@link #getView()}.
    * <p/>
    * This presenter will be immediately {@link MortarActivityScope#register registered}
    * (or re-registered) with the given view's scope, leading to an immediate call to {@link

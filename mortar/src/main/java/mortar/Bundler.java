@@ -26,11 +26,11 @@ public interface Bundler extends Scoped {
   String getMortarBundleKey();
 
   /**
-   * Called when this object is first {@link MortarScope#register registered}, and each time a
-   * host {@link android.app.Activity} {@link MortarActivityScope#onCreate(android.os.Bundle)}
-   * is called (e.g. after a configuration change like rotation, or after the app process is
-   * respawned). Redundant calls to this method are par for the course, so implementations must
-   * be idempotent.
+   * Called when this object is first {@link MortarScope#register registered}, and each time
+   * {@link MortarActivityScope#onCreate} is called (e.g. after a configuration change like
+   * rotation, or after the app process is respawned). Note that receivers are likely to outlive
+   * multiple activity instances, and so receive multiple calls of this method. Implementations
+   * should be prepared to ignore saved state if they are already initialized.
    *
    * @param savedInstanceState the state written by the most recent call to {@link #onSave}, or
    * null if that has never happened.
@@ -38,13 +38,11 @@ public interface Bundler extends Scoped {
   void onLoad(Bundle savedInstanceState);
 
   /**
-   * Called from the {@link MortarActivityScope#onSaveInstanceState}. This is the receiver's
-   * sign that the activity might be torn down, and possibly the entire app along with it.
-   * <p/>
-   * Note that receivers are likely to outlive multiple activity instances, and so receive multiple
-   * calls of this method. Any state required to revive a new instance of the receiver in a new
-   * process should be written out each time, as there is no way to know if the app is about to
-   * hibernate.
+   * Called from the {@link MortarActivityScope#onSaveInstanceState}, to allow the receiver
+   * to save state before the process is killed. Note that receivers are likely to outlive multiple
+   * activity instances, and so receive multiple calls of this method. Any state required to revive
+   * a new instance of the receiver in a new process should be written out each time, as there is
+   * no way to know if the app is about to hibernate.
    *
    * @param outState a bundle to write any state that needs to be restored if the plugin is
    * revived

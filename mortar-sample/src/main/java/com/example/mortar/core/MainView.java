@@ -34,8 +34,7 @@ public class MainView extends FlowOwnerView<Blueprint> {
 
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
-    getPresenter()
-        .takeView(this);
+    getPresenter().takeView(this);
   }
 
   @Override protected ViewGroup getContainer() {
