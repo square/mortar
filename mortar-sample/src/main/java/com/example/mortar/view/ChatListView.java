@@ -36,8 +36,8 @@ public class ChatListView extends ListView {
     Mortar.inject(context, this);
   }
 
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
+  @Override protected void onFinishInflate() {
+    super.onFinishInflate();
     presenter.takeView(this);
   }
 

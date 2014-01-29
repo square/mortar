@@ -137,7 +137,7 @@ class RealMortarScope implements MortarScope {
   }
 
   @Override public String toString() {
-    return "RealMortarScope@" + System.identityHashCode(this) + "{" +
+    return "RealMortarScope@" + Integer.toHexString(System.identityHashCode(this)) + "{" +
         "name='" + getName() + '\'' +
         '}';
   }

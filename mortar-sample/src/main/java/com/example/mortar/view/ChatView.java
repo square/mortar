@@ -52,6 +52,11 @@ public class ChatView extends ListView {
     presenter.dropView(this);
   }
 
+  @Override protected void onWindowVisibilityChanged(int visibility) {
+    super.onWindowVisibilityChanged(visibility);
+    presenter.visibilityChanged(visibility == VISIBLE);
+  }
+
   public ConfirmerPopup getConfirmerPopup() {
     return confirmerPopup;
   }

@@ -32,9 +32,9 @@ public class MainView extends FlowOwnerView<Blueprint> {
     Mortar.inject(context, this);
   }
 
-  @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
-    presenter.takeView(this);
+  @Override protected void onFinishInflate() {
+    super.onFinishInflate();
+    getPresenter().takeView(this);
   }
 
   @Override protected ViewGroup getContainer() {

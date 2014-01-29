@@ -26,34 +26,25 @@ public interface MortarActivityScope extends MortarScope {
    * Registers the given to have its {@link Scoped#onDestroy()} method called. In addition,
    * if it is an instance of {@link Bundler}:
    * <ul>
-   * <li>{@link Bundler#onLoad} is called immediately</li>
-   * <li>{@link Bundler#onLoad} is also called from {@link android.app.Activity#onResume()}
-   * <li>{@link Bundler#onSave} is called from {@link android.app.Activity#onSaveInstanceState}
+   * <li>{@link Bundler#onLoad} will be called immediately</li>
+   * <li>{@link Bundler#onLoad} will also be called from {@link #onCreate}
+   * <li>{@link Bundler#onSave} will be called from {@link #onSaveInstanceState}
    * </ul>
-   * Note well that calls to onLoad and onSave are not symmetric: it is par for the course to
-   * receive redundant onLoad calls.
    */
   @Override void register(Scoped s);
 
   /**
    * To be called from the host {@link android.app.Activity}'s {@link
-   * android.app.Activity#onCreate}. Makes note of the {@link Bundle} to be used when {@link
-   * #onResume} is called.
+   * android.app.Activity#onCreate}. Calls the registered {@link Bundler}'s {@link Bundler#onLoad}
+   * methods. To avoid redundant calls to {@link Presenter#onLoad} it's best to call this before
+   * {@link android.app.Activity#setContentView}.
    */
   void onCreate(Bundle savedInstanceState);
 
   /**
    * To be called from the host {@link android.app.Activity}'s {@link
-   * android.app.Activity#onResume()}. Calls the registrants' {@link Bundler#onLoad} methods
-   * from last {@link Bundle} passed to {@link #onCreate} or {@link #onSaveInstanceState}.
-   */
-  void onResume();
-
-  /**
-   * To be called from the host {@link android.app.Activity}'s {@link
    * android.app.Activity#onSaveInstanceState}. Calls the registrants' {@link Bundler#onSave}
-   * methods, and makes note of the given {@link Bundle} to be used when {@link #onResume} is next
-   * called.
+   * methods.
    */
   void onSaveInstanceState(Bundle outState);
 }

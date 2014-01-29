@@ -86,11 +86,6 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       };
     }
 
-    @Override public void takeView(ChatView view) {
-      super.takeView(view);
-      confirmer.takeView(view.getConfirmerPopup());
-    }
-
     @Override public void dropView(ChatView view) {
       confirmer.dropView(view.getConfirmerPopup());
       super.dropView(view);
@@ -114,12 +109,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
       actionBar.setConfig(actionBarConfig);
 
-      ensureRunning();
-    }
-
-    @Override public void onSave(Bundle outState) {
-      super.onSave(outState);
-      ensureStopped();
+      confirmer.takeView(v.getConfirmerPopup());
     }
 
     @Override public void onDestroy() {
@@ -129,6 +119,15 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
     public void onConversationSelected(int position) {
       flow.goTo(new MessageScreen(chat.getId(), position));
+    }
+
+
+    public void visibilityChanged(boolean visible) {
+      if (visible) {
+        ensureRunning();
+      } else {
+        ensureStopped();
+      }
     }
 
     private void ensureRunning() {

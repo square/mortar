@@ -64,11 +64,6 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
     actionBarOwner.takeView(this);
   }
 
-  @Override protected void onResume() {
-    super.onResume();
-    activityScope.onResume();
-  }
-
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
     activityScope.onSaveInstanceState(outState);

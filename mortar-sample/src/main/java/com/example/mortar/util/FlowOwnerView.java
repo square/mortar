@@ -34,11 +34,11 @@ import static android.view.animation.AnimationUtils.loadAnimation;
 /**
  * A parent view that displays subviews within a {@link #getContainer() container view}.
  * <p/>
- * Like all Mortar views, subclasses must call {@link mortar.ViewPresenter#takeView} when they
- * think they are about to go into action, typically from {@link #onAttachedToWindow()}. E.g.
- * <code><pre>{@literal@}Override protected void onAttachedToWindow() {
- *   super.onAttachedToWindow();
- *   presenter.takeView(this);
+ * Like all Mortar views, subclasses must call {@link mortar.ViewPresenter#takeView},
+ * typically from {@link #onFinishInflate()}. E.g.
+ * <code><pre>{@literal@}Override protected void onFinishInflate() {
+ *   super.onFinishInflate();
+ *   getPresenter().takeView(this);
  * }</pre></code>
  *
  * @param <S> the type of the screens that serve as a {@link Blueprint} for subview. Must
