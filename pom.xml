@@ -35,6 +35,7 @@
 
   <modules>
     <module>mortar</module>
+    <module>mortar-helloworld</module>
     <module>mortar-sample</module>
   </modules>
 
