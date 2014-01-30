@@ -16,9 +16,7 @@
 package com.example.mortar.util;
 
 import android.content.Context;
-import android.os.Parcelable;
 import android.util.AttributeSet;
-import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -36,7 +34,8 @@ import static android.view.animation.AnimationUtils.loadAnimation;
  * <p/>
  * Like all Mortar views, subclasses must call {@link mortar.ViewPresenter#takeView},
  * typically from {@link #onFinishInflate()}. E.g.
- * <code><pre>{@literal@}Override protected void onFinishInflate() {
+ * <code><pre>
+ *{@literal @}Override protected void onFinishInflate() {
  *   super.onFinishInflate();
  *   getPresenter().takeView(this);
  * }</pre></code>
@@ -45,8 +44,6 @@ import static android.view.animation.AnimationUtils.loadAnimation;
  * be annotated with {@link flow.Layout}, suitable for use with {@link flow.Layouts#createView}.
  */
 public abstract class FlowOwnerView<S extends Blueprint> extends FrameLayout {
-
-  private SparseArray<Parcelable> lastRestoredHierarchyState;
 
   public FlowOwnerView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -80,12 +77,6 @@ public abstract class FlowOwnerView<S extends Blueprint> extends FrameLayout {
     ViewGroup container = getContainer();
     if (oldChild != null) container.removeView(oldChild);
     container.addView(newChild);
-
-    // Restore view state.
-    if (lastRestoredHierarchyState != null) {
-      newChild.restoreHierarchyState(lastRestoredHierarchyState);
-      lastRestoredHierarchyState = null;
-    }
   }
 
   protected void setAnimation(Flow.Direction direction, View oldChild, View newChild) {
@@ -96,14 +87,6 @@ public abstract class FlowOwnerView<S extends Blueprint> extends FrameLayout {
 
     oldChild.setAnimation(loadAnimation(getContext(), out));
     newChild.setAnimation(loadAnimation(getContext(), in));
-  }
-
-  @Override public void restoreHierarchyState(SparseArray<Parcelable> container) {
-    // This is called before revived instances are told what child to show, so save the
-    // container for later.
-
-    lastRestoredHierarchyState = container;
-    super.restoreHierarchyState(container);
   }
 
   public boolean onBackPressed() {
