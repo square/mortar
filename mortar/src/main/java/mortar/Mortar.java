@@ -31,6 +31,14 @@ public class Mortar {
    * Creates a core scope to live above the activity level, typically an app-wide singleton managed
    * by a custom {@link android.app.Application}.
    */
+  public static MortarScope createRootScope(boolean validate) {
+    return new RealMortarScope(validate, ObjectGraph.create());
+  }
+
+  /**
+   * Creates a core scope to live above the activity level, typically an app-wide singleton managed
+   * by a custom {@link android.app.Application}.
+   */
   public static MortarScope createRootScope(boolean validate, ObjectGraph objectGraph) {
     return new RealMortarScope(validate, objectGraph);
   }
