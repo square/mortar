@@ -81,7 +81,7 @@ moment.
 
 Another example: suppose you have a set of screens that slide in and out next
 to a fixed portion of the screen, like a sidebar or an activity, and each
-screen needs to share in the managment of that common region. The parent view
+screen needs to share in the management of that common region. The parent view
 that owns the common ground can be tied to a parent scope, and starts and
 stops child scopes for each child view. Children can simply inject the
 presenter that drives the shared region. They don't need to know how far
@@ -92,23 +92,29 @@ activity. It's simply available.
 
 Here's how you might actually write this stuff. 
 
-This example presumes an activity is charge of displaying subscreens and that
-you're using Flow's [Layouts][layouts] utilty to handle view creation.
+This example presumes an activity is in charge of displaying subscreens and that
+you're using Flow's [Layouts][layouts] utility to handle view creation.
 
 ```java
 /**
- * @param nextScreen blueprint of the screen to show, must have Flow
- * annotation like {@literal @}Layout(R.layout.foo_screen)
+ * @param nextScreen blueprint of the screen to show, must have 
+ * {@literal @}Layout annotation.
  */
 void showScreen(Blueprint nextScreen) {
-  View currentView = findViewById(android.R.id.content);
-  Mortar.getMortarScope(currentView.getContext()).destroy();
+  View currentView = getCurrentView();
+  if (currentView != null) {
+    Mortar.getMortarScope(currentView.getContext()).destroy();
+  }
 
   MortarScope newScope = Mortar.getMortarScope(this).requireChild(nextScreen);
   Context newContext = new MortarContextWrapper(this, newScope);
   View screenView = Layouts.createView(newContext, nextScreen);
 
   setContentView(screenView);
+}
+
+View getCurrentView() {
+  return ((ViewGroup)findViewById(android.R.id.content)).getChildAt(0);
 }
 ```
 
@@ -119,11 +125,11 @@ the transition between these two views. You'd just…do it.
 
 This view-centered approach to composition doesn't mean that Mortar apps are
 untestable. It's trivial to move all the interesting parts of a view  over to
-a [Presenter][presenter] controller. And because presenters survive config
-changes like rotation, they can be a lot easier to work with than code trapped
-over in Context-land. To do this a view injects its presenter, lets that
-presenter know when it's ready to roll from `onFinishInflate()`, and
-surrenders control in `onDetachedFromWindow()`.
+a [Presenter][presenter]. And because presenters survive config changes like
+rotation, they can be a lot easier to work with than code trapped over in
+Context-land. To do this a view injects its presenter, lets that presenter
+know when it's ready to roll from `onFinishInflate()`, and surrenders control
+in `onDetachedFromWindow()`.
 
 Here's an example, with one small conceit—we're using Flow's [@Layout][layout]
 annotation for consistency with the previous example.
@@ -155,7 +161,6 @@ public class MyView extends LinearLayout {
 
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
-    presenter.takeView(this);
 
     someText = (TextView) findById(R.id.some_text);
 
@@ -164,6 +169,8 @@ public class MyView extends LinearLayout {
        presenter.someButtonClicked();
       }
     });
+
+    presenter.takeView(this);
   }
 
   @Override protected void onDetachedFromWindow() {
@@ -231,7 +238,7 @@ public class MyScreen implements Blueprint {
     }
 
     private void updateView() {
-      view.showResult(lastResult);
+      getView().showResult(lastResult);
     }
   }
 }
@@ -244,7 +251,7 @@ the result eventually arrives.
 Another subtle but important point: we're assuming that all views are
 instantiated as a side effect of inflating a layout file. While not an
 enforced requirement, this is certainly a best practice. It ensures that
-`onFinishInflate()` will not be alled from the View's constructor (doing work
+`onFinishInflate()` will not be called from the View's constructor (doing work
 with partially constructed objects is a classic Java pitfall), and  it means
 that Android theming will work as expected.
 
@@ -272,6 +279,7 @@ public class MyApplication extends Application implements MortarContext {
 
   @Override public void onCreate() {
     super.onCreate();
+    // Eagerly validate development builds (too slow for production).
     applicationScope = Mortar.createRootScope(BuildConfig.DEBUG);
   }
 

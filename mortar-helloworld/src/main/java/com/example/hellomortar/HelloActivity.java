@@ -17,6 +17,8 @@ package com.example.hellomortar;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarContext;
@@ -33,6 +35,10 @@ public class HelloActivity extends Activity implements MortarContext {
     Mortar.inject(this, this);
 
     activityScope.onCreate(savedInstanceState);
+    View currentView = ((ViewGroup)findViewById(android.R.id.content)).getChildAt(0);
+    if (currentView != null) {
+      throw new AssertionError("fuck");
+    }
     setContentView(R.layout.main_view);
   }
 
