@@ -33,7 +33,7 @@ scope is defined by a [Blueprint][blueprint] that can serve as a single point
 of reference for what that scope does, and in particular can define objects
 visible only to the scope and its children.
 
-Maybe a scope is associated with a particular view, or maybe it isn't.  For
+Maybe a scope is associated with a particular view, or maybe it isn't. For
 example, an app might have a top level global scope that allows the injection
 of fundamental services; a child of that which manages objects that require an
 authenticated user; children of them for each Activity; and children of the
@@ -45,7 +45,7 @@ A MortarScope provides a simple life cycle: it can tell interested parties
 when it is destroyed if they implement the [Scoped][scoped] interface.
 Scopes created at the Activity level or below can also manage instances of the
 [Bundler][bundler] interface, which give access to the host Activity's persistence
-Bundle. And that's the entire lifecyle that Mortar apps need to deal with:
+Bundle. And that's the entire lifecycle that Mortar apps need to deal with:
 
   * `Bundler#onLoad(Bundle)`
   * `Bundler#onSave(Bundle)`
@@ -71,7 +71,7 @@ not modified by them. In practice, this means that a `@Singleton FooService`
 defined in the root scope is available for injection to all parts of the app.
 Any singletons defined in an activity's scope, say an `@Singleton FooEditor`,
 can be injected by the activity and any of its views, but is not accessible to
-the rest of the application. 
+the rest of the application.
 
 When a scope is destroyed it drops all references to its own object graph and
 makes its children do the same, freeing up everything to be GC'd. Each portion
@@ -85,19 +85,19 @@ screen needs to share in the management of that common region. The parent view
 that owns the common ground can be tied to a parent scope, and starts and
 stops child scopes for each child view. Children can simply inject the
 presenter that drives the shared region. They don't need to know how far
-up the view chain that action bar lives, or to somehow find their way to the 
+up the view chain that action bar lives, or to somehow find their way to the
 activity. It's simply available.
 
 ## Less Talk More Code
 
-Here's how you might actually write this stuff. 
+Here's how you might actually write this stuff.
 
 This example presumes an activity is in charge of displaying subscreens and that
 you're using Flow's [Layouts][layouts] utility to handle view creation.
 
 ```java
 /**
- * @param nextScreen blueprint of the screen to show, must have 
+ * @param nextScreen blueprint of the screen to show, must have
  * {@literal @}Layout annotation.
  */
 void showScreen(Blueprint nextScreen) {
@@ -244,9 +244,9 @@ public class MyScreen implements Blueprint {
 }
 ```
 
-Notice how naturally this presenter copes with the possiblity that the view
+Notice how naturally this presenter copes with the possibility that the view
 that made it start some asynchronous process might no longer be available when
-the result eventually arrives. 
+the result eventually arrives.
 
 Another subtle but important point: we're assuming that all views are
 instantiated as a side effect of inflating a layout file. While not an
