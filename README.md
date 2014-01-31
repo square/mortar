@@ -146,6 +146,12 @@ annotation for consistency with the previous example.
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
     />
+  <Button
+      android:id="@id/some_button"
+      android:layout_height="wrap_content"
+      android:layout_width="wrap_content"
+      android:text="@string/button_text"
+    />
 </com.example.MyView>
 ```
 
@@ -162,9 +168,9 @@ public class MyView extends LinearLayout {
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
 
-    someText = (TextView) findById(R.id.some_text);
+    someText = (TextView) findViewById(R.id.some_text);
 
-    findById(R.id.some_button).setOnClickListener(new OnClickListener() {
+    findViewById(R.id.some_button).setOnClickListener(new OnClickListener() {
       public void onClick(View view) {
        presenter.someButtonClicked();
       }
@@ -178,11 +184,11 @@ public class MyView extends LinearLayout {
     presenter.dropView(this);
   }
 
-  @Override public String getSomeText() {
+  public String getSomeText() {
     return someText.getText().toString();
   }
 
-  @Override public void showResult(SomeResult result) {
+  public void showResult(SomeResult result) {
     ...
   }
  }
