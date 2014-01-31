@@ -397,3 +397,4 @@ License
 [scoped]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Scoped.java
 [scope]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/MortarScope.java
 [view]: http://developer.android.com/reference/android/view/View.html
+[application]: https://developer.android.com/reference/android/app/Application.html
