@@ -22,7 +22,7 @@ public abstract class Presenter<V> {
 
   private Bundler registration = new Bundler() {
     @Override public String getMortarBundleKey() {
-      return getClass().getName();
+      return Presenter.this.getMortarBundleKey();
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
@@ -81,6 +81,10 @@ public abstract class Presenter<V> {
   public void dropView(V view) {
     if (view == null) throw new NullPointerException("dropped view must not be null");
     if (view == this.view) this.view = null;
+  }
+
+  protected String getMortarBundleKey() {
+    return getClass().getName();
   }
 
   /** Called by {@link #takeView}. Given a view instance, return its {@link MortarScope}. */
