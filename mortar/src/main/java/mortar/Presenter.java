@@ -18,25 +18,9 @@ package mortar;
 import android.os.Bundle;
 
 public abstract class Presenter<V> {
-  private V view = null;
 
-  private Bundler registration = new Bundler() {
-    @Override public String getMortarBundleKey() {
-      return Presenter.this.getMortarBundleKey();
-    }
-
-    @Override public void onLoad(Bundle savedInstanceState) {
-      if (getView() != null) Presenter.this.onLoad(savedInstanceState);
-    }
-
-    @Override public void onSave(Bundle outState) {
-      Presenter.this.onSave(outState);
-    }
-
-    @Override public void onDestroy() {
-      Presenter.this.onDestroy();
-    }
-  };
+  private final Registration nullRegistration = new Registration(null);
+  private Registration registration = nullRegistration;
 
   /**
    * Called to give this presenter control of a view, ideally from {@link
@@ -59,8 +43,8 @@ public abstract class Presenter<V> {
   public final void takeView(V view) {
     if (view == null) throw new NullPointerException("new view must not be null");
 
-    if (this.view != view) {
-      this.view = view;
+    if (this.registration.view != view) {
+      registration = new Registration(view);
       extractScope(view).register(registration);
     }
   }
@@ -80,7 +64,7 @@ public abstract class Presenter<V> {
    */
   public void dropView(V view) {
     if (view == null) throw new NullPointerException("dropped view must not be null");
-    if (view == this.view) this.view = null;
+    if (view == registration.view) registration = nullRegistration;
   }
 
   protected String getMortarBundleKey() {
@@ -95,7 +79,7 @@ public abstract class Presenter<V> {
    * called, or after {@link #dropView}.
    */
   protected final V getView() {
-    return view;
+    return registration.view;
   }
 
   /**
@@ -111,6 +95,34 @@ public abstract class Presenter<V> {
 
   /** Like {@link Bundler#onDestroy}. */
   protected void onDestroy() {
-    this.view = null;
+    this.registration = nullRegistration;
+  }
+
+  private class Registration implements Bundler {
+    private final V view;
+
+    public Registration(V view) {
+      this.view = view;
+    }
+
+    @Override public String getMortarBundleKey() {
+      return Presenter.this.getMortarBundleKey();
+    }
+
+    @Override public void onLoad(Bundle savedInstanceState) {
+      if (view != null && isRegistered()) Presenter.this.onLoad(savedInstanceState);
+    }
+
+    @Override public void onSave(Bundle outState) {
+      if (isRegistered()) Presenter.this.onSave(outState);
+    }
+
+    @Override public void onDestroy() {
+      if (isRegistered()) Presenter.this.onDestroy();
+    }
+
+    private boolean isRegistered() {
+      return Presenter.this.registration == this;
+    }
   }
 }

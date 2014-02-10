@@ -27,18 +27,12 @@ import static org.fest.assertions.api.Assertions.assertThat;
 @RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class PresenterTest {
 
-  MortarActivityScope scope =
-      Mortar.requireActivityScope(Mortar.createRootScope(false), new Blueprint() {
-        @Override public String getMortarScopeName() {
-          return "name";
-        }
-
-        @Override public Object getDaggerModule() {
-          return null;
-        }
-      });
-
   class SomeView {
+    public final MortarActivityScope scope;
+
+    public SomeView(MortarActivityScope scope) {
+      this.scope = scope;
+    }
   }
 
   class ChildPresenter extends Presenter<SomeView> {
@@ -50,7 +44,7 @@ public class PresenterTest {
     }
 
     @Override protected MortarScope extractScope(SomeView view) {
-      return scope;
+      return view.scope;
     }
 
     @Override protected void onSave(Bundle savedInstanceState) {
@@ -67,7 +61,7 @@ public class PresenterTest {
 
   class ParentPresenter extends Presenter<SomeView> {
     @Override protected MortarScope extractScope(SomeView view) {
-      return scope;
+      return view.scope;
     }
 
     // The child presenters are anonymous inner classes but of the same
@@ -86,10 +80,11 @@ public class PresenterTest {
   }
 
   @Test public void childPresentersGetTheirOwnBundles() {
+    MortarActivityScope scope = createScope();
     scope.onCreate(null);
 
     ParentPresenter presenter = new ParentPresenter();
-    presenter.takeView(new SomeView());
+    presenter.takeView(new SomeView(scope));
 
     Bundle bundle = new Bundle();
     scope.onSaveInstanceState(bundle);
@@ -102,5 +97,32 @@ public class PresenterTest {
 
     assertThat(presenter.childOne.loaded).isTrue();
     assertThat(presenter.childTwo.loaded).isTrue();
+  }
+
+  @Test public void replacedViewDoesNotDropNewView() {
+    MortarActivityScope oldScope = createScope();
+    oldScope.onCreate(null);
+    ParentPresenter presenter = new ParentPresenter();
+    presenter.takeView(new SomeView(oldScope));
+
+    MortarActivityScope newScope = createScope();
+    newScope.onCreate(null);
+    SomeView newView = new SomeView(newScope);
+    presenter.takeView(newView);
+
+    oldScope.destroy();
+    assertThat(presenter.getView()).isEqualTo(newView);
+  }
+
+  private MortarActivityScope createScope() {
+    return Mortar.requireActivityScope(Mortar.createRootScope(false), new Blueprint() {
+      @Override public String getMortarScopeName() {
+        return "name";
+      }
+
+      @Override public Object getDaggerModule() {
+        return null;
+      }
+    });
   }
 }
