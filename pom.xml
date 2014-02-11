@@ -44,7 +44,7 @@
     <project.reporting.sourceEncoding>UTF-8</project.reporting.sourceEncoding>
 
     <!-- Compilation -->
-    <android-maven.version>3.6.0</android-maven.version>
+    <android-maven.version>3.8.0</android-maven.version>
     <java.version>1.6</java.version>
 
     <!-- Dependencies -->
