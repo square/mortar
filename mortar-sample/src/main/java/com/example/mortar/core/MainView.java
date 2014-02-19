@@ -17,31 +17,34 @@ package com.example.mortar.core;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.ViewGroup;
-import com.example.mortar.util.FlowOwner;
-import com.example.mortar.util.FlowOwnerView;
+import android.widget.FrameLayout;
+import com.example.mortar.util.CanShowScreen;
+import com.example.mortar.util.ScreenConductor;
+import flow.Flow;
 import javax.inject.Inject;
 import mortar.Blueprint;
 import mortar.Mortar;
 
-public class MainView extends FlowOwnerView<Blueprint> {
+public class MainView extends FrameLayout implements CanShowScreen<Blueprint> {
   @Inject Main.Presenter presenter;
+  private final ScreenConductor<Blueprint> screenMaestro;
 
   public MainView(Context context, AttributeSet attrs) {
     super(context, attrs);
     Mortar.inject(context, this);
+    screenMaestro = new ScreenConductor<Blueprint>(context, this);
   }
 
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
-    getPresenter().takeView(this);
+    presenter.takeView(this);
   }
 
-  @Override protected ViewGroup getContainer() {
-    return this;
+  public Flow getFlow() {
+    return presenter.getFlow();
   }
 
-  @Override protected FlowOwner<Blueprint, MainView> getPresenter() {
-    return presenter;
+  @Override public void showScreen(Blueprint screen, Flow.Direction direction) {
+    screenMaestro.showScreen(screen, direction);
   }
 }

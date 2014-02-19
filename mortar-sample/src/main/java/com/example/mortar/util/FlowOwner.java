@@ -16,6 +16,7 @@
 package com.example.mortar.util;
 
 import android.os.Bundle;
+import android.view.View;
 import flow.Backstack;
 import flow.Flow;
 import flow.Parcer;
@@ -23,7 +24,7 @@ import mortar.Blueprint;
 import mortar.ViewPresenter;
 
 /** Base class for all presenters that manage a {@link flow.Flow}. */
-public abstract class FlowOwner<S extends Blueprint, V extends FlowOwnerView<S>>
+public abstract class FlowOwner<S extends Blueprint, V extends View & CanShowScreen<S>>
     extends ViewPresenter<V> implements Flow.Listener {
 
   private static final String FLOW_KEY = "FLOW_KEY";
