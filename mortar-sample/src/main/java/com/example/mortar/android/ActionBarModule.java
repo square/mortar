@@ -15,12 +15,13 @@
  */
 package com.example.mortar.android;
 
-import com.example.mortar.DemoActivity;
 import dagger.Module;
 import dagger.Provides;
 import javax.inject.Singleton;
 
-@Module(injects = DemoActivity.class)
+@Module(
+    library = true
+)
 public class ActionBarModule {
   @Provides @Singleton ActionBarOwner provideActionBarOwner() {
     return new ActionBarOwner();
