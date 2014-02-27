@@ -36,7 +36,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Set<Bundler> bundlers = new HashSet<Bundler>();
 
   RealActivityScope(RealMortarScope original) {
-    super(original.getName(), ((RealMortarScope) original.getParent()), original.validate,
+    super(original.getName(), original.getParent(), original.validate,
         original.getObjectGraph());
   }
 

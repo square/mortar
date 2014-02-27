@@ -15,24 +15,30 @@
  */
 package mortar;
 
+import dagger.Module;
 import dagger.ObjectGraph;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
+import static mortar.Mortar.createRootScope;
+import static mortar.MortarScopeDevHelper.scopeHierarchyToString;
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MortarScopeDevHelperTest {
+
+  private static final char BLANK = '\u00a0';
 
   class CustomScope implements Blueprint {
 
     private final String name;
+    private Object module;
 
     CustomScope(String name) {
+      this(name, null);
+    }
+
+    CustomScope(String name, Object module) {
       this.name = name;
+      this.module = module;
     }
 
     @Override public String getMortarScopeName() {
@@ -40,42 +46,116 @@ public class MortarScopeDevHelperTest {
     }
 
     @Override public Object getDaggerModule() {
-      return this;
+      return module;
     }
   }
 
-  @Mock ObjectGraph graph;
+  static class EntryPoint1 {
+  }
 
-  @Before
-  public void setUp() {
-    initMocks(this);
-    when(graph.plus(any())).thenReturn(graph);
+  static class EntryPoint2 {
+  }
+
+  static class EntryPoint3 {
+  }
+
+  @Module(injects = EntryPoint1.class) class SimpleModule {
+  }
+
+  @Module(injects = { EntryPoint2.class, EntryPoint3.class }) class TwoInjectsModule {
   }
 
   @Test public void nestedScopeHierarchyToString() {
-    MortarScope root = Mortar.createRootScope(false, graph);
+    MortarScope root = createRootScope(false, emptyObjectGraph());
     MortarScope elder = root.requireChild(new CustomScope("Elder"));
     elder.requireChild(new CustomScope("ElderElder"));
     elder.requireChild(new CustomScope("ElderCadet"));
     root.requireChild(new CustomScope("Cadet"));
 
-    String hierarchy = MortarScopeDevHelper.scopeHierarchyToString(root);
-
-    /*
-        Here is what it should look like:
-
-        Root
-        +- Elder
-        |  +- ElderElder
-        |  \- ElderCadet
-        \- Cadet
-     */
+    String hierarchy = scopeHierarchyToString(root);
 
     assertThat(hierarchy).isEqualTo("" //
-        + "Root\n" //
-        + "+- Elder\n" //
-        + "|  +- ElderElder\n" //
-        + "|  \\- ElderCadet\n" //
-        + "\\- Cadet\n");
+        + "Mortar Hierarchy:\n" //
+        + BLANK + "SCOPE Root\n" //
+        + BLANK + "+-SCOPE Elder\n" //
+        + BLANK + "| +-SCOPE ElderElder\n" //
+        + BLANK + "| `-SCOPE ElderCadet\n" //
+        + BLANK + "`-SCOPE Cadet\n" //
+    );
+  }
+
+  @Test public void startsFromRootScope() {
+    MortarScope root = createRootScope(false, emptyObjectGraph());
+    MortarScope child = root.requireChild(new CustomScope("Child"));
+
+    String hierarchy = scopeHierarchyToString(child);
+
+    assertThat(hierarchy).isEqualTo("" //
+        + "Mortar Hierarchy:\n" //
+        + BLANK + "SCOPE Root\n" //
+        + BLANK + "`-SCOPE Child\n" //
+    );
+  }
+
+  @Test public void noSpaceAtLineBeginnings() {
+    MortarScope root = createRootScope(false, emptyObjectGraph());
+    MortarScope child = root.requireChild(new CustomScope("Child"));
+    child.requireChild(new CustomScope("Grand Child"));
+
+    String hierarchy = scopeHierarchyToString(root);
+
+    assertThat(hierarchy).isEqualTo("" //
+        + "Mortar Hierarchy:\n" //
+        + BLANK + "SCOPE Root\n" //
+        + BLANK + "`-SCOPE Child\n" //
+        + BLANK + "  `-SCOPE Grand Child\n" //
+    );
+  }
+
+  private ObjectGraph emptyObjectGraph() {
+    return ObjectGraph.create();
+  }
+
+  @Test public void simpleModule() {
+    MortarScope root = createRootScope(false, ObjectGraph.create(new SimpleModule()));
+    String hierarchy = scopeHierarchyToString(root);
+
+    assertThat(hierarchy).isEqualTo("" //
+        + "Mortar Hierarchy:\n" //
+        + BLANK + "SCOPE Root\n" //
+        + BLANK + "`-MODULE " + SimpleModule.class.getName() + "\n" //
+        + BLANK + "  `-INJECT " + EntryPoint1.class.getName() + "\n" //
+    );
+  }
+
+  @Test public void twoInjects() {
+    MortarScope root = createRootScope(false, ObjectGraph.create(new TwoInjectsModule()));
+    String hierarchy = scopeHierarchyToString(root);
+
+    assertThat(hierarchy).isEqualTo("" //
+        + "Mortar Hierarchy:\n" //
+        + BLANK + "SCOPE Root\n" //
+        + BLANK + "`-MODULE " + TwoInjectsModule.class.getName() + "\n" //
+        + BLANK + "  +-INJECT " + EntryPoint2.class.getName() + "\n" //
+        + BLANK + "  `-INJECT " + EntryPoint3.class.getName() + "\n" //
+    );
+  }
+
+  @Test public void moduleInChildScope() {
+    MortarScope root = createRootScope(false, ObjectGraph.create(new SimpleModule()));
+    root.requireChild(new CustomScope("Child", new TwoInjectsModule()));
+
+    String hierarchy = scopeHierarchyToString(root);
+
+    assertThat(hierarchy).isEqualTo("" //
+        + "Mortar Hierarchy:\n" //
+        + BLANK + "SCOPE Root\n" //
+        + BLANK + "+-MODULE " + SimpleModule.class.getName() + "\n" //
+        + BLANK + "| `-INJECT " + EntryPoint1.class.getName() + "\n" //
+        + BLANK + "`-SCOPE Child\n" //
+        + BLANK + "  `-MODULE " + TwoInjectsModule.class.getName() + "\n" //
+        + BLANK + "    +-INJECT " + EntryPoint2.class.getName() + "\n" //
+        + BLANK + "    `-INJECT " + EntryPoint3.class.getName() + "\n" //
+    );
   }
 }
