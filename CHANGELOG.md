@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.8 *(2014-03-03)*
+----------------------------
+  * Fixes bug with bundle key namespacing in presenters.
+
 Version 0.7 *(2014-01-30)*
 ----------------------------
   * API break: MortarActivityScope#onResume is gone, and as you might expect
