@@ -75,7 +75,7 @@ class RealMortarScope implements MortarScope {
     tearDowns.add(scoped);
   }
 
-  MortarScope getParent() {
+  RealMortarScope getParent() {
     return parent;
   }
 
