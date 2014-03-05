@@ -36,8 +36,13 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Set<Bundler> bundlers = new HashSet<Bundler>();
 
   RealActivityScope(RealMortarScope original) {
+    this(original, LoadingState.IDLE);
+  }
+
+  private RealActivityScope(RealMortarScope original, LoadingState loadingState) {
     super(original.getName(), original.getParent(), original.validate,
         original.getObjectGraph());
+    this.loadingState = loadingState;
   }
 
   @Override public void register(Scoped scoped) {
@@ -111,9 +116,11 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     MortarScope unwrapped = super.requireChild(blueprint);
     if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped);
+    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped, loadingState);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
+    if (loadingState != LoadingState.LOADING) {
+      childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
+    }
     return childScope;
   }
 
@@ -126,7 +133,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   private void doLoading() {
-    if (loadingState != LoadingState.IDLE) {
+    if (loadingState != LoadingState.IDLE && loadingState != LoadingState.LOADING) {
       throw new IllegalStateException("Cannot load while " + loadingState);
     }
 

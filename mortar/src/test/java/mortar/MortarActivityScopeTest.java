@@ -18,6 +18,7 @@ package mortar;
 import android.os.Bundle;
 import dagger.Module;
 import dagger.ObjectGraph;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,9 +78,14 @@ public class MortarActivityScopeTest {
   }
 
   @Module class ModuleAndBlueprint implements Blueprint {
+    private final String name;
+
+    ModuleAndBlueprint(String name) {
+      this.name = name;
+    }
 
     @Override public String getMortarScopeName() {
-      return "scope name";
+      return name;
     }
 
     @Override public Object getDaggerModule() {
@@ -98,8 +104,9 @@ public class MortarActivityScopeTest {
   }
 
   private void resetScope() {
-    MortarScope root = Mortar.createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint()));
-    activityScope = Mortar.requireActivityScope(root, new ModuleAndBlueprint());
+    MortarScope root =
+        Mortar.createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
+    activityScope = Mortar.requireActivityScope(root, new ModuleAndBlueprint("activity"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -121,7 +128,7 @@ public class MortarActivityScopeTest {
 
   @Test
   public void childLifeCycle() {
-    doLifecycleTest(activityScope.requireChild(new ModuleAndBlueprint()));
+    doLifecycleTest(activityScope.requireChild(new ModuleAndBlueprint("child")));
   }
 
   private void doLifecycleTest(MortarScope registerScope) {
@@ -186,7 +193,7 @@ public class MortarActivityScopeTest {
     void create(Bundle bundle) {
       activityScope.onCreate(bundle);
       activityScope.register(rootPresenter);
-      childScope = activityScope.requireChild(new ModuleAndBlueprint());
+      childScope = activityScope.requireChild(new ModuleAndBlueprint("child"));
       childScope.register(childPresenter);
     }
   }
@@ -440,5 +447,30 @@ public class MortarActivityScopeTest {
   public void cannotOnSaveDestroyed() {
     activityScope.destroy();
     activityScope.onSaveInstanceState(new Bundle());
+  }
+
+  /** <a href=https://github.com/square/mortar/issues/46>Issue 46</a> */
+  @Test
+  public void registerWithChildScopeCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
+    final MyBundler bundler = new MyBundler("inner");
+
+    final AtomicBoolean spawnSubScope = new AtomicBoolean(false);
+
+    activityScope.register(new MyBundler("outer") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        if (spawnSubScope.get()) {
+          MortarScope childScope = activityScope.requireChild(new ModuleAndBlueprint(name));
+          childScope.register(bundler);
+          // 1. We're in the middle of loading, so the usual register > load call doesn't happen.
+          assertThat(bundler.loaded).isFalse();
+        }
+      }
+    });
+
+    spawnSubScope.set(true);
+    activityScope.onCreate(null);
+
+    // 2. But load is called before the onCreate chain ends.
+    assertThat(bundler.loaded).isTrue();
   }
 }
