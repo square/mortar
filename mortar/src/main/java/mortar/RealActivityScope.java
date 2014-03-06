@@ -26,6 +26,8 @@ import static java.lang.String.format;
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Bundle latestSavedInstanceState;
 
+  private boolean loadingFromOnCreate;
+
   private enum LoadingState {
     IDLE, LOADING, SAVING
   }
@@ -36,8 +38,20 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Set<Bundler> bundlers = new HashSet<Bundler>();
 
   RealActivityScope(RealMortarScope original) {
-    super(original.getName(), original.getParent(), original.validate,
-        original.getObjectGraph());
+    this(original, false);
+  }
+
+  private RealActivityScope(RealMortarScope original, boolean duringParentOnCreate) {
+    super(original.getName(), original.getParent(), original.validate, original.getObjectGraph());
+
+    /**
+     * If I was created while my parent is in {@link #doLoading()} from an {@link #onCreate} call,
+     * I should wait for the call to my own {@link #onCreate} before making doing any loading
+     * of my own.
+     * https://github.com/square/mortar/issues/46
+     */
+    this.loadingState = duringParentOnCreate ? LoadingState.LOADING : LoadingState.IDLE;
+    this.loadingFromOnCreate = duringParentOnCreate;
   }
 
   @Override public void register(Scoped scoped) {
@@ -74,7 +88,9 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     latestSavedInstanceState = savedInstanceState;
 
     toloadThisTime.addAll(bundlers);
+    loadingFromOnCreate = true;
     doLoading();
+    loadingFromOnCreate = false;
 
     for (RealMortarScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) continue;
@@ -111,9 +127,12 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     MortarScope unwrapped = super.requireChild(blueprint);
     if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped);
+    RealActivityScope childScope =
+        new RealActivityScope((RealMortarScope) unwrapped, loadingFromOnCreate);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
+    if (loadingState != LoadingState.LOADING) {
+      childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
+    }
     return childScope;
   }
 
@@ -126,7 +145,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   private void doLoading() {
-    if (loadingState != LoadingState.IDLE) {
+    if (loadingState != LoadingState.IDLE && loadingState != LoadingState.LOADING) {
       throw new IllegalStateException("Cannot load while " + loadingState);
     }
 
