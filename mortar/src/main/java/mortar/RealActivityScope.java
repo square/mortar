@@ -26,6 +26,8 @@ import static java.lang.String.format;
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Bundle latestSavedInstanceState;
 
+  private boolean duringOnCreate;
+
   private enum LoadingState {
     IDLE, LOADING, SAVING
   }
@@ -36,13 +38,19 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Set<Bundler> bundlers = new HashSet<Bundler>();
 
   RealActivityScope(RealMortarScope original) {
-    this(original, LoadingState.IDLE);
+    this(original, false);
   }
 
-  private RealActivityScope(RealMortarScope original, LoadingState loadingState) {
-    super(original.getName(), original.getParent(), original.validate,
-        original.getObjectGraph());
-    this.loadingState = loadingState;
+  private RealActivityScope(RealMortarScope original, boolean duringParentOnCreate) {
+    super(original.getName(), original.getParent(), original.validate, original.getObjectGraph());
+
+    /**
+     * If I was created while my parent is in {@link #doLoading()} from an {@link #onCreate} call,
+     * I should wait for the call to my own {@link #onCreate} before making doing any loading
+     * of my own.
+     * https://github.com/square/mortar/issues/46
+     */
+    this.loadingState = duringParentOnCreate ? LoadingState.LOADING : LoadingState.IDLE;
   }
 
   @Override public void register(Scoped scoped) {
@@ -73,13 +81,16 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   @Override public void onCreate(Bundle savedInstanceState) {
+
     assertNotDead();
 
     // Make note of the bundle to send it to bundlers when register is called.
     latestSavedInstanceState = savedInstanceState;
 
     toloadThisTime.addAll(bundlers);
+    duringOnCreate = true;
     doLoading();
+    duringOnCreate = false;
 
     for (RealMortarScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) continue;
@@ -116,7 +127,8 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     MortarScope unwrapped = super.requireChild(blueprint);
     if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped, loadingState);
+    RealActivityScope childScope =
+        new RealActivityScope((RealMortarScope) unwrapped, duringOnCreate);
     replaceChild(blueprint.getMortarScopeName(), childScope);
     if (loadingState != LoadingState.LOADING) {
       childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));

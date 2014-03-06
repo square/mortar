@@ -459,7 +459,8 @@ public class MortarActivityScopeTest {
     activityScope.register(new MyBundler("outer") {
       @Override public void onLoad(Bundle savedInstanceState) {
         if (spawnSubScope.get()) {
-          MortarScope childScope = activityScope.requireChild(new ModuleAndBlueprint(name));
+          MortarScope childScope =
+              activityScope.requireChild(new ModuleAndBlueprint("inner scope"));
           childScope.register(bundler);
           // 1. We're in the middle of loading, so the usual register > load call doesn't happen.
           assertThat(bundler.loaded).isFalse();
@@ -472,5 +473,23 @@ public class MortarActivityScopeTest {
 
     // 2. But load is called before the onCreate chain ends.
     assertThat(bundler.loaded).isTrue();
+  }
+
+  /**
+   * Happened during first naive fix of
+   * <a href=https://github.com/square/mortar/issues/46>Issue 46</a>.
+   */
+  @Test
+  public void childScopeCreatedDuringParentOnLoadIsNotStuckInLoadingMode() {
+    final ModuleAndBlueprint subscopeBlueprint = new ModuleAndBlueprint("subscope");
+
+    activityScope.register(new MyBundler("outer") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        activityScope.requireChild(subscopeBlueprint);
+      }
+    });
+
+    activityScope.onSaveInstanceState(new Bundle());
+    // No crash? Victoire!
   }
 }
