@@ -27,6 +27,8 @@ import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static mortar.Mortar.createRootScope;
+import static mortar.Mortar.requireActivityScope;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -104,9 +106,8 @@ public class MortarActivityScopeTest {
   }
 
   private void resetScope() {
-    MortarScope root =
-        Mortar.createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
-    activityScope = Mortar.requireActivityScope(root, new ModuleAndBlueprint("activity"));
+    MortarScope root = createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
+    activityScope = requireActivityScope(root, new ModuleAndBlueprint("activity"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -449,10 +450,11 @@ public class MortarActivityScopeTest {
     activityScope.onSaveInstanceState(new Bundle());
   }
 
-  /** <a href=https://github.com/square/mortar/issues/46>Issue 46</a> */
+  /** <a href="https://github.com/square/mortar/issues/46">Issue 46</a> */
   @Test
-  public void registerWithChildScopeCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
-    final MyBundler bundler = new MyBundler("inner");
+  public void registerWithDescendantScopesCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
+    final MyBundler childBundler = new MyBundler("child");
+    final MyBundler grandChildBundler = new MyBundler("grandChild");
 
     final AtomicBoolean spawnSubScope = new AtomicBoolean(false);
 
@@ -460,10 +462,14 @@ public class MortarActivityScopeTest {
       @Override public void onLoad(Bundle savedInstanceState) {
         if (spawnSubScope.get()) {
           MortarScope childScope =
-              activityScope.requireChild(new ModuleAndBlueprint("inner scope"));
-          childScope.register(bundler);
+              activityScope.requireChild(new ModuleAndBlueprint("child scope"));
+          childScope.register(childBundler);
           // 1. We're in the middle of loading, so the usual register > load call doesn't happen.
-          assertThat(bundler.loaded).isFalse();
+          assertThat(childBundler.loaded).isFalse();
+
+          childScope.requireChild(new ModuleAndBlueprint("grandchild scope"))
+              .register(grandChildBundler);
+          assertThat(grandChildBundler.loaded).isFalse();
         }
       }
     });
@@ -472,20 +478,21 @@ public class MortarActivityScopeTest {
     activityScope.onCreate(null);
 
     // 2. But load is called before the onCreate chain ends.
-    assertThat(bundler.loaded).isTrue();
+    assertThat(childBundler.loaded).isTrue();
+    assertThat(grandChildBundler.loaded).isTrue();
   }
 
   /**
    * Happened during first naive fix of
-   * <a href=https://github.com/square/mortar/issues/46>Issue 46</a>.
+   * <a href="https://github.com/square/mortar/issues/46">Issue 46</a>.
    */
   @Test
-  public void childScopeCreatedDuringParentOnLoadIsNotStuckInLoadingMode() {
+  public void descendantScopesCreatedDuringParentOnLoadAreNotStuckInLoadingMode() {
     final ModuleAndBlueprint subscopeBlueprint = new ModuleAndBlueprint("subscope");
 
     activityScope.register(new MyBundler("outer") {
       @Override public void onLoad(Bundle savedInstanceState) {
-        activityScope.requireChild(subscopeBlueprint);
+        activityScope.requireChild(subscopeBlueprint).requireChild(subscopeBlueprint);
       }
     });
 

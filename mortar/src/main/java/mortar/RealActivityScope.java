@@ -26,7 +26,7 @@ import static java.lang.String.format;
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Bundle latestSavedInstanceState;
 
-  private boolean duringOnCreate;
+  private boolean loadingFromOnCreate;
 
   private enum LoadingState {
     IDLE, LOADING, SAVING
@@ -51,6 +51,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
      * https://github.com/square/mortar/issues/46
      */
     this.loadingState = duringParentOnCreate ? LoadingState.LOADING : LoadingState.IDLE;
+    this.loadingFromOnCreate = duringParentOnCreate;
   }
 
   @Override public void register(Scoped scoped) {
@@ -81,16 +82,15 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   @Override public void onCreate(Bundle savedInstanceState) {
-
     assertNotDead();
 
     // Make note of the bundle to send it to bundlers when register is called.
     latestSavedInstanceState = savedInstanceState;
 
     toloadThisTime.addAll(bundlers);
-    duringOnCreate = true;
+    loadingFromOnCreate = true;
     doLoading();
-    duringOnCreate = false;
+    loadingFromOnCreate = false;
 
     for (RealMortarScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) continue;
@@ -128,7 +128,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     if (unwrapped instanceof RealActivityScope) return unwrapped;
 
     RealActivityScope childScope =
-        new RealActivityScope((RealMortarScope) unwrapped, duringOnCreate);
+        new RealActivityScope((RealMortarScope) unwrapped, loadingFromOnCreate);
     replaceChild(blueprint.getMortarScopeName(), childScope);
     if (loadingState != LoadingState.LOADING) {
       childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
