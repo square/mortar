@@ -20,10 +20,8 @@ import dagger.ObjectGraph;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class RealMortarScope implements MortarScope {
 
@@ -32,7 +30,7 @@ class RealMortarScope implements MortarScope {
 
   protected boolean dead;
 
-  private final Set<Scoped> tearDowns = new HashSet<Scoped>();
+  private final List<Scoped> tearDowns = new ArrayList<Scoped>();
   private final ObjectGraph graph;
   private final RealMortarScope parent;
   private final String name;
@@ -128,12 +126,18 @@ class RealMortarScope implements MortarScope {
     if (dead) return;
     dead = true;
 
-    for (Scoped s : tearDowns) s.onDestroy();
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0; i < tearDowns.size(); i++) {
+      tearDowns.get(i).onDestroy();
+    }
     tearDowns.clear();
     if (parent != null) parent.onChildDestroyed(this);
 
     List<MortarScope> snapshot = new ArrayList<MortarScope>(children.values());
-    for (MortarScope child : snapshot) child.destroy();
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0; i < snapshot.size(); i++) {
+      snapshot.get(i).destroy();
+    }
   }
 
   @Override public String toString() {
