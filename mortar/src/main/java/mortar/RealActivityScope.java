@@ -130,7 +130,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     RealActivityScope childScope =
         new RealActivityScope((RealMortarScope) unwrapped, loadingFromOnCreate);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    if (loadingState != LoadingState.LOADING) {
+    if (!loadingFromOnCreate) {
       childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
     }
     return childScope;
