@@ -450,6 +450,56 @@ public class MortarActivityScopeTest {
     activityScope.onSaveInstanceState(new Bundle());
   }
 
+  @Test
+  public void deliversStateToBundlerWhenRegisterAfterOnCreate() {
+    MyBundler bundler = new MyBundler("bundler");
+    Bundle bundlerState = new Bundle();
+    bundler.onSave(bundlerState);
+    Bundle scopeState = new Bundle();
+    scopeState.putBundle(bundler.name, bundlerState);
+
+    activityScope.onCreate(scopeState);
+    activityScope.register(bundler);
+
+    assertThat(bundler.lastLoaded).isSameAs(bundlerState);
+  }
+
+  @Test
+  public void deliversChildScopeStateWhenRequireChildDuringRegisterAfterOnCreate() {
+    final MyBundler childScopeBundler = new MyBundler("childScopeBundler");
+    final ModuleAndBlueprint childScopeBlueprint = new ModuleAndBlueprint("ChildScope");
+
+    // When that bundler is loaded, it creates a child scope and register a bundler on it.
+    MyBundler activityScopeBundler = new MyBundler("activityScopeBundler") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        super.onLoad(savedInstanceState);
+        MortarScope childScope = activityScope.requireChild(childScopeBlueprint);
+        childScope.register(childScopeBundler);
+      }
+    };
+
+    Bundle childScopeBundlerState = new Bundle();
+    childScopeBundler.onSave(childScopeBundlerState);
+
+    Bundle childScopeState = new Bundle();
+    childScopeState.putBundle(childScopeBundler.name, childScopeBundlerState);
+
+    Bundle activityScopeBundlerState = new Bundle();
+    activityScopeBundler.onSave(activityScopeBundlerState);
+
+    Bundle activityScopeState = new Bundle();
+    activityScopeState.putBundle(childScopeBlueprint.getMortarScopeName(), childScopeState);
+    activityScopeState.putBundle(activityScopeBundler.name, activityScopeBundlerState);
+
+    // activityScope doesn't have any child scope or Bundler yet.
+    activityScope.onCreate(activityScopeState);
+
+    // Loads activityScopeBundler which require a child on activityScope and add a bundler to it.
+    activityScope.register(activityScopeBundler);
+
+    assertThat(childScopeBundler.lastLoaded).isSameAs(childScopeBundlerState);
+  }
+
   /** <a href="https://github.com/square/mortar/issues/46">Issue 46</a> */
   @Test
   public void registerWithDescendantScopesCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
