@@ -304,7 +304,7 @@ public abstract class MyBaseActivity extends Activity implements MortarContext {
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    activityScope = Mortar.getActivityScope(getParentScope(), getBlueprint());
+    activityScope = Mortar.requireActivityScope(getParentScope(), getBlueprint());
     activityScope.onCreate(savedInstanceState);
   }
 
@@ -312,11 +312,6 @@ public abstract class MyBaseActivity extends Activity implements MortarContext {
    * Return the {@link Blueprint} that defines the {@link MortarScope} for this activity.
    */
   protected abstract Blueprint getBlueprint();
-
-  @Override protected void onResume() {
-    super.onResume();
-    activityScope.onResume();
-  }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
