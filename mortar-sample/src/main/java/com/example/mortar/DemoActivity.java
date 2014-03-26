@@ -17,7 +17,6 @@ package com.example.mortar;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ViewGroup;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -25,6 +24,7 @@ import com.actionbarsherlock.view.MenuItem;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.core.Main;
 import com.example.mortar.core.MainView;
+import flow.Flow;
 import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
@@ -45,6 +45,7 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
   @Inject ActionBarOwner actionBarOwner;
+  private Flow mainFlow;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -60,6 +61,8 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
 
     activityScope.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    MainView mainView = (MainView) findViewById(R.id.container);
+    mainFlow = mainView.getFlow();
 
     actionBarOwner.takeView(this);
   }
@@ -72,15 +75,13 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
   /** Inform the view about back events. */
   @Override public void onBackPressed() {
     // Give the view a chance to handle going back. If it declines the honor, let super do its thing.
-    MainView view = getMainView();
-    if (!view.onBackPressed()) super.onBackPressed();
+    if (!mainFlow.goBack()) super.onBackPressed();
   }
 
   /** Inform the view about up events. */
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      MainView view = getMainView();
-      return view.onUpPressed();
+      return mainFlow.goUp();
     }
 
     return super.onOptionsItemSelected(item);
@@ -106,6 +107,7 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
 
     actionBarOwner.dropView(this);
 
+    // activityScope may be null in case isWrongInstance() returned true in onCreate()
     if (isFinishing() && activityScope != null) {
       activityScope.destroy();
       activityScope = null;
@@ -147,10 +149,5 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
       return intent.hasCategory(CATEGORY_LAUNCHER) && isMainAction;
     }
     return false;
-  }
-
-  private MainView getMainView() {
-    ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
-    return (MainView) root.getChildAt(0);
   }
 }
