@@ -15,6 +15,7 @@
  */
 package com.example.mortar.core;
 
+import com.example.mortar.DemoActivity;
 import com.example.mortar.android.ActionBarModule;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.screen.ChatListScreen;
@@ -41,7 +42,7 @@ public class Main implements Blueprint {
 
   @dagger.Module( //
       includes = ActionBarModule.class,
-      injects = MainView.class,
+      injects = DemoActivity.class, //
       addsTo = ApplicationModule.class, //
       library = true //
   )
@@ -51,7 +52,7 @@ public class Main implements Blueprint {
     }
   }
 
-  @Singleton public static class Presenter extends FlowOwner<Blueprint, MainView> {
+  @Singleton public static class Presenter extends FlowOwner<Blueprint, DemoActivity> {
     private final ActionBarOwner actionBarOwner;
 
     @Inject Presenter(Parcer<Object> flowParcer, ActionBarOwner actionBarOwner) {

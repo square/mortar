@@ -17,15 +17,18 @@ package com.example.mortar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.ViewGroup;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.core.Main;
-import com.example.mortar.core.MainView;
+import com.example.mortar.util.CanShowScreen;
+import com.example.mortar.util.ScreenConductor;
 import flow.Flow;
 import javax.inject.Inject;
+import mortar.Blueprint;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarContext;
@@ -40,12 +43,15 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
  * and lets it know about up button and back button presses. Shares control of the {@link
  * ActionBar} via the {@link com.example.mortar.android.ActionBarOwner}.
  */
-public class DemoActivity extends SherlockActivity implements MortarContext, ActionBarOwner.View {
+public class DemoActivity extends SherlockActivity implements MortarContext, ActionBarOwner.View,
+    CanShowScreen<Blueprint> {
   private MortarActivityScope activityScope;
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
   @Inject ActionBarOwner actionBarOwner;
-  private Flow mainFlow;
+  @Inject Main.Presenter presenter;
+
+  private ScreenConductor<Blueprint> screenMaestro;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -61,9 +67,11 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
 
     activityScope.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    MainView mainView = (MainView) findViewById(R.id.container);
-    mainFlow = mainView.getFlow();
 
+    ViewGroup container = (ViewGroup) findViewById(R.id.container);
+    screenMaestro = new ScreenConductor<Blueprint>(this, container);
+
+    presenter.takeView(this);
     actionBarOwner.takeView(this);
   }
 
@@ -75,13 +83,13 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
   /** Inform the view about back events. */
   @Override public void onBackPressed() {
     // Give the view a chance to handle going back. If it declines the honor, let super do its thing.
-    if (!mainFlow.goBack()) super.onBackPressed();
+    if (!presenter.getFlow().goBack()) super.onBackPressed();
   }
 
   /** Inform the view about up events. */
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      return mainFlow.goUp();
+      return presenter.getFlow().goUp();
     }
 
     return super.onOptionsItemSelected(item);
@@ -149,5 +157,9 @@ public class DemoActivity extends SherlockActivity implements MortarContext, Act
       return intent.hasCategory(CATEGORY_LAUNCHER) && isMainAction;
     }
     return false;
+  }
+
+  @Override public void showScreen(Blueprint screen, Flow.Direction direction) {
+    screenMaestro.showScreen(screen, direction);
   }
 }
