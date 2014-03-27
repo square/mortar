@@ -46,7 +46,12 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
     view.show(whatToShow, WITH_FLOURISH, this);
   }
 
-  public void dismiss() {
+  public final void onDismissed(R result) {
+    dismiss();
+    onPopupResult(result);
+  }
+
+  private void dismiss() {
     if (whatToShow != null) {
       whatToShow = null;
 
@@ -55,11 +60,6 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
       if (popUp.isShowing()) popUp.dismiss(WITH_FLOURISH);
     }
-  }
-
-  public final void onDismissed(R result) {
-    whatToShow = null;
-    onPopupResult(result);
   }
 
   abstract protected void onPopupResult(R result);
