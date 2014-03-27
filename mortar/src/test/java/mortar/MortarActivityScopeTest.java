@@ -186,16 +186,16 @@ public class MortarActivityScopeTest {
   }
 
   class FauxActivity {
-    final MyBundler rootPresenter = new MyBundler("core");
+    final MyBundler rootBundler = new MyBundler("core");
 
     MortarScope childScope;
-    MyBundler childPresenter = new MyBundler("child");
+    MyBundler childBundler = new MyBundler("child");
 
     void create(Bundle bundle) {
       activityScope.onCreate(bundle);
-      activityScope.register(rootPresenter);
+      activityScope.register(rootBundler);
       childScope = activityScope.requireChild(new ModuleAndBlueprint("child"));
-      childScope.register(childPresenter);
+      childScope.register(childBundler);
     }
   }
 
@@ -210,8 +210,8 @@ public class MortarActivityScopeTest {
     resetScope();
     activity = new FauxActivity();
     activity.create(bundle);
-    assertThat(activity.rootPresenter.lastLoaded).isNotNull();
-    assertThat(activity.childPresenter.lastLoaded).isNotNull();
+    assertThat(activity.rootBundler.lastLoaded).isNotNull();
+    assertThat(activity.childBundler.lastLoaded).isNotNull();
   }
 
   @Test public void handlesRegisterFromOnLoadBeforeCreate() {
