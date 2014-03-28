@@ -20,13 +20,19 @@ import android.os.Bundle;
 public abstract class Presenter<V> {
   private V view = null;
 
+  /** Load has been called for the current {@link #view}. */
+  private boolean loaded;
+
   private Bundler registration = new Bundler() {
     @Override public String getMortarBundleKey() {
       return Presenter.this.getMortarBundleKey();
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
-      if (getView() != null) Presenter.this.onLoad(savedInstanceState);
+      if (getView() != null && !loaded) {
+        loaded = true;
+        Presenter.this.onLoad(savedInstanceState);
+      }
     }
 
     @Override public void onSave(Bundle outState) {
@@ -60,6 +66,8 @@ public abstract class Presenter<V> {
     if (view == null) throw new NullPointerException("new view must not be null");
 
     if (this.view != view) {
+      if (this.view != null) dropView(this.view);
+
       this.view = view;
       extractScope(view).register(registration);
     }
@@ -80,7 +88,10 @@ public abstract class Presenter<V> {
    */
   public void dropView(V view) {
     if (view == null) throw new NullPointerException("dropped view must not be null");
-    if (view == this.view) this.view = null;
+    if (view == this.view) {
+      loaded = false;
+      this.view = null;
+    }
   }
 
   protected String getMortarBundleKey() {
