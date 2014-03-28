@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 0.9 *(2014-03-28)*
+----------------------------
+  * Fixes redundant calls to Presenter#onLoad
+  * Improved flow owner view in sample code
+  * Fixes for redundant Bundler#onLoad calls when registering during onCreate
+  * Better diagnostic dumps
+
 Version 0.8 *(2014-03-03)*
 ----------------------------
   * Fixes bug with bundle key namespacing in presenters.
