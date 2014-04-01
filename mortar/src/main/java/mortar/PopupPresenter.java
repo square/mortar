@@ -19,15 +19,32 @@ import android.os.Bundle;
 import android.os.Parcelable;
 
 /**
- * @param <D> the type of info this dialog displays. T must provide value-based implementations
+ * @param <D> the type of info this dialog displays. D must provide value-based implementations
  * of {@link #hashCode()} and {@link #equals(Object)} in order for debouncing code in {@link #show}
  * to work properly.
+ *
+ * When using multiple {@PopupPresenter}s of the same type in the same view, construct them with
+ * {@link #PopupPresenter(String)} to give them a name to distinguish them.
  */
 public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<Popup<D, R>> {
-  private static String KEY = "popup";
-  private static boolean WITH_FLOURISH = true;
+  private static final boolean WITH_FLOURISH = true;
 
   private D whatToShow;
+
+  private final String whatToShowKey;
+
+  /**
+   * @param customStateKey custom key name for saving state, useful when you have multiple instance
+   * of the same PopupPresenter class tied to a view.
+   */
+  protected PopupPresenter(String customStateKey) {
+    String stateKey = getClass().getName() + customStateKey;
+    this.whatToShowKey = stateKey;
+  }
+
+  protected PopupPresenter() {
+    this("");
+  }
 
   public D showing() {
     return whatToShow;
@@ -76,7 +93,7 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
   @Override public void onLoad(Bundle savedInstanceState) {
     if (whatToShow == null && savedInstanceState != null) {
-      whatToShow = savedInstanceState.getParcelable(KEY);
+      whatToShow = savedInstanceState.getParcelable(whatToShowKey);
     }
 
     if (whatToShow == null) return;
@@ -84,11 +101,15 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
     Popup<D, R> view = getView();
     if (view == null) return;
 
-    if (!view.isShowing()) view.show(whatToShow, !WITH_FLOURISH, this);
+    if (!view.isShowing()) {
+      view.show(whatToShow, !WITH_FLOURISH, this);
+    }
   }
 
   @Override public void onSave(Bundle outState) {
-    if (whatToShow != null) outState.putParcelable(KEY, whatToShow);
+    if (whatToShow != null) {
+      outState.putParcelable(whatToShowKey, whatToShow);
+    }
   }
 
   @Override public void onDestroy() {
