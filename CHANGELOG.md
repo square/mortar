@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.10 *(2014-04-01)*
+----------------------------
+  * Fixes PopupPresenter state saving
+  * Presenter#onDestroy wasn't calling dropView, does now.
+
 Version 0.9 *(2014-03-28)*
 ----------------------------
   * Fixes redundant calls to Presenter#onLoad
