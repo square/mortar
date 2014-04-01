@@ -52,10 +52,7 @@ public abstract class Presenter<V> {
    * <p/>
    * This presenter will be immediately {@link MortarActivityScope#register registered}
    * (or re-registered) with the given view's scope, leading to an immediate call to {@link
-   * #onLoad}. {@link #onLoad} will also be called from
-   * {@link MortarActivityScope#onCreate} if {@link #getView()} is non-null, so it's generally
-   * a good idea to call {@link MortarActivityScope#onCreate} before {@link
-   * android.app.Activity#setContentView}.
+   * #onLoad}.
    * <p/>
    * It is expected that {@link #dropView(Object)} will be called with the same argument when the
    * view is no longer active, e.g. from {@link android.view.View#onDetachedFromWindow()}.
@@ -110,7 +107,10 @@ public abstract class Presenter<V> {
   }
 
   /**
-   * Like {@link Bundler#onLoad}, but called only when {@link #getView()} is not null.
+   * Like {@link Bundler#onLoad}, but called only when {@link #getView()} is not
+   * null, and debounced. That is, this method will be called exactly once for a given view
+   * instance, at least until that view is {@link #dropView(Object) dropped}.
+   *
    * See {@link #takeView} for details.
    */
   protected void onLoad(Bundle savedInstanceState) {
@@ -120,8 +120,12 @@ public abstract class Presenter<V> {
   protected void onSave(Bundle outState) {
   }
 
-  /** Like {@link Bundler#onDestroy}. */
+  /**
+   * Like {@link Bundler#onDestroy}. One subtlety to note is that a presenter may be created
+   * by a higher level scope than the one it is registered with, in which case it may receive
+   * multiple calls to this method.
+   */
   protected void onDestroy() {
-    this.view = null;
+    if (view != null) dropView(view);
   }
 }

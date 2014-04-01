@@ -186,4 +186,13 @@ public class PresenterTest {
     presenter.takeView(viewTwo);
     assertThat(presenter.droppedView).isSameAs(viewOne);
   }
+
+  @Test public void destroyCallsDrop() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView view = new SomeView();
+
+    presenter.takeView(view);
+    presenter.onDestroy();
+    assertThat(presenter.droppedView).isSameAs(view);
+  }
 }
