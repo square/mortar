@@ -24,11 +24,9 @@ import static mortar.MortarScopeDevHelper.scopeHierarchyToString;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class MortarScopeDevHelperTest {
-
   private static final char BLANK = '\u00a0';
 
   class CustomScope implements Blueprint {
-
     private final String name;
     private Object module;
 
@@ -67,20 +65,32 @@ public class MortarScopeDevHelperTest {
 
   @Test public void nestedScopeHierarchyToString() {
     MortarScope root = createRootScope(false, emptyObjectGraph());
-    MortarScope elder = root.requireChild(new CustomScope("Elder"));
-    elder.requireChild(new CustomScope("ElderElder"));
-    elder.requireChild(new CustomScope("ElderCadet"));
     root.requireChild(new CustomScope("Cadet"));
 
-    String hierarchy = scopeHierarchyToString(root);
+    MortarScope colonel = root.requireChild(new CustomScope("Colonel"));
+    colonel.requireChild(new CustomScope("ElderColonel"));
+    colonel.requireChild(new CustomScope("ZeElderColonel"));
 
+    MortarScope elder = root.requireChild(new CustomScope("Elder"));
+    elder.requireChild(new CustomScope("ElderCadet"));
+    elder.requireChild(new CustomScope("ZeElderCadet"));
+    elder.requireChild(new CustomScope("ElderElder"));
+    elder.requireChild(new CustomScope("AnElderCadet"));
+
+
+    String hierarchy = scopeHierarchyToString(root);
     assertThat(hierarchy).isEqualTo("" //
         + "Mortar Hierarchy:\n" //
         + BLANK + "SCOPE Root\n" //
-        + BLANK + "+-SCOPE Elder\n" //
-        + BLANK + "| +-SCOPE ElderElder\n" //
-        + BLANK + "| `-SCOPE ElderCadet\n" //
-        + BLANK + "`-SCOPE Cadet\n" //
+        + BLANK + "+-SCOPE Cadet\n" //
+        + BLANK + "+-SCOPE Colonel\n" //
+        + BLANK + "| +-SCOPE ElderColonel\n" //
+        + BLANK + "| `-SCOPE ZeElderColonel\n" //
+        + BLANK + "`-SCOPE Elder\n" //
+        + BLANK + "  +-SCOPE AnElderCadet\n" //
+        + BLANK + "  +-SCOPE ElderCadet\n" //
+        + BLANK + "  +-SCOPE ElderElder\n" //
+        + BLANK + "  `-SCOPE ZeElderCadet\n" //
     );
   }
 
