@@ -4,6 +4,7 @@ import dagger.ObjectGraph;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +176,10 @@ public class MortarScopeDevHelper {
       Node node) {
     appendLinePrefix(result, depth, lastChildMask);
     result.append(node.getName()).append('\n');
+
     List<Node> childNodes = node.getChildNodes();
+    Collections.sort(childNodes, new NodeSorter());
+
     int lastIndex = childNodes.size() - 1;
     int index = 0;
     for (Node childNode : childNodes) {
@@ -217,5 +221,11 @@ public class MortarScopeDevHelper {
 
   private MortarScopeDevHelper() {
     throw new UnsupportedOperationException("This is a helper class");
+  }
+
+  private static class NodeSorter implements Comparator<Node> {
+    @Override public int compare(Node lhs, Node rhs) {
+      return lhs.getName().compareTo(rhs.getName());
+    }
   }
 }
