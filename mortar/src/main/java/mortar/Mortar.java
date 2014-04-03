@@ -86,7 +86,8 @@ public class Mortar {
     MortarScope scope = (MortarScope) context.getSystemService(MORTAR_SCOPE_SERVICE);
     if (scope == null) {
       throw new IllegalArgumentException(
-          format("Cannot find scope in %s.", context.getClass().getName()));
+          format("Cannot find scope in %s.  Make sure your Activity's content view is set using "
+              + " an inflater from MortarScope.createContext()", context.getClass().getName()));
     }
     return scope;
   }
