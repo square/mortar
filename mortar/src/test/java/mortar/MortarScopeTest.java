@@ -15,7 +15,7 @@
  */
 package mortar;
 
-import android.app.Activity;
+import android.content.Context;
 import dagger.Module;
 import dagger.ObjectGraph;
 import dagger.Provides;
@@ -38,13 +38,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class MortarScopeTest {
-  static class MyContext extends Activity implements MortarContext {
-    @Override public MortarScope getMortarScope() {
-      throw new UnsupportedOperationException();
-    }
-  }
 
-  @Mock MyContext context;
+  @Mock Context context;
   @Mock Scoped scoped;
 
   @Qualifier @Retention(RUNTIME) @interface Apple {
@@ -519,7 +514,7 @@ public class MortarScopeTest {
   @Test
   public void inject() {
     MortarScope root = Mortar.createRootScope(false, create(new Able()));
-    when(context.getMortarScope()).thenReturn(root);
+    when(context.getSystemService(MortarContextWrapper.MORTAR_SCOPE_SERVICE)).thenReturn(root);
     HasApple apple = new HasApple();
     Mortar.inject(context, apple);
     assertThat(apple.string).isEqualTo(Apple.class.getName());
@@ -528,7 +523,7 @@ public class MortarScopeTest {
   @Test
   public void getScope() {
     MortarScope root = Mortar.createRootScope(false, create(new Able()));
-    when(context.getMortarScope()).thenReturn(root);
+    when(context.getSystemService(MortarContextWrapper.MORTAR_SCOPE_SERVICE)).thenReturn(root);
     assertThat(Mortar.getScope(context)).isSameAs(root);
   }
 

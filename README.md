@@ -107,7 +107,7 @@ void showScreen(Blueprint nextScreen) {
   }
 
   MortarScope newScope = Mortar.getMortarScope(this).requireChild(nextScreen);
-  Context newContext = new MortarContextWrapper(this, newScope);
+  Context newContext = newScope.createContext(this);
   View screenView = Layouts.createView(newContext, nextScreen);
 
   setContentView(screenView);
@@ -264,8 +264,9 @@ that Android theming will work as expected.
 ### Bootstrapping
 
 Mortar requires a little bit of wiring to do its job. Its main trick is to
-require all Views' contexts to implement the [MortarContext][mortarcontext]
-interface. In practice this means your activities implement it, and when you
+require all Views' contexts to descend from a context created via
+[MortarContext#createContext][createContext]. In practice this means your
+Activity creates a scope and wraps itself,, and when you
 create views for subscopes you manufacture their contexts by calling
 `MortarScope#createContext`. You'll also need a custom
 [Application][application] subclass to hold the root scope. (This is how
@@ -391,7 +392,7 @@ License
 [layout]: https://github.com/square/flow/blob/master/flow/src/main/java/flow/Layout.java
 [layouts]: https://github.com/square/flow/blob/master/flow/src/main/java/flow/Layouts.java
 [ogplus]: https://github.com/square/dagger/blob/dagger-parent-1.1.0/core/src/main/java/dagger/ObjectGraph.java#L96
-[mortarcontext]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/MortarContext.java
+[createContext]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/MortarScope.java#L67
 [presenter]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Presenter.java
 [retrofit]: http://square.github.io/retrofit/
 [rxjava]: https://github.com/Netflix/RxJava

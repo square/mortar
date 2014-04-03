@@ -1,9 +1,14 @@
 Change Log
 ==========
 
+Next Version *TBD*
+------------------
+  * API break: MortarContext has been removed.  Activities must be careful to
+    construct and use a Mortar context; see the samples.  This change allows
+    Mortar to coexist peacefully with other ContextWrappers.
+
 Version 0.11 *(2014-04-03)*
 ----------------------------
-
   * Presenter#onDestroy calling dropView was a bad, bad idea. Now it does
     nothing. Drop your own damn views.
   * MortarScopeDevHelper now dumps in alphabetical order, tests pass under 
