@@ -126,6 +126,5 @@ public abstract class Presenter<V> {
    * multiple calls to this method.
    */
   protected void onDestroy() {
-    if (view != null) dropView(view);
   }
 }
