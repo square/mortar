@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 0.11 *(2014-04-03)*
+----------------------------
+
+  * Presenter#onDestroy calling dropView was a bad, bad idea. Now it does
+    nothing. Drop your own damn views.
+  * MortarScopeDevHelper now dumps in alphabetical order, tests pass under 
+    Java 8 
+
 Version 0.10 *(2014-04-01)*
 ----------------------------
   * Fixes PopupPresenter state saving
