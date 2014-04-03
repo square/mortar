@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static mortar.MortarContextWrapper.MORTAR_SCOPE_SERVICE;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Mockito.when;
@@ -27,13 +28,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MortarTest {
   @Mock Context rawContext;
-  @Mock(extraInterfaces = MortarContext.class) Context goodContext;
+  @Mock Context goodContext;
   @Mock MortarScope scope;
 
   @Before
   public void setUp() {
     initMocks(this);
-    when(((MortarContext) goodContext).getMortarScope()).thenReturn(scope);
+    when(goodContext.getSystemService(MORTAR_SCOPE_SERVICE)).thenReturn(scope);
   }
 
   @Test
@@ -47,8 +48,7 @@ public class MortarTest {
       Mortar.getScope(rawContext);
       fail("Expected exception");
     } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).startsWith("Mortar requires android.content.Context");
-      assertThat(e.getMessage()).endsWith("(and all Contexts) to implement mortar.MortarContext");
+      assertThat(e.getMessage()).startsWith("Cannot find scope in android.content.Context");
     }
   }
 }

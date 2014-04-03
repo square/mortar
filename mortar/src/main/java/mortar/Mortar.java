@@ -20,6 +20,7 @@ import android.content.Context;
 import dagger.ObjectGraph;
 
 import static java.lang.String.format;
+import static mortar.MortarContextWrapper.MORTAR_SCOPE_SERVICE;
 
 /** Provides static bootstrap and integration methods. */
 public class Mortar {
@@ -76,14 +77,17 @@ public class Mortar {
     getScope(context).getObjectGraph().inject(object);
   }
 
-  /** Find the scope for the given {@link Context}, which must implement {@link MortarContext}. */
+  /**
+   * Find the scope for the given {@link Context}.
+   *
+   * @see MortarScope#createContext(android.content.Context)
+   */
   public static MortarScope getScope(Context context) {
-    if (!(context instanceof MortarContext)) {
+    MortarScope scope = (MortarScope) context.getSystemService(MORTAR_SCOPE_SERVICE);
+    if (scope == null) {
       throw new IllegalArgumentException(
-          format("Mortar requires %s (and all Contexts) to implement %s",
-              context.getClass().getName(), MortarContext.class.getName()));
+          format("Cannot find scope in %s.", context.getClass().getName()));
     }
-
-    return ((MortarContext) context).getMortarScope();
+    return scope;
   }
 }

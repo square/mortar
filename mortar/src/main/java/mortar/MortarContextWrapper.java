@@ -19,8 +19,10 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 
-class MortarContextWrapper extends ContextWrapper implements MortarContext {
+class MortarContextWrapper extends ContextWrapper {
   private final MortarScope scope;
+
+  static final String MORTAR_SCOPE_SERVICE = "mortar_scope";
 
   private LayoutInflater inflater;
 
@@ -30,6 +32,9 @@ class MortarContextWrapper extends ContextWrapper implements MortarContext {
   }
 
   @Override public Object getSystemService(String name) {
+    if (MORTAR_SCOPE_SERVICE.equals(name)) {
+      return scope;
+    }
     if (LAYOUT_INFLATER_SERVICE.equals(name)) {
       if (inflater == null) {
         inflater = LayoutInflater.from(getBaseContext()).cloneInContext(this);
@@ -38,9 +43,5 @@ class MortarContextWrapper extends ContextWrapper implements MortarContext {
     }
 
     return super.getSystemService(name);
-  }
-
-  @Override public MortarScope getMortarScope() {
-    return scope;
   }
 }
