@@ -27,7 +27,7 @@
 
   <groupId>com.squareup.mortar</groupId>
   <artifactId>mortar-parent</artifactId>
-  <version>0.11-SNAPSHOT</version>
+  <version>0.11</version>
   <packaging>pom</packaging>
 
   <name>Mortar (Parent)</name>
