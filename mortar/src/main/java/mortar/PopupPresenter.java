@@ -87,7 +87,7 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
   @Override public void dropView(Popup<D, R> view) {
     Popup<D, R> oldView = getView();
-    if (oldView == view && oldView.isShowing()) oldView.dismiss(false);
+    if (oldView == view && oldView.isShowing()) oldView.dismiss(!WITH_FLOURISH);
     super.dropView(view);
   }
 
