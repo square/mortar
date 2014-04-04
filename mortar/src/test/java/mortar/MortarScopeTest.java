@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import static dagger.ObjectGraph.create;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Arrays.asList;
+import static mortar.Mortar.MORTAR_SCOPE_SERVICE;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
@@ -514,7 +515,7 @@ public class MortarScopeTest {
   @Test
   public void inject() {
     MortarScope root = Mortar.createRootScope(false, create(new Able()));
-    when(context.getSystemService(MortarContextWrapper.MORTAR_SCOPE_SERVICE)).thenReturn(root);
+    when(context.getSystemService(MORTAR_SCOPE_SERVICE)).thenReturn(root);
     HasApple apple = new HasApple();
     Mortar.inject(context, apple);
     assertThat(apple.string).isEqualTo(Apple.class.getName());
@@ -523,7 +524,7 @@ public class MortarScopeTest {
   @Test
   public void getScope() {
     MortarScope root = Mortar.createRootScope(false, create(new Able()));
-    when(context.getSystemService(MortarContextWrapper.MORTAR_SCOPE_SERVICE)).thenReturn(root);
+    when(context.getSystemService(MORTAR_SCOPE_SERVICE)).thenReturn(root);
     assertThat(Mortar.getScope(context)).isSameAs(root);
   }
 

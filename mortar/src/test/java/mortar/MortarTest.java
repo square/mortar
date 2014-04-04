@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static mortar.MortarContextWrapper.MORTAR_SCOPE_SERVICE;
+import static mortar.Mortar.MORTAR_SCOPE_SERVICE;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Mockito.when;

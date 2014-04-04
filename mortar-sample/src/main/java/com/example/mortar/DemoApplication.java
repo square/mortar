@@ -40,7 +40,10 @@ public class DemoApplication extends Application {
         Mortar.createRootScope(BuildConfig.DEBUG, ObjectGraph.create(new ApplicationModule()));
   }
 
-  public MortarScope getRootScope() {
-    return rootScope;
+  @Override public Object getSystemService(String name) {
+    if (Mortar.isScopeSystemService(name)) {
+      return rootScope;
+    }
+    return super.getSystemService(name);
   }
 }

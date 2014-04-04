@@ -18,8 +18,6 @@ package com.example.mortar;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.util.Log;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
@@ -46,7 +44,6 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
  */
 public class DemoActivity extends SherlockActivity implements ActionBarOwner.View {
   private MortarActivityScope activityScope;
-  private Context mortarContext;
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
   @Inject ActionBarOwner actionBarOwner;
@@ -60,10 +57,9 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
       return;
     }
 
-    MortarScope parentScope = ((DemoApplication) getApplication()).getRootScope();
+    MortarScope parentScope = Mortar.getScope(getApplication());
     activityScope = Mortar.requireActivityScope(parentScope, new Main());
-    mortarContext = activityScope.createContext(this);
-    Mortar.inject(mortarContext, this);
+    Mortar.inject(this, this);
 
     activityScope.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
@@ -73,10 +69,11 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
     actionBarOwner.takeView(this);
   }
 
-  @Override public void setContentView(int layoutResId) {
-    LayoutInflater inflater =
-        (LayoutInflater) mortarContext.getSystemService(LAYOUT_INFLATER_SERVICE);
-    inflater.inflate(layoutResId, (ViewGroup) findViewById(android.R.id.content));
+  @Override public Object getSystemService(String name) {
+    if (Mortar.isScopeSystemService(name)) {
+      return activityScope;
+    }
+    return super.getSystemService(name);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -134,7 +131,7 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
   }
 
   @Override public Context getMortarContext() {
-    return mortarContext;
+    return this;
   }
 
   @Override public void setShowHomeEnabled(boolean enabled) {
