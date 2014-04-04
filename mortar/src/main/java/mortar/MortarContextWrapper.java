@@ -22,8 +22,6 @@ import android.view.LayoutInflater;
 class MortarContextWrapper extends ContextWrapper {
   private final MortarScope scope;
 
-  static final String MORTAR_SCOPE_SERVICE = "mortar_scope";
-
   private LayoutInflater inflater;
 
   public MortarContextWrapper(Context context, MortarScope scope) {
@@ -32,7 +30,7 @@ class MortarContextWrapper extends ContextWrapper {
   }
 
   @Override public Object getSystemService(String name) {
-    if (MORTAR_SCOPE_SERVICE.equals(name)) {
+    if (Mortar.isScopeSystemService(name)) {
       return scope;
     }
     if (LAYOUT_INFLATER_SERVICE.equals(name)) {
@@ -41,7 +39,6 @@ class MortarContextWrapper extends ContextWrapper {
       }
       return inflater;
     }
-
     return super.getSystemService(name);
   }
 }

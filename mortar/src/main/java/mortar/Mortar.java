@@ -20,10 +20,11 @@ import android.content.Context;
 import dagger.ObjectGraph;
 
 import static java.lang.String.format;
-import static mortar.MortarContextWrapper.MORTAR_SCOPE_SERVICE;
 
 /** Provides static bootstrap and integration methods. */
 public class Mortar {
+
+  static final String MORTAR_SCOPE_SERVICE = "mortar_scope";
 
   private Mortar() {
   }
@@ -85,10 +86,19 @@ public class Mortar {
   public static MortarScope getScope(Context context) {
     MortarScope scope = (MortarScope) context.getSystemService(MORTAR_SCOPE_SERVICE);
     if (scope == null) {
-      throw new IllegalArgumentException(
-          format("Cannot find scope in %s.  Make sure your Activity's content view is set using "
-              + " an inflater from MortarScope.createContext()", context.getClass().getName()));
+      throw new IllegalArgumentException(format(
+          "Cannot find scope in %s. Make sure your Activity overrides getSystemService() "
+              + " to return its scope if isScopeSystemService() is true",
+          context.getClass().getName()));
     }
     return scope;
+  }
+
+  /**
+   * Use this when overriding {@link android.app.Activity#getSystemService(String)}. If this
+   * returns true, you should return the activity scope from there.
+   */
+  public static boolean isScopeSystemService(String name) {
+    return MORTAR_SCOPE_SERVICE.equals(name);
   }
 }

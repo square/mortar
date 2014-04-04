@@ -264,11 +264,11 @@ that Android theming will work as expected.
 ### Bootstrapping
 
 Mortar requires a little bit of wiring to do its job. Its main trick is to
-require all Views' contexts to descend from a context created via
-[MortarContext#createContext][createContext]. In practice this means your
-Activity creates a scope and wraps itself,, and when you
+require all Views' contexts to descend from a context that can return a
+Mortar specific system service. In practice this means your Activity
+creates a scope and returns it from `getSystemService()`, and when you
 create views for subscopes you manufacture their contexts by calling
-`MortarScope#createContext`. You'll also need a custom
+[MortarScope#createContext][createContext]. You'll also need a custom
 [Application][application] subclass to hold the root scope. (This is how
 scopes survive configuration changes.)
 
@@ -281,7 +281,7 @@ So declare your custom app in `AndroidManifest.xml`:
     >
 ```
 ```java
-public class MyApplication extends Application implements MortarContext {
+public class MyApplication extends Application {
   private MortarScope applicationScope;
 
   @Override public void onCreate() {
@@ -290,8 +290,11 @@ public class MyApplication extends Application implements MortarContext {
     applicationScope = Mortar.createRootScope(BuildConfig.DEBUG);
   }
 
-  @Override public MortarScope getMortarScope() {
-    return applicationScope;
+  @Override public Object getSystemService(String name) {
+    if (Mortar.isScopeSystemService(name)) {
+      return applicationScope;
+    }
+    return super.getSystemService(name);
   }
 }
 ```
@@ -300,13 +303,21 @@ Make your activities, or a common superclass they all extend,  create or
 restore a `MortarActivityScope`.
 
 ```java
-public abstract class MyBaseActivity extends Activity implements MortarContext {
+public abstract class MyBaseActivity extends Activity {
   private MortarActivityScope activityScope;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    activityScope = Mortar.requireActivityScope(getParentScope(), getBlueprint());
+    MortarScope parentScope = Mortar.getScope(getApplication());
+    activityScope = Mortar.requireActivityScope(parentScope, getBlueprint());
     activityScope.onCreate(savedInstanceState);
+  }
+
+  @Override public Object getSystemService(String name) {
+    if (Mortar.isScopeSystemService(name)) {
+      return activityScope;
+    }
+    return super.getSystemService(name);
   }
 
   /**
@@ -326,16 +337,7 @@ public abstract class MyBaseActivity extends Activity implements MortarContext {
       activityScope = null;
     }
   }
-
-  @Override public MortarScope getMortarScope() {
-    return activityScope;
-  }
-
-  private MortarScope getParentScope() {
-    return Mortar.getScope(getApplicationContext());
-  }
 }
-
 ```
 
 

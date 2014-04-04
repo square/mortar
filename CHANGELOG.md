@@ -4,7 +4,7 @@ Change Log
 Next Version *TBD*
 ------------------
   * API break: MortarContext has been removed.  Activities must be careful to
-    construct and use a Mortar context; see the samples.  This change allows
+    override getSystemService(); see the samples. This change allows
     Mortar to coexist peacefully with other ContextWrappers.
 
 Version 0.11 *(2014-04-03)*
