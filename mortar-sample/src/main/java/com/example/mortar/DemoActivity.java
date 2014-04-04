@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.util.Log;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -32,6 +33,7 @@ import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarScope;
+import mortar.MortarScopeDevHelper;
 
 import static android.content.Intent.ACTION_MAIN;
 import static android.content.Intent.CATEGORY_LAUNCHER;
@@ -109,6 +111,13 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
             }
           });
     }
+    menu.add("Log Scope Hierarchy")
+        .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+          @Override public boolean onMenuItemClick(MenuItem item) {
+            Log.d("DemoActivity", MortarScopeDevHelper.scopeHierarchyToString(activityScope));
+            return true;
+          }
+        });
     return true;
   }
 
