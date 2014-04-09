@@ -549,4 +549,50 @@ public class MortarActivityScopeTest {
     activityScope.onSaveInstanceState(new Bundle());
     // No crash? Victoire!
   }
+
+  /**
+   * https://github.com/square/mortar/issues/77
+   */
+  @Test
+  public void childCreatedDuringMyLoadDoesLoadingAfterMe() {
+    activityScope.onCreate(null);
+    final MyBundler childBundler = new MyBundler("childBundler");
+
+    activityScope.register(new MyBundler("root") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        super.onLoad(savedInstanceState);
+
+        activityScope.requireChild(new ModuleAndBlueprint("childScope")).register(childBundler);
+        assertThat(childBundler.loaded).isFalse();
+      }
+    });
+
+    assertThat(childBundler.loaded).isTrue();
+  }
+
+  /**
+   * https://github.com/square/mortar/issues/77
+   */
+  @Test
+  public void bundlersInChildScopesLoadAfterBundlersOnParent() {
+    activityScope.onCreate(null);
+    final MyBundler service = new MyBundler("service");
+
+    final MyBundler childBundler = new MyBundler("childBundler") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        super.onLoad(savedInstanceState);
+        assertThat(service.loaded).isTrue();
+      }
+    };
+
+    activityScope.register(new MyBundler("root") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        activityScope.register(service);
+        assertThat(service.loaded).isFalse();
+        activityScope.requireChild(new ModuleAndBlueprint("childScope")).register(childBundler);
+        assertThat(childBundler.loaded).isFalse();
+      }
+    });
+    assertThat(childBundler.loaded).isTrue();
+  }
 }
