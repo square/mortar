@@ -26,32 +26,17 @@ import static java.lang.String.format;
 class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private Bundle latestSavedInstanceState;
 
-  private boolean loadingFromOnCreate;
-
   private enum LoadingState {
     IDLE, LOADING, SAVING
   }
 
-  private LoadingState loadingState = LoadingState.IDLE;
+  private LoadingState myLoadingState = LoadingState.IDLE;
 
   private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
   private Set<Bundler> bundlers = new HashSet<Bundler>();
 
   RealActivityScope(RealMortarScope original) {
-    this(original, false);
-  }
-
-  private RealActivityScope(RealMortarScope original, boolean duringParentOnCreate) {
     super(original.getName(), original.getParent(), original.validate, original.getObjectGraph());
-
-    /**
-     * If I was created while my parent is in {@link #doLoading()} from an {@link #onCreate} call,
-     * I should wait for the call to my own {@link #onCreate} before making doing any loading
-     * of my own.
-     * https://github.com/square/mortar/issues/46
-     */
-    this.loadingState = duringParentOnCreate ? LoadingState.LOADING : LoadingState.IDLE;
-    this.loadingFromOnCreate = duringParentOnCreate;
   }
 
   @Override public void register(Scoped scoped) {
@@ -63,6 +48,8 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     if (mortarBundleKey == null || mortarBundleKey.trim().equals("")) {
       throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
     }
+
+    LoadingState loadingState = effectiveLoadingState(this);
 
     switch (loadingState) {
       case IDLE:
@@ -88,9 +75,7 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     latestSavedInstanceState = savedInstanceState;
 
     toloadThisTime.addAll(bundlers);
-    loadingFromOnCreate = true;
-    doLoading();
-    loadingFromOnCreate = false;
+    if (effectiveLoadingState(this) == LoadingState.IDLE) doLoading();
 
     for (RealMortarScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) continue;
@@ -100,13 +85,13 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
 
   @Override public void onSaveInstanceState(Bundle outState) {
     assertNotDead();
-    if (loadingState != LoadingState.IDLE) {
-      throw new IllegalStateException("Cannot handle onSaveInstanceState while " + loadingState);
+    if (myLoadingState != LoadingState.IDLE) {
+      throw new IllegalStateException("Cannot handle onSaveInstanceState while " + myLoadingState);
     }
 
     latestSavedInstanceState = outState;
 
-    loadingState = LoadingState.SAVING;
+    myLoadingState = LoadingState.SAVING;
     for (Bundler b : new ArrayList<Bundler>(bundlers)) {
       // If anyone's onSave method destroyed us, short circuit.
       if (isDead()) return;
@@ -120,19 +105,17 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
           getChildBundle(child, latestSavedInstanceState, true));
     }
 
-    loadingState = LoadingState.IDLE;
+    myLoadingState = LoadingState.IDLE;
   }
 
   @Override public MortarScope requireChild(Blueprint blueprint) {
     MortarScope unwrapped = super.requireChild(blueprint);
     if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityScope childScope =
-        new RealActivityScope((RealMortarScope) unwrapped, loadingFromOnCreate);
+    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    if (!loadingFromOnCreate) {
-      childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
-    }
+    childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
+
     return childScope;
   }
 
@@ -145,14 +128,14 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   }
 
   private void doLoading() {
-    if (loadingState != LoadingState.IDLE && loadingState != LoadingState.LOADING) {
-      throw new IllegalStateException("Cannot load while " + loadingState);
+    if (myLoadingState != LoadingState.IDLE && myLoadingState != LoadingState.LOADING) {
+      throw new IllegalStateException("Cannot load while " + myLoadingState);
     }
 
     // Call onLoad. Watch out for new registrants, and don't loop on re-registration.
     // Also watch out for the scope getting destroyed from an onload, short circuit.
 
-    loadingState = LoadingState.LOADING;
+    myLoadingState = LoadingState.LOADING;
     while (!toloadThisTime.isEmpty()) {
       if (isDead()) return;
 
@@ -160,7 +143,11 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       bundlers.add(next);
       next.onLoad(getChildBundle(next, latestSavedInstanceState, false));
     }
-    loadingState = LoadingState.IDLE;
+    myLoadingState = LoadingState.IDLE;
+
+    for (RealMortarScope child : children.values()) {
+      if (child instanceof RealActivityScope) ((RealActivityScope) child).doLoading();
+    }
   }
 
   private Bundle getChildBundle(Bundler bundler, Bundle bundle, boolean eager) {
@@ -180,5 +167,17 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       bundle.putBundle(name, child);
     }
     return child;
+  }
+
+  private LoadingState effectiveLoadingState(RealActivityScope realActivityScope) {
+    LoadingState s = realActivityScope.myLoadingState;
+    if (s != LoadingState.IDLE) {
+      return s;
+    }
+
+    RealMortarScope parent = realActivityScope.getParent();
+    if (!(parent instanceof RealActivityScope)) return s;
+
+    return effectiveLoadingState((RealActivityScope) parent);
   }
 }
