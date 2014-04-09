@@ -1,8 +1,9 @@
 Change Log
 ==========
 
-Next Version *TBD*
+Version 0.12 *(2014-04-09)*
 ------------------
+  * Guarantees that parent scopes will make their onLoad calls before children.
   * API break: MortarContext has been removed.  Activities must be careful to
     override getSystemService(); see the samples. This change allows
     Mortar to coexist peacefully with other ContextWrappers.
