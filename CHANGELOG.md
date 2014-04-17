@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.13 *(2014-04-17)*
+------------------
+  * Fix accidental bundling of dagger-compiler
+
 Version 0.12 *(2014-04-09)*
 ------------------
   * Guarantees that parent scopes will make their onLoad calls before children.
