@@ -37,6 +37,7 @@
       <groupId>com.squareup.dagger</groupId>
       <artifactId>dagger-compiler</artifactId>
       <version>${dagger.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
