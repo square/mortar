@@ -23,13 +23,20 @@ import android.os.Bundle;
  */
 public interface MortarActivityScope extends MortarScope {
   /**
-   * Registers the given to have its {@link Scoped#onDestroy()} method called. In addition,
-   * if it is an instance of {@link Bundler}:
-   * <ul>
-   * <li>{@link Bundler#onLoad} will be called immediately</li>
-   * <li>{@link Bundler#onLoad} will also be called from {@link #onCreate}
-   * <li>{@link Bundler#onSave} will be called from {@link #onSaveInstanceState}
-   * </ul>
+   * <p>Extends {@link MortarScope#register(Scoped)} to register {@link Bundler} instances to have
+   * {@link Bundler#onLoad} and {@link Bundler#onSave} called from {@link #onCreate} and {@link
+   * #onSaveInstanceState}, respectively.
+   *
+   * <p>In addition to the calls from {@link #onCreate}, {@link Bundler#onLoad} is triggered by
+   * registration. In most cases that initial {@link Bundler#onLoad} is made synchronously during
+   * registration. However, if a {@link Bundler} is registered while an ancestor scope is loading
+   * its own {@link Bundler}s, its {@link Bundler#onLoad} will be deferred until all ancestor
+   * scopes have completed loading. This ensures that a {@link Bundler} can assume that any
+   * dependency registered with a higher-level scope will have been initialized before its own
+   * {@link Bundler#onLoad} method fires.
+   *
+   * <p>A redundant call to this method does not create a duplicate registration, but does trigger
+   * another call to {@link Bundler#onLoad}.
    */
   @Override void register(Scoped s);
 

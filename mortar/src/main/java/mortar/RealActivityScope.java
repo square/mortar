@@ -23,7 +23,7 @@ import java.util.Set;
 
 import static java.lang.String.format;
 
-class RealActivityScope extends RealMortarScope implements MortarActivityScope {
+class RealActivityScope extends RealScope implements MortarActivityScope {
   private Bundle latestSavedInstanceState;
 
   private enum LoadingState {
@@ -35,11 +35,15 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
   private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
   private Set<Bundler> bundlers = new HashSet<Bundler>();
 
-  RealActivityScope(RealMortarScope original) {
+  RealActivityScope(RealScope original) {
     super(original.getName(), original.getParent(), original.validate, original.getObjectGraph());
   }
 
   @Override public void register(Scoped scoped) {
+    if (myLoadingState == LoadingState.SAVING) {
+      throw new IllegalStateException("Cannot register during onSave");
+    }
+
     doRegister(scoped);
     if (!(scoped instanceof Bundler)) return;
 
@@ -49,9 +53,14 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       throw new IllegalArgumentException(format("%s has null or empty bundle key", b));
     }
 
-    LoadingState loadingState = effectiveLoadingState(this);
+    LoadingState ancestorLoadingState;
+    if (getParent() instanceof RealActivityScope) {
+      ancestorLoadingState = unionLoadingState((RealActivityScope) getParent());
+    } else {
+      ancestorLoadingState = LoadingState.IDLE;
+    }
 
-    switch (loadingState) {
+    switch (ancestorLoadingState) {
       case IDLE:
         toloadThisTime.add(b);
         doLoading();
@@ -59,12 +68,9 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       case LOADING:
         if (!toloadThisTime.contains(b)) toloadThisTime.add(b);
         break;
-      case SAVING:
-        bundlers.add(b);
-        break;
 
       default:
-        throw new AssertionError("Unknown state " + loadingState);
+        throw new AssertionError("Unknown state " + ancestorLoadingState);
     }
   }
 
@@ -75,11 +81,11 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     latestSavedInstanceState = savedInstanceState;
 
     toloadThisTime.addAll(bundlers);
-    if (effectiveLoadingState(this) == LoadingState.IDLE) doLoading();
+    if (unionLoadingState(this) == LoadingState.IDLE) doLoading();
 
-    for (RealMortarScope child : children.values()) {
+    for (RealScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) continue;
-      ((RealActivityScope) child).onCreate(getChildBundle(child, savedInstanceState, false));
+      ((RealActivityScope) child).onCreate(getNestedBundle(child, savedInstanceState, false));
     }
   }
 
@@ -96,13 +102,13 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
       // If anyone's onSave method destroyed us, short circuit.
       if (isDead()) return;
 
-      b.onSave(getChildBundle(b, latestSavedInstanceState, true));
+      b.onSave(getNestedBundle(b, latestSavedInstanceState, true));
     }
 
-    for (RealMortarScope child : children.values()) {
+    for (RealScope child : children.values()) {
       if (!(child instanceof RealActivityScope)) return;
       ((RealActivityScope) child).onSaveInstanceState(
-          getChildBundle(child, latestSavedInstanceState, true));
+          getNestedBundle(child, latestSavedInstanceState, true));
     }
 
     myLoadingState = LoadingState.IDLE;
@@ -112,14 +118,14 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     MortarScope unwrapped = super.requireChild(blueprint);
     if (unwrapped instanceof RealActivityScope) return unwrapped;
 
-    RealActivityScope childScope = new RealActivityScope((RealMortarScope) unwrapped);
+    RealActivityScope childScope = new RealActivityScope((RealScope) unwrapped);
     replaceChild(blueprint.getMortarScopeName(), childScope);
-    childScope.onCreate(getChildBundle(childScope, latestSavedInstanceState, false));
+    childScope.onCreate(getNestedBundle(childScope, latestSavedInstanceState, false));
 
     return childScope;
   }
 
-  @Override void onChildDestroyed(RealMortarScope child) {
+  @Override void onChildDestroyed(RealScope child) {
     if (latestSavedInstanceState != null) {
       String name = child.getName();
       latestSavedInstanceState.putBundle(name, null);
@@ -135,26 +141,27 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     // Call onLoad. Watch out for new registrants, and don't loop on re-registration.
     // Also watch out for the scope getting destroyed from an onload, short circuit.
 
+    LoadingState initialState = myLoadingState;
     myLoadingState = LoadingState.LOADING;
     while (!toloadThisTime.isEmpty()) {
       if (isDead()) return;
 
       Bundler next = toloadThisTime.remove(0);
       bundlers.add(next);
-      next.onLoad(getChildBundle(next, latestSavedInstanceState, false));
+      next.onLoad(getNestedBundle(next, latestSavedInstanceState, false));
     }
-    myLoadingState = LoadingState.IDLE;
+    myLoadingState = initialState;
 
-    for (RealMortarScope child : children.values()) {
+    for (RealScope child : children.values()) {
       if (child instanceof RealActivityScope) ((RealActivityScope) child).doLoading();
     }
   }
 
-  private Bundle getChildBundle(Bundler bundler, Bundle bundle, boolean eager) {
+  private Bundle getNestedBundle(Bundler bundler, Bundle bundle, boolean eager) {
     return getNamedBundle(bundler.getMortarBundleKey(), bundle, eager);
   }
 
-  private Bundle getChildBundle(MortarScope scope, Bundle bundle, boolean eager) {
+  private Bundle getNestedBundle(MortarScope scope, Bundle bundle, boolean eager) {
     return getNamedBundle(scope.getName(), bundle, eager);
   }
 
@@ -169,15 +176,15 @@ class RealActivityScope extends RealMortarScope implements MortarActivityScope {
     return child;
   }
 
-  private LoadingState effectiveLoadingState(RealActivityScope realActivityScope) {
+  private LoadingState unionLoadingState(RealActivityScope realActivityScope) {
     LoadingState s = realActivityScope.myLoadingState;
     if (s != LoadingState.IDLE) {
       return s;
     }
 
-    RealMortarScope parent = realActivityScope.getParent();
+    RealScope parent = realActivityScope.getParent();
     if (!(parent instanceof RealActivityScope)) return s;
 
-    return effectiveLoadingState((RealActivityScope) parent);
+    return unionLoadingState((RealActivityScope) parent);
   }
 }

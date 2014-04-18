@@ -26,11 +26,14 @@ public interface Bundler extends Scoped {
   String getMortarBundleKey();
 
   /**
-   * Called when this object is first {@link MortarScope#register registered}, and each time
+   * Called when this object is {@link MortarActivityScope#register registered}, and each time
    * {@link MortarActivityScope#onCreate} is called (e.g. after a configuration change like
-   * rotation, or after the app process is respawned). Note that receivers are likely to outlive
-   * multiple activity instances, and so receive multiple calls of this method. Implementations
-   * should be prepared to ignore saved state if they are already initialized.
+   * rotation, or after the app process is respawned). See {@link MortarActivityScope#register} for
+   * details.
+   *
+   * <p>Note that receivers are likely to outlive multiple activity instances, and so receive
+   * multiple calls of this method. Implementations should be prepared to ignore saved state if
+   * they are already initialized.
    *
    * @param savedInstanceState the state written by the most recent call to {@link #onSave}, or
    * null if that has never happened.
