@@ -19,8 +19,8 @@ import android.content.Context;
 import dagger.ObjectGraph;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
 class RealScope implements MortarScope {
 
   protected final boolean validate;
-  protected final Map<String, RealScope> children = new HashMap<String, RealScope>();
+  protected final Map<String, RealScope> children = new LinkedHashMap<String, RealScope>();
 
   protected boolean dead;
 

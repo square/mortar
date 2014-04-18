@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,7 +108,7 @@ public class MortarScopeDevHelper {
         throw new RuntimeException(e);
       }
       // Mapping Map<Inject, Module> to Map<Module, List<Inject>>
-      Map<Class<?>, List<Node>> injectsByModule = new HashMap<Class<?>, List<Node>>();
+      Map<Class<?>, List<Node>> injectsByModule = new LinkedHashMap<Class<?>, List<Node>>();
       for (Map.Entry<String, Class<?>> injectableType : injectableTypes.entrySet()) {
         Class<?> moduleClass = injectableType.getValue();
         List<Node> moduleInjects = injectsByModule.get(moduleClass);
