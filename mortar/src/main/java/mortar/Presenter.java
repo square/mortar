@@ -71,8 +71,8 @@ public abstract class Presenter<V> {
   }
 
   /**
-   * Called to surrender control of this view, e.g. when a dialog is dismissed. If and only if the
-   * given view matches the last passed to {@link #takeView}, the reference to the view is
+   * Called to surrender control of this view, e.g. when the view is detached. If and only if
+   * the given view matches the last passed to {@link #takeView}, the reference to the view is
    * cleared.
    * <p/>
    * Mismatched views are a no-op, not an error. This is to provide protection in the

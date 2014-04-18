@@ -257,26 +257,27 @@ public class MortarActivityScopeTest {
     assertThat(bundler.loaded).isNotNull();
   }
 
-  @Test public void handlesRegisterFromOnSave() {
+  @Test public void cannotRegisterDuringOnSave() {
     final MyBundler bundler = new MyBundler("inner");
+    final AtomicBoolean caught = new AtomicBoolean(false);
 
     activityScope.onCreate(null);
 
     activityScope.register(new MyBundler("outer") {
       @Override public void onSave(Bundle outState) {
         super.onSave(outState);
-        activityScope.register(bundler);
+        try {
+          activityScope.register(bundler);
+        } catch (IllegalStateException e) {
+          caught.set(true);
+        }
       }
     });
     assertThat(bundler.loaded).isFalse();
 
     Bundle bundle = new Bundle();
     activityScope.onSaveInstanceState(bundle);
-    // Nothing should happen until create
-    assertThat(bundler.loaded).isFalse();
-
-    activityScope.onCreate(bundle);
-    assertThat(bundler.loaded).isNotNull();
+    assertThat(caught.get()).isTrue();
   }
 
   @Test public void handlesReregistrationBeforeCreate() {
@@ -331,44 +332,6 @@ public class MortarActivityScopeTest {
     });
 
     assertThat(i.get()).isEqualTo(1);
-  }
-
-  @Test public void handlesReregistrationFromOnSave() {
-    Bundle b = new Bundle();
-    activityScope.onCreate(b);
-
-    final AtomicInteger loads = new AtomicInteger(0);
-    final AtomicInteger saves = new AtomicInteger(0);
-
-    activityScope.register(new Bundler() {
-      @Override public String getMortarBundleKey() {
-        return "key";
-      }
-
-      @Override public void onLoad(Bundle savedInstanceState) {
-        assertThat(loads.incrementAndGet()).isLessThan(3);
-      }
-
-      @Override public void onSave(Bundle outState) {
-        assertThat(saves.incrementAndGet()).isEqualTo(1);
-        activityScope.register(this);
-      }
-
-      @Override public void onDestroy() {
-        throw new UnsupportedOperationException();
-      }
-    });
-    assertThat(loads.get()).isEqualTo(1);
-
-    Bundle newBundle = new Bundle();
-    activityScope.onSaveInstanceState(newBundle);
-
-    // No load should happen until next create
-    assertThat(saves.get()).isEqualTo(1);
-    assertThat(loads.get()).isEqualTo(1);
-
-    activityScope.onCreate(newBundle);
-    assertThat(loads.get()).isEqualTo(2);
   }
 
   @Test
@@ -503,6 +466,7 @@ public class MortarActivityScopeTest {
   /** <a href="https://github.com/square/mortar/issues/46">Issue 46</a> */
   @Test
   public void registerWithDescendantScopesCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
+    final MyBundler peerBundler = new MyBundler("bro");
     final MyBundler childBundler = new MyBundler("child");
     final MyBundler grandChildBundler = new MyBundler("grandChild");
 
@@ -530,6 +494,58 @@ public class MortarActivityScopeTest {
     // 2. But load is called before the onCreate chain ends.
     assertThat(childBundler.loaded).isTrue();
     assertThat(grandChildBundler.loaded).isTrue();
+  }
+
+  @Test public void peerBundlersLoadSynchronouslyButThoseInChildScopesShouldWait() {
+    final MyBundler peerBundler = new MyBundler("bro");
+    final MyBundler childBundler = new MyBundler("child");
+    final MyBundler grandchildBundler = new MyBundler("grandchild");
+
+    final MortarScope childScope =
+        activityScope.requireChild(new ModuleAndBlueprint("child scope"));
+    final MortarScope grandChildScope =
+        childScope.requireChild(new ModuleAndBlueprint("grandchild scope"));
+
+    activityScope.register(new MyBundler("outer") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        activityScope.register(peerBundler);
+        assertThat(peerBundler.loaded).isTrue();
+
+        childScope.register(childBundler);
+        assertThat(childBundler.loaded).isFalse();
+
+        grandChildScope.register(grandchildBundler);
+        assertThat(grandchildBundler.loaded).isFalse();
+      }
+    });
+
+    assertThat(childBundler.loaded).isTrue();
+    assertThat(grandchildBundler.loaded).isTrue();
+  }
+
+  @Test
+  public void peerBundlersLoadSynchronouslyButThoseInChildScopesShouldWaitEvenInAFreshScope() {
+    final MyBundler peerBundler = new MyBundler("bro");
+    final MyBundler childBundler = new MyBundler("child");
+    final MyBundler grandchildBundler = new MyBundler("grandchild");
+
+    activityScope.register(new MyBundler("outer") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        activityScope.register(peerBundler);
+        assertThat(peerBundler.loaded).isTrue();
+
+        MortarScope childScope = activityScope.requireChild(new ModuleAndBlueprint("child scope"));
+        childScope.register(childBundler);
+        assertThat(childBundler.loaded).isFalse();
+
+        MortarScope grandchildScope = childScope.requireChild(new ModuleAndBlueprint("grandchild scope"));
+        grandchildScope.register(grandchildBundler);
+        assertThat(grandchildBundler.loaded).isFalse();
+      }
+    });
+
+    assertThat(childBundler.loaded).isTrue();
+    assertThat(grandchildBundler.loaded).isTrue();
   }
 
   /**
@@ -587,10 +603,11 @@ public class MortarActivityScopeTest {
 
     activityScope.register(new MyBundler("root") {
       @Override public void onLoad(Bundle savedInstanceState) {
-        activityScope.register(service);
-        assertThat(service.loaded).isFalse();
         activityScope.requireChild(new ModuleAndBlueprint("childScope")).register(childBundler);
         assertThat(childBundler.loaded).isFalse();
+
+        activityScope.register(service);
+        assertThat(service.loaded).isTrue();
       }
     });
     assertThat(childBundler.loaded).isTrue();

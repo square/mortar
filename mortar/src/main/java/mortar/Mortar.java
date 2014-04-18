@@ -34,7 +34,7 @@ public class Mortar {
    * by a custom {@link android.app.Application}.
    */
   public static MortarScope createRootScope(boolean validate) {
-    return new RealMortarScope(validate, ObjectGraph.create());
+    return new RealScope(validate, ObjectGraph.create());
   }
 
   /**
@@ -42,7 +42,7 @@ public class Mortar {
    * by a custom {@link android.app.Application}.
    */
   public static MortarScope createRootScope(boolean validate, ObjectGraph objectGraph) {
-    return new RealMortarScope(validate, objectGraph);
+    return new RealScope(validate, objectGraph);
   }
 
   /**
@@ -55,13 +55,13 @@ public class Mortar {
   public static MortarActivityScope requireActivityScope(MortarScope parentScope,
       final Blueprint blueprint) {
     String name = blueprint.getMortarScopeName();
-    RealMortarScope unwrapped = (RealMortarScope) parentScope.requireChild(blueprint);
+    RealScope unwrapped = (RealScope) parentScope.requireChild(blueprint);
 
     RealActivityScope activityScope;
     if (unwrapped instanceof MortarActivityScope) {
       activityScope = (RealActivityScope) unwrapped;
     } else {
-      RealMortarScope realParentScope = (RealMortarScope) parentScope;
+      RealScope realParentScope = (RealScope) parentScope;
       activityScope = new RealActivityScope(unwrapped);
       realParentScope.replaceChild(name, activityScope);
     }

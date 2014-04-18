@@ -25,23 +25,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class RealMortarScope implements MortarScope {
+class RealScope implements MortarScope {
 
   protected final boolean validate;
-  protected final Map<String, RealMortarScope> children = new HashMap<String, RealMortarScope>();
+  protected final Map<String, RealScope> children = new HashMap<String, RealScope>();
 
   protected boolean dead;
 
   private final Set<Scoped> tearDowns = new HashSet<Scoped>();
   private final ObjectGraph graph;
-  private final RealMortarScope parent;
+  private final RealScope parent;
   private final String name;
 
-  RealMortarScope(boolean validate, ObjectGraph objectGraph) {
+  RealScope(boolean validate, ObjectGraph objectGraph) {
     this(MortarScope.ROOT_NAME, null, validate, objectGraph);
   }
 
-  RealMortarScope(String name, RealMortarScope parent, boolean validate, ObjectGraph graph) {
+  RealScope(String name, RealScope parent, boolean validate, ObjectGraph graph) {
     this.graph = graph;
     this.parent = parent;
     this.name = name;
@@ -75,11 +75,11 @@ class RealMortarScope implements MortarScope {
     tearDowns.add(scoped);
   }
 
-  RealMortarScope getParent() {
+  RealScope getParent() {
     return parent;
   }
 
-  @Override public RealMortarScope findChild(String childName) {
+  @Override public RealScope findChild(String childName) {
     assertNotDead();
     return children.get(childName);
   }
@@ -89,7 +89,7 @@ class RealMortarScope implements MortarScope {
     assertNotDead();
 
     String childName = blueprint.getMortarScopeName();
-    RealMortarScope child = findChild(childName);
+    RealScope child = findChild(childName);
 
     if (child == null) {
       Object daggerModule = blueprint.getDaggerModule();
@@ -102,7 +102,7 @@ class RealMortarScope implements MortarScope {
       } else {
         newGraph = graph.plus(daggerModule);
       }
-      child = new RealMortarScope(childName, this, validate, newGraph);
+      child = new RealScope(childName, this, validate, newGraph);
       children.put(childName, child);
     }
 
@@ -113,14 +113,14 @@ class RealMortarScope implements MortarScope {
     return new MortarContextWrapper(parentContext, this);
   }
 
-  void replaceChild(String childName, RealMortarScope scope) {
+  void replaceChild(String childName, RealScope scope) {
     if (scope.getParent() != this) {
       throw new IllegalArgumentException("Replacement scope must have receiver as parent");
     }
     children.put(childName, scope);
   }
 
-  void onChildDestroyed(RealMortarScope child) {
+  void onChildDestroyed(RealScope child) {
     children.remove(child.getName());
   }
 
