@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.14 *(2014-04-18)*
+------------------
+  * Refine deferral of calls to Bundler#onLoad from MortarActivityScope#onRegister.
+    See onRegister javadoc for details.
+
 Version 0.13 *(2014-04-17)*
 ------------------
   * Fix accidental bundling of dagger-compiler
