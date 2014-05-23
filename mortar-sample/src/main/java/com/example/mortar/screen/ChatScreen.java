@@ -32,6 +32,7 @@ import flow.Layout;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
+import mortar.MortarScope;
 import mortar.PopupPresenter;
 import mortar.ViewPresenter;
 import rx.Subscription;
@@ -112,9 +113,9 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       confirmer.takeView(v.getConfirmerPopup());
     }
 
-    @Override public void onDestroy() {
+    @Override public void onScopeDestroyed(MortarScope scope) {
       ensureStopped();
-      super.onDestroy();
+      super.onScopeDestroyed(scope);
     }
 
     public void onConversationSelected(int position) {

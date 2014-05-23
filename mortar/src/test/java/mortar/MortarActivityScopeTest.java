@@ -31,6 +31,7 @@ import static mortar.Mortar.createRootScope;
 import static mortar.Mortar.requireActivityScope;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -43,6 +44,7 @@ public class MortarActivityScopeTest {
   private static class MyBundler implements Bundler {
     final String name;
 
+    MortarScope registered;
     boolean loaded;
     Bundle lastLoaded;
     Bundle lastSaved;
@@ -61,6 +63,10 @@ public class MortarActivityScopeTest {
       return name;
     }
 
+    @Override public void onRegistered(MortarScope scope) {
+      this.registered = scope;
+    }
+
     @Override public void onLoad(Bundle savedInstanceState) {
       loaded = true;
       lastLoaded = savedInstanceState;
@@ -74,7 +80,7 @@ public class MortarActivityScopeTest {
       outState.putString("key", name);
     }
 
-    @Override public void onDestroy() {
+    @Override public void onScopeDestroyed(MortarScope scope) {
       destroyed = true;
     }
   }
@@ -140,6 +146,11 @@ public class MortarActivityScopeTest {
     registerScope.register(able);
     registerScope.register(baker);
 
+    // onRegistered is called immediately.
+    verify(scoped).onRegistered(registerScope);
+    assertThat(able.registered).isSameAs(registerScope);
+    assertThat(baker.registered).isSameAs(registerScope);
+
     // Load is called immediately.
     assertThat(able.loaded).isTrue();
     assertThat(able.lastLoaded).isNull();
@@ -182,7 +193,7 @@ public class MortarActivityScopeTest {
 
     activityScope.destroy();
     assertThat(able.destroyed).isTrue();
-    verify(scoped).onDestroy();
+    verify(scoped).onScopeDestroyed(registerScope);
   }
 
   class FauxActivity {
@@ -197,6 +208,12 @@ public class MortarActivityScopeTest {
       childScope = activityScope.requireChild(new ModuleAndBlueprint("child"));
       childScope.register(childBundler);
     }
+  }
+
+  @Test public void onRegisteredIsDebounced() {
+    activityScope.register(scoped);
+    activityScope.register(scoped);
+    verify(scoped, times(1)).onRegistered(activityScope);
   }
 
   @Test public void childInfoSurvivesProcessDeath() {
@@ -288,6 +305,9 @@ public class MortarActivityScopeTest {
         return "key";
       }
 
+      @Override public void onRegistered(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
         if (i.incrementAndGet() < 1) activityScope.register(this);
       }
@@ -296,7 +316,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onScopeDestroyed(MortarScope scope) {
         throw new UnsupportedOperationException();
       }
     });
@@ -318,6 +338,9 @@ public class MortarActivityScopeTest {
         return "key";
       }
 
+      @Override public void onRegistered(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
         if (i.incrementAndGet() < 1) activityScope.register(this);
       }
@@ -326,7 +349,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onScopeDestroyed(MortarScope scope) {
         throw new UnsupportedOperationException();
       }
     });
@@ -344,6 +367,9 @@ public class MortarActivityScopeTest {
         return "k";
       }
 
+      @Override public void onRegistered(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
         if (loads.incrementAndGet() > 2) activityScope.destroy();
       }
@@ -352,7 +378,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onScopeDestroyed(MortarScope scope) {
         destroys.incrementAndGet();
       }
     }
@@ -377,6 +403,9 @@ public class MortarActivityScopeTest {
         return "k";
       }
 
+      @Override public void onRegistered(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
       }
 
@@ -385,7 +414,7 @@ public class MortarActivityScopeTest {
         activityScope.destroy();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onScopeDestroyed(MortarScope scope) {
         destroys.incrementAndGet();
       }
     }
@@ -466,7 +495,6 @@ public class MortarActivityScopeTest {
   /** <a href="https://github.com/square/mortar/issues/46">Issue 46</a> */
   @Test
   public void registerWithDescendantScopesCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
-    final MyBundler peerBundler = new MyBundler("bro");
     final MyBundler childBundler = new MyBundler("child");
     final MyBundler grandChildBundler = new MyBundler("grandChild");
 
