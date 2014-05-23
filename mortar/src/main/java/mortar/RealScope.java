@@ -25,14 +25,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.Integer.toHexString;
+
 class RealScope implements MortarScope {
 
   protected final boolean validate;
-  protected final Map<String, RealScope> children = new LinkedHashMap<String, RealScope>();
+  protected final Map<String, RealScope> children = new LinkedHashMap<>();
 
   protected boolean dead;
 
-  private final Set<Scoped> tearDowns = new HashSet<Scoped>();
+  private final Set<Scoped> tearDowns = new HashSet<>();
   private final ObjectGraph graph;
   private final RealScope parent;
   private final String name;
@@ -62,9 +64,10 @@ class RealScope implements MortarScope {
   @Override public void register(Scoped scoped) {
     if (scoped instanceof Bundler) {
       throw new IllegalArgumentException(String.format("Scope %s cannot register %s instance %s. "
-          + "Only %ss and their children can provide bundle services", getName(),
+              + "Only %ss and their children can provide bundle services", getName(),
           Bundler.class.getSimpleName(), ((Bundler) scoped).getMortarBundleKey(),
-          MortarActivityScope.class.getSimpleName()));
+          MortarActivityScope.class.getSimpleName()
+      ));
     }
 
     doRegister(scoped);
@@ -72,7 +75,7 @@ class RealScope implements MortarScope {
 
   void doRegister(Scoped scoped) {
     assertNotDead();
-    tearDowns.add(scoped);
+    if (tearDowns.add(scoped)) scoped.onRegistered(this);
   }
 
   RealScope getParent() {
@@ -128,7 +131,7 @@ class RealScope implements MortarScope {
     if (dead) return;
     dead = true;
 
-    for (Scoped s : tearDowns) s.onDestroy();
+    for (Scoped s : tearDowns) s.onScopeDestroyed(this);
     tearDowns.clear();
     if (parent != null) parent.onChildDestroyed(this);
 
@@ -137,7 +140,7 @@ class RealScope implements MortarScope {
   }
 
   @Override public String toString() {
-    return "RealMortarScope@" + Integer.toHexString(System.identityHashCode(this)) + "{" +
+    return "RealScope@" + toHexString(System.identityHashCode(this)) + "{" +
         "name='" + getName() + '\'' +
         '}';
   }

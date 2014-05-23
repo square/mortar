@@ -227,7 +227,7 @@ public class MortarScopeTest {
     MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.register(scoped);
     scope.destroy();
-    verify(scoped).onDestroy();
+    verify(scoped).onScopeDestroyed(scope);
   }
 
   @Test
@@ -297,7 +297,7 @@ public class MortarScopeTest {
     assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
     activityScope.register(scoped);
     activityScope.destroy();
-    verify(scoped).onDestroy();
+    verify(scoped).onScopeDestroyed(activityScope);
     assertThat(root.findChild(blueprint.getMortarScopeName())).isNull();
   }
 
@@ -309,7 +309,7 @@ public class MortarScopeTest {
     assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
     activityScope.register(scoped);
     root.destroy();
-    verify(scoped).onDestroy();
+    verify(scoped).onScopeDestroyed(activityScope);
     try {
       activityScope.getObjectGraph();
       fail("Expected IllegalStateException from destroyed child");
@@ -415,7 +415,7 @@ public class MortarScopeTest {
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
     child.register(scoped);
     child.destroy();
-    verify(scoped).onDestroy();
+    verify(scoped).onScopeDestroyed(child);
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isNull();
   }
 
@@ -428,7 +428,7 @@ public class MortarScopeTest {
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
     child.register(scoped);
     root.destroy();
-    verify(scoped).onDestroy();
+    verify(scoped).onScopeDestroyed(child);
     try {
       child.getObjectGraph();
       fail("Expected IllegalStateException from destroyed child");
@@ -503,7 +503,10 @@ public class MortarScopeTest {
 
     final MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.register(new Scoped() {
-      @Override public void onDestroy() {
+      @Override public void onRegistered(MortarScope scope) {
+      }
+
+      @Override public void onScopeDestroyed(MortarScope scope) {
         i.incrementAndGet();
         scope.destroy();
       }

@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.15 *(TBD)*
+------------------
+  * API break: Presenter#onDestroy and Scoped#onDestroy are now scopeDestroyed(MortarScope).
+    Also adds onRegistered(MortarScope) to those classes.
+
 Version 0.14 *(2014-04-18)*
 ------------------
   * Refine deferral of calls to Bundler#onLoad from MortarActivityScope#onRegister.

@@ -116,8 +116,14 @@ public class PresenterTest {
   }
 
   class SimplePresenter extends Presenter<SomeView> {
+    MortarScope registered;
+    MortarScope destroyed;
     boolean loaded;
     Object droppedView;
+
+    @Override protected void onRegistered(MortarScope scope) {
+      registered = scope;
+    }
 
     @Override protected MortarScope extractScope(SomeView view) {
       return scope;
@@ -130,6 +136,10 @@ public class PresenterTest {
     @Override public void dropView(SomeView view) {
       droppedView = view;
       super.dropView(view);
+    }
+
+    @Override protected void onScopeDestroyed(MortarScope scope) {
+      destroyed = scope;
     }
   }
 
@@ -185,5 +195,35 @@ public class PresenterTest {
     presenter.takeView(viewOne);
     presenter.takeView(viewTwo);
     assertThat(presenter.droppedView).isSameAs(viewOne);
+  }
+
+  @Test public void onRegisteredIsFired() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView viewOne = new SomeView();
+
+    presenter.takeView(viewOne);
+    assertThat(presenter.registered).isSameAs(scope);
+  }
+
+  @Test public void onRegisteredIsDebounced() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView viewOne = new SomeView();
+
+    presenter.takeView(viewOne);
+    presenter.dropView(viewOne);
+    presenter.registered = null;
+
+    presenter.takeView(viewOne);
+    assertThat(presenter.registered).isNull();
+  }
+
+  @Test public void onDestroyedIsFired() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView viewOne = new SomeView();
+
+    presenter.takeView(viewOne);
+    scope.destroy();
+
+    assertThat(presenter.destroyed).isSameAs(scope);
   }
 }

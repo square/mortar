@@ -32,7 +32,7 @@ public interface MortarScope {
   ObjectGraph getObjectGraph();
 
   /**
-   * Register the given {@link Scoped} instance to have its {@link Scoped#onDestroy()} method
+   * Register the given {@link Scoped} instance to have its {@link Scoped#onScopeDestroyed(MortarScope)} method
    * called from {@link #destroy()}. Redundant calls are safe, they will not lead to double
    * registration.
    *
@@ -67,7 +67,7 @@ public interface MortarScope {
   Context createContext(Context parentContext);
 
   /**
-   * Sends {@link Scoped#onDestroy()} to all registrants and then clears the registration
+   * Sends {@link Scoped#onScopeDestroyed(MortarScope)} to all registrants and then clears the registration
    * list. Recursively destroys all children. Parent scope drops its reference to this instance.
    * Redundant calls to this method are safe.
    */
