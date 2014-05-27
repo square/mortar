@@ -27,8 +27,9 @@ import static org.fest.assertions.api.Assertions.assertThat;
 @RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class PresenterTest {
 
+  private final MortarScope root = Mortar.createRootScope(false);
   MortarActivityScope scope =
-      Mortar.requireActivityScope(Mortar.createRootScope(false), new Blueprint() {
+      Mortar.requireActivityScope(root, new Blueprint() {
         @Override public String getMortarScopeName() {
           return "name";
         }
@@ -38,7 +39,7 @@ public class PresenterTest {
         }
       });
 
-  class SomeView {
+  static class SomeView {
   }
 
   class ChildPresenter extends Presenter<SomeView> {
@@ -121,7 +122,7 @@ public class PresenterTest {
     boolean loaded;
     Object droppedView;
 
-    @Override protected void onRegistered(MortarScope scope) {
+    @Override protected void onEnterScope(MortarScope scope) {
       registered = scope;
     }
 
@@ -138,7 +139,7 @@ public class PresenterTest {
       super.dropView(view);
     }
 
-    @Override protected void onScopeDestroyed(MortarScope scope) {
+    @Override protected void onExitScope(MortarScope scope) {
       destroyed = scope;
     }
   }
@@ -222,7 +223,7 @@ public class PresenterTest {
     SomeView viewOne = new SomeView();
 
     presenter.takeView(viewOne);
-    scope.destroy();
+    root.destroyChild(scope);
 
     assertThat(presenter.destroyed).isSameAs(scope);
   }

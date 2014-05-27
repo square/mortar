@@ -63,7 +63,7 @@ public class MortarActivityScopeTest {
       return name;
     }
 
-    @Override public void onRegistered(MortarScope scope) {
+    @Override public void onEnterScope(MortarScope scope) {
       this.registered = scope;
     }
 
@@ -80,12 +80,12 @@ public class MortarActivityScopeTest {
       outState.putString("key", name);
     }
 
-    @Override public void onScopeDestroyed(MortarScope scope) {
+    @Override public void onExitScope(MortarScope scope) {
       destroyed = true;
     }
   }
 
-  @Module class ModuleAndBlueprint implements Blueprint {
+  @Module static class ModuleAndBlueprint implements Blueprint {
     private final String name;
 
     ModuleAndBlueprint(String name) {
@@ -103,6 +103,7 @@ public class MortarActivityScopeTest {
 
   @Mock Scoped scoped;
 
+  private MortarScope root;
   private MortarActivityScope activityScope;
 
   @Before
@@ -112,7 +113,7 @@ public class MortarActivityScopeTest {
   }
 
   private void resetScope() {
-    MortarScope root = createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
+    root = createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
     activityScope = requireActivityScope(root, new ModuleAndBlueprint("activity"));
   }
 
@@ -146,8 +147,8 @@ public class MortarActivityScopeTest {
     registerScope.register(able);
     registerScope.register(baker);
 
-    // onRegistered is called immediately.
-    verify(scoped).onRegistered(registerScope);
+    // onEnterScope is called immediately.
+    verify(scoped).onEnterScope(registerScope);
     assertThat(able.registered).isSameAs(registerScope);
     assertThat(baker.registered).isSameAs(registerScope);
 
@@ -191,9 +192,9 @@ public class MortarActivityScopeTest {
 
     verifyNoMoreInteractions(scoped);
 
-    activityScope.destroy();
+    root.destroyChild(activityScope);
     assertThat(able.destroyed).isTrue();
-    verify(scoped).onScopeDestroyed(registerScope);
+    verify(scoped).onExitScope(registerScope);
   }
 
   class FauxActivity {
@@ -213,7 +214,7 @@ public class MortarActivityScopeTest {
   @Test public void onRegisteredIsDebounced() {
     activityScope.register(scoped);
     activityScope.register(scoped);
-    verify(scoped, times(1)).onRegistered(activityScope);
+    verify(scoped, times(1)).onEnterScope(activityScope);
   }
 
   @Test public void childInfoSurvivesProcessDeath() {
@@ -305,7 +306,7 @@ public class MortarActivityScopeTest {
         return "key";
       }
 
-      @Override public void onRegistered(MortarScope scope) {
+      @Override public void onEnterScope(MortarScope scope) {
       }
 
       @Override public void onLoad(Bundle savedInstanceState) {
@@ -316,7 +317,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onScopeDestroyed(MortarScope scope) {
+      @Override public void onExitScope(MortarScope scope) {
         throw new UnsupportedOperationException();
       }
     });
@@ -338,7 +339,7 @@ public class MortarActivityScopeTest {
         return "key";
       }
 
-      @Override public void onRegistered(MortarScope scope) {
+      @Override public void onEnterScope(MortarScope scope) {
       }
 
       @Override public void onLoad(Bundle savedInstanceState) {
@@ -349,7 +350,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onScopeDestroyed(MortarScope scope) {
+      @Override public void onExitScope(MortarScope scope) {
         throw new UnsupportedOperationException();
       }
     });
@@ -367,18 +368,20 @@ public class MortarActivityScopeTest {
         return "k";
       }
 
-      @Override public void onRegistered(MortarScope scope) {
+      @Override public void onEnterScope(MortarScope scope) {
       }
 
       @Override public void onLoad(Bundle savedInstanceState) {
-        if (loads.incrementAndGet() > 2) activityScope.destroy();
+        if (loads.incrementAndGet() > 2) {
+          root.destroyChild(activityScope);
+        }
       }
 
       @Override public void onSave(Bundle outState) {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onScopeDestroyed(MortarScope scope) {
+      @Override public void onExitScope(MortarScope scope) {
         destroys.incrementAndGet();
       }
     }
@@ -403,7 +406,7 @@ public class MortarActivityScopeTest {
         return "k";
       }
 
-      @Override public void onRegistered(MortarScope scope) {
+      @Override public void onEnterScope(MortarScope scope) {
       }
 
       @Override public void onLoad(Bundle savedInstanceState) {
@@ -411,10 +414,10 @@ public class MortarActivityScopeTest {
 
       @Override public void onSave(Bundle outState) {
         saves.incrementAndGet();
-        activityScope.destroy();
+        root.destroyChild(activityScope);
       }
 
-      @Override public void onScopeDestroyed(MortarScope scope) {
+      @Override public void onExitScope(MortarScope scope) {
         destroys.incrementAndGet();
       }
     }
@@ -432,13 +435,13 @@ public class MortarActivityScopeTest {
 
   @Test(expected = IllegalStateException.class)
   public void cannotOnCreateDestroyed() {
-    activityScope.destroy();
+    root.destroyChild(activityScope);
     activityScope.onCreate(null);
   }
 
   @Test(expected = IllegalStateException.class)
   public void cannotOnSaveDestroyed() {
-    activityScope.destroy();
+    root.destroyChild(activityScope);
     activityScope.onSaveInstanceState(new Bundle());
   }
 
@@ -566,7 +569,8 @@ public class MortarActivityScopeTest {
         childScope.register(childBundler);
         assertThat(childBundler.loaded).isFalse();
 
-        MortarScope grandchildScope = childScope.requireChild(new ModuleAndBlueprint("grandchild scope"));
+        MortarScope grandchildScope = childScope.requireChild(
+            new ModuleAndBlueprint("grandchild scope"));
         grandchildScope.register(grandchildBundler);
         assertThat(grandchildBundler.loaded).isFalse();
       }

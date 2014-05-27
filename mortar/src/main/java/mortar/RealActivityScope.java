@@ -32,14 +32,16 @@ class RealActivityScope extends RealScope implements MortarActivityScope {
 
   private LoadingState myLoadingState = LoadingState.IDLE;
 
-  private List<Bundler> toloadThisTime = new ArrayList<Bundler>();
-  private Set<Bundler> bundlers = new HashSet<Bundler>();
+  private List<Bundler> toloadThisTime = new ArrayList<>();
+  private Set<Bundler> bundlers = new HashSet<>();
 
   RealActivityScope(RealScope original) {
     super(original.getName(), original.getParent(), original.validate, original.getObjectGraph());
   }
 
   @Override public void register(Scoped scoped) {
+    if (scoped == null) throw new NullPointerException("Cannot register null scoped.");
+
     if (myLoadingState == LoadingState.SAVING) {
       throw new IllegalStateException("Cannot register during onSave");
     }
@@ -98,7 +100,7 @@ class RealActivityScope extends RealScope implements MortarActivityScope {
     latestSavedInstanceState = outState;
 
     myLoadingState = LoadingState.SAVING;
-    for (Bundler b : new ArrayList<Bundler>(bundlers)) {
+    for (Bundler b : new ArrayList<>(bundlers)) {
       // If anyone's onSave method destroyed us, short circuit.
       if (isDead()) return;
 

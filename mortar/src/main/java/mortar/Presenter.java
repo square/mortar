@@ -39,12 +39,12 @@ public abstract class Presenter<V> {
       Presenter.this.onSave(outState);
     }
 
-    @Override public void onRegistered(MortarScope scope) {
-      Presenter.this.onRegistered(scope);
+    @Override public void onEnterScope(MortarScope scope) {
+      Presenter.this.onEnterScope(scope);
     }
 
-    @Override public void onScopeDestroyed(MortarScope scope) {
-      Presenter.this.onScopeDestroyed(scope);
+    @Override public void onExitScope(MortarScope scope) {
+      Presenter.this.onExitScope(scope);
     }
   };
 
@@ -83,7 +83,7 @@ public abstract class Presenter<V> {
    * not uncommon case that dropView and takeView are called out of order. For example, an
    * activity's views are typically inflated in {@link
    * android.app.Activity#onCreate}, but are only detached some time after {@link
-   * android.app.Activity#onDestroy() onScopeDestroyed}. It's possible for a view from one activity
+   * android.app.Activity#onDestroy() onExitScope}. It's possible for a view from one activity
    * to be detached well after the window for the next activity has its views inflated&mdash;that
    * is, after the next activity's onResume call.
    */
@@ -110,6 +110,10 @@ public abstract class Presenter<V> {
     return view;
   }
 
+  /** Like {@link Bundler#onEnterScope}. */
+  protected void onEnterScope(MortarScope scope) {
+  }
+
   /**
    * Like {@link Bundler#onLoad}, but called only when {@link #getView()} is not
    * null, and debounced. That is, this method will be called exactly once for a given view
@@ -124,15 +128,11 @@ public abstract class Presenter<V> {
   protected void onSave(Bundle outState) {
   }
 
-  /** Like {@link Bundler#onRegistered}. */
-  protected void onRegistered(MortarScope scope) {
-  }
-
   /**
-   * Like {@link Bundler#onScopeDestroyed}. One subtlety to note is that a presenter may be created
+   * Like {@link Bundler#onExitScope}. One subtlety to note is that a presenter may be created
    * by a higher level scope than the one it is registered with, in which case it may receive
    * multiple calls to this method.
    */
-  protected void onScopeDestroyed(MortarScope scope) {
+  protected void onExitScope(MortarScope scope) {
   }
 }

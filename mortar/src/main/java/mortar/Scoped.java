@@ -19,10 +19,10 @@ public interface Scoped {
   /**
    * Called the first time the receiver is registered with the given scope.
    */
-  void onRegistered(MortarScope scope);
+  void onEnterScope(MortarScope scope);
 
   /**
    * Called when a scope the receiver is registered with is destroyed.
    */
-  void onScopeDestroyed(MortarScope scope);
+  void onExitScope(MortarScope scope);
 }

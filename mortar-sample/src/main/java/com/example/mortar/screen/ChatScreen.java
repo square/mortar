@@ -113,9 +113,9 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       confirmer.takeView(v.getConfirmerPopup());
     }
 
-    @Override public void onScopeDestroyed(MortarScope scope) {
+    @Override protected void onExitScope(MortarScope scope) {
       ensureStopped();
-      super.onScopeDestroyed(scope);
+      super.onExitScope(scope);
     }
 
     public void onConversationSelected(int position) {

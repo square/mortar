@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.lang.Integer.toHexString;
+import static java.lang.String.format;
 
 class RealScope implements MortarScope {
 
@@ -63,7 +64,7 @@ class RealScope implements MortarScope {
 
   @Override public void register(Scoped scoped) {
     if (scoped instanceof Bundler) {
-      throw new IllegalArgumentException(String.format("Scope %s cannot register %s instance %s. "
+      throw new IllegalArgumentException(format("Scope %s cannot register %s instance %s. "
               + "Only %ss and their children can provide bundle services", getName(),
           Bundler.class.getSimpleName(), ((Bundler) scoped).getMortarBundleKey(),
           MortarActivityScope.class.getSimpleName()
@@ -75,11 +76,15 @@ class RealScope implements MortarScope {
 
   void doRegister(Scoped scoped) {
     assertNotDead();
-    if (tearDowns.add(scoped)) scoped.onRegistered(this);
+    if (tearDowns.add(scoped)) scoped.onEnterScope(this);
   }
 
   RealScope getParent() {
     return parent;
+  }
+
+  boolean isRoot() {
+    return parent == null;
   }
 
   @Override public RealScope findChild(String childName) {
@@ -116,6 +121,15 @@ class RealScope implements MortarScope {
     return new MortarContextWrapper(parentContext, this);
   }
 
+  @Override public void destroyChild(MortarScope child) {
+    String name = child.getName();
+    RealScope realChild = children.get(name);
+    if (realChild != child) {
+      throw new IllegalArgumentException(format("%s was created by another scope", name));
+    }
+    realChild.doDestroy();
+  }
+
   void replaceChild(String childName, RealScope scope) {
     if (scope.getParent() != this) {
       throw new IllegalArgumentException("Replacement scope must have receiver as parent");
@@ -127,16 +141,16 @@ class RealScope implements MortarScope {
     children.remove(child.getName());
   }
 
-  @Override public void destroy() {
+  void doDestroy() {
     if (dead) return;
     dead = true;
 
-    for (Scoped s : tearDowns) s.onScopeDestroyed(this);
+    for (Scoped s : tearDowns) s.onExitScope(this);
     tearDowns.clear();
     if (parent != null) parent.onChildDestroyed(this);
 
-    List<MortarScope> snapshot = new ArrayList<MortarScope>(children.values());
-    for (MortarScope child : snapshot) child.destroy();
+    List<RealScope> snapshot = new ArrayList<>(children.values());
+    for (RealScope child : snapshot) child.doDestroy();
   }
 
   @Override public String toString() {

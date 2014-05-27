@@ -94,7 +94,7 @@ public class MortarScopeDevHelperTest {
     );
   }
 
-  @Test public void startsFromRootScope() {
+  @Test public void startsFromMortarScope() {
     MortarScope root = createRootScope(false, emptyObjectGraph());
     MortarScope child = root.requireChild(new CustomScope("Child"));
 

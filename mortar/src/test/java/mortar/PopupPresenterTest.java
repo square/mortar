@@ -27,7 +27,6 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static mortar.Mortar.createRootScope;
 import static mortar.Mortar.requireActivityScope;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -66,6 +65,7 @@ public class PopupPresenterTest {
   @Mock Popup<Parcelable, String> view;
   @Mock Context context;
 
+  MortarScope root;
   MortarActivityScope scope;
   TestPopupPresenter presenter;
 
@@ -73,6 +73,7 @@ public class PopupPresenterTest {
     initMocks(this);
     when(view.getContext()).thenReturn(context);
     when((context).getSystemService(anyString())).then(returnScope());
+    root = Mortar.createRootScope(false);
     scope = newScope();
     scope.onCreate(null);
     presenter = new TestPopupPresenter();
@@ -87,7 +88,7 @@ public class PopupPresenterTest {
   }
 
   private MortarActivityScope newScope() {
-    return requireActivityScope(createRootScope(false), mock(Blueprint.class));
+    return requireActivityScope(root, mock(Blueprint.class));
   }
 
   @Test public void takeViewDoesNotShowView() {
@@ -147,7 +148,7 @@ public class PopupPresenterTest {
   @Test public void destroyDismissesWithoutFlourish() {
     presenter.takeView(view);
     when(view.isShowing()).thenReturn(true);
-    scope.destroy();
+    root.destroyChild(scope);
     verify(view).dismiss(eq(WITHOUT_FLOURISH));
   }
 

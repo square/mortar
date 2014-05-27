@@ -3,8 +3,10 @@ Change Log
 
 Version 0.15 *(TBD)*
 ------------------
-  * API break: Presenter#onDestroy and Scoped#onDestroy are now scopeDestroyed(MortarScope).
-    Also adds onRegistered(MortarScope) to those classes.
+  * API break: Presenter#onDestroy and Scoped#onDestroy are now onExitScope(MortarScope).
+    Also adds onEnterScope(MortarScope) to those classes.
+
+  * API break: MortarScope#destroyChild(MortarScope) replaces MortarScope#destroy.
 
 Version 0.14 *(2014-04-18)*
 ------------------
