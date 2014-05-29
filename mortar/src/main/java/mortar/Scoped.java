@@ -24,5 +24,5 @@ public interface Scoped {
   /**
    * Called when a scope the receiver is registered with is destroyed.
    */
-  void onExitScope(MortarScope scope);
+  void onExitScope();
 }

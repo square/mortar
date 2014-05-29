@@ -139,7 +139,7 @@ public class PresenterTest {
       super.dropView(view);
     }
 
-    @Override protected void onExitScope(MortarScope scope) {
+    @Override protected void onExitScope() {
       destroyed = scope;
     }
   }

@@ -80,7 +80,7 @@ public class MortarActivityScopeTest {
       outState.putString("key", name);
     }
 
-    @Override public void onExitScope(MortarScope scope) {
+    @Override public void onExitScope() {
       destroyed = true;
     }
   }
@@ -194,7 +194,7 @@ public class MortarActivityScopeTest {
 
     root.destroyChild(activityScope);
     assertThat(able.destroyed).isTrue();
-    verify(scoped).onExitScope(registerScope);
+    verify(scoped).onExitScope();
   }
 
   class FauxActivity {
@@ -317,7 +317,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onExitScope(MortarScope scope) {
+      @Override public void onExitScope() {
         throw new UnsupportedOperationException();
       }
     });
@@ -350,7 +350,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onExitScope(MortarScope scope) {
+      @Override public void onExitScope() {
         throw new UnsupportedOperationException();
       }
     });
@@ -381,7 +381,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onExitScope(MortarScope scope) {
+      @Override public void onExitScope() {
         destroys.incrementAndGet();
       }
     }
@@ -417,7 +417,7 @@ public class MortarActivityScopeTest {
         root.destroyChild(activityScope);
       }
 
-      @Override public void onExitScope(MortarScope scope) {
+      @Override public void onExitScope() {
         destroys.incrementAndGet();
       }
     }

@@ -145,7 +145,7 @@ class RealScope implements MortarScope {
     if (dead) return;
     dead = true;
 
-    for (Scoped s : tearDowns) s.onExitScope(this);
+    for (Scoped s : tearDowns) s.onExitScope();
     tearDowns.clear();
     if (parent != null) parent.onChildDestroyed(this);
 

@@ -227,7 +227,7 @@ public class MortarScopeTest {
     MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     scope.register(scoped);
     Mortar.destroyRootScope(scope);
-    verify(scoped).onExitScope(scope);
+    verify(scoped).onExitScope();
   }
 
   @Test
@@ -297,7 +297,7 @@ public class MortarScopeTest {
     assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
     activityScope.register(scoped);
     root.destroyChild(activityScope);
-    verify(scoped).onExitScope(activityScope);
+    verify(scoped).onExitScope();
     assertThat(root.findChild(blueprint.getMortarScopeName())).isNull();
   }
 
@@ -309,7 +309,7 @@ public class MortarScopeTest {
     assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
     activityScope.register(scoped);
     Mortar.destroyRootScope(root);
-    verify(scoped).onExitScope(activityScope);
+    verify(scoped).onExitScope();
     try {
       activityScope.getObjectGraph();
       fail("Expected IllegalStateException from destroyed child");
@@ -430,7 +430,7 @@ public class MortarScopeTest {
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
     child.register(scoped);
     activityScope.destroyChild(child);
-    verify(scoped).onExitScope(child);
+    verify(scoped).onExitScope();
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isNull();
   }
 
@@ -443,7 +443,7 @@ public class MortarScopeTest {
     assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
     child.register(scoped);
     Mortar.destroyRootScope(root);
-    verify(scoped).onExitScope(child);
+    verify(scoped).onExitScope();
     try {
       child.getObjectGraph();
       fail("Expected IllegalStateException from destroyed child");
@@ -522,7 +522,7 @@ public class MortarScopeTest {
       @Override public void onEnterScope(MortarScope scope) {
       }
 
-      @Override public void onExitScope(MortarScope scope) {
+      @Override public void onExitScope() {
         i.incrementAndGet();
         Mortar.destroyRootScope(scope);
       }

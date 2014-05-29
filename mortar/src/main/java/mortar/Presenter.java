@@ -43,8 +43,8 @@ public abstract class Presenter<V> {
       Presenter.this.onEnterScope(scope);
     }
 
-    @Override public void onExitScope(MortarScope scope) {
-      Presenter.this.onExitScope(scope);
+    @Override public void onExitScope() {
+      Presenter.this.onExitScope();
     }
   };
 
@@ -133,6 +133,6 @@ public abstract class Presenter<V> {
    * by a higher level scope than the one it is registered with, in which case it may receive
    * multiple calls to this method.
    */
-  protected void onExitScope(MortarScope scope) {
+  protected void onExitScope() {
   }
 }
