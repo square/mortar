@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 0.15 *(TBD)*
+Version 0.15 *(2014-05-29)*
 ------------------
   * API break: Presenter#onDestroy and Scoped#onDestroy are now onExitScope(MortarScope).
     Also adds onEnterScope(MortarScope) to those classes.
