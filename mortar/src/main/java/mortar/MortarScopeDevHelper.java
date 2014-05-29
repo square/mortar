@@ -20,8 +20,8 @@ public class MortarScopeDevHelper {
    */
   public static String scopeHierarchyToString(MortarScope mortarScope) {
     StringBuilder result = new StringBuilder("Mortar Hierarchy:\n");
-    MortarScope rootScope = getRootScope(mortarScope);
-    Node rootNode = new MortarScopeNode(rootScope);
+    MortarScope MortarScope = getMortarScope(mortarScope);
+    Node rootNode = new MortarScopeNode(MortarScope);
     nodeHierarchyToString(result, 0, 0, rootNode);
     return result.toString();
   }
@@ -161,7 +161,7 @@ public class MortarScopeDevHelper {
     }
   }
 
-  private static MortarScope getRootScope(MortarScope mortarScope) {
+  private static MortarScope getMortarScope(MortarScope mortarScope) {
     if (!(mortarScope instanceof RealScope)) {
       return mortarScope;
     }

@@ -16,5 +16,13 @@
 package mortar;
 
 public interface Scoped {
-  void onDestroy();
+  /**
+   * Called the first time the receiver is registered with the given scope.
+   */
+  void onEnterScope(MortarScope scope);
+
+  /**
+   * Called when a scope the receiver is registered with is destroyed.
+   */
+  void onExitScope();
 }

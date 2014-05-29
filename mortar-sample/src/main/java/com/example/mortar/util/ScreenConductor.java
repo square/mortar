@@ -62,7 +62,7 @@ public class ScreenConductor<S extends Blueprint> implements CanShowScreen<S> {
         return;
       }
 
-      oldChildScope.destroy();
+      myScope.destroyChild(oldChildScope);
     }
 
     // Create the new child.

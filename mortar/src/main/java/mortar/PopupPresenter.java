@@ -23,7 +23,7 @@ import android.os.Parcelable;
  * of {@link #hashCode()} and {@link #equals(Object)} in order for debouncing code in {@link #show}
  * to work properly.
  *
- * When using multiple {@PopupPresenter}s of the same type in the same view, construct them with
+ * When using multiple {@link PopupPresenter}s of the same type in the same view, construct them with
  * {@link #PopupPresenter(String)} to give them a name to distinguish them.
  */
 public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<Popup<D, R>> {
@@ -38,8 +38,7 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
    * of the same PopupPresenter class tied to a view.
    */
   protected PopupPresenter(String customStateKey) {
-    String stateKey = getClass().getName() + customStateKey;
-    this.whatToShowKey = stateKey;
+    this.whatToShowKey = getClass().getName() + customStateKey;
   }
 
   protected PopupPresenter() {
@@ -112,9 +111,8 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
     }
   }
 
-  @Override public void onDestroy() {
+  @Override public void onExitScope() {
     Popup<D, R> popUp = getView();
     if (popUp != null && popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
-    super.onDestroy();
   }
 }

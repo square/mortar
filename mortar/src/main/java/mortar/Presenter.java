@@ -39,8 +39,12 @@ public abstract class Presenter<V> {
       Presenter.this.onSave(outState);
     }
 
-    @Override public void onDestroy() {
-      Presenter.this.onDestroy();
+    @Override public void onEnterScope(MortarScope scope) {
+      Presenter.this.onEnterScope(scope);
+    }
+
+    @Override public void onExitScope() {
+      Presenter.this.onExitScope();
     }
   };
 
@@ -79,9 +83,9 @@ public abstract class Presenter<V> {
    * not uncommon case that dropView and takeView are called out of order. For example, an
    * activity's views are typically inflated in {@link
    * android.app.Activity#onCreate}, but are only detached some time after {@link
-   * android.app.Activity#onDestroy() onDestroy}. It's possible for a view from one activity to be
-   * detached well after the window for the next activity has its views inflated&mdash;that is,
-   * after the next activity's onResume call.
+   * android.app.Activity#onDestroy() onExitScope}. It's possible for a view from one activity
+   * to be detached well after the window for the next activity has its views inflated&mdash;that
+   * is, after the next activity's onResume call.
    */
   public void dropView(V view) {
     if (view == null) throw new NullPointerException("dropped view must not be null");
@@ -106,6 +110,10 @@ public abstract class Presenter<V> {
     return view;
   }
 
+  /** Like {@link Bundler#onEnterScope}. */
+  protected void onEnterScope(MortarScope scope) {
+  }
+
   /**
    * Like {@link Bundler#onLoad}, but called only when {@link #getView()} is not
    * null, and debounced. That is, this method will be called exactly once for a given view
@@ -121,10 +129,10 @@ public abstract class Presenter<V> {
   }
 
   /**
-   * Like {@link Bundler#onDestroy}. One subtlety to note is that a presenter may be created
+   * Like {@link Bundler#onExitScope}. One subtlety to note is that a presenter may be created
    * by a higher level scope than the one it is registered with, in which case it may receive
    * multiple calls to this method.
    */
-  protected void onDestroy() {
+  protected void onExitScope() {
   }
 }

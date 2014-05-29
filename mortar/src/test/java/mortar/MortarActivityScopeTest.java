@@ -31,6 +31,7 @@ import static mortar.Mortar.createRootScope;
 import static mortar.Mortar.requireActivityScope;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -43,6 +44,7 @@ public class MortarActivityScopeTest {
   private static class MyBundler implements Bundler {
     final String name;
 
+    MortarScope registered;
     boolean loaded;
     Bundle lastLoaded;
     Bundle lastSaved;
@@ -61,6 +63,10 @@ public class MortarActivityScopeTest {
       return name;
     }
 
+    @Override public void onEnterScope(MortarScope scope) {
+      this.registered = scope;
+    }
+
     @Override public void onLoad(Bundle savedInstanceState) {
       loaded = true;
       lastLoaded = savedInstanceState;
@@ -74,12 +80,12 @@ public class MortarActivityScopeTest {
       outState.putString("key", name);
     }
 
-    @Override public void onDestroy() {
+    @Override public void onExitScope() {
       destroyed = true;
     }
   }
 
-  @Module class ModuleAndBlueprint implements Blueprint {
+  @Module static class ModuleAndBlueprint implements Blueprint {
     private final String name;
 
     ModuleAndBlueprint(String name) {
@@ -97,6 +103,7 @@ public class MortarActivityScopeTest {
 
   @Mock Scoped scoped;
 
+  private MortarScope root;
   private MortarActivityScope activityScope;
 
   @Before
@@ -106,7 +113,7 @@ public class MortarActivityScopeTest {
   }
 
   private void resetScope() {
-    MortarScope root = createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
+    root = createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
     activityScope = requireActivityScope(root, new ModuleAndBlueprint("activity"));
   }
 
@@ -139,6 +146,11 @@ public class MortarActivityScopeTest {
     registerScope.register(scoped);
     registerScope.register(able);
     registerScope.register(baker);
+
+    // onEnterScope is called immediately.
+    verify(scoped).onEnterScope(registerScope);
+    assertThat(able.registered).isSameAs(registerScope);
+    assertThat(baker.registered).isSameAs(registerScope);
 
     // Load is called immediately.
     assertThat(able.loaded).isTrue();
@@ -180,9 +192,9 @@ public class MortarActivityScopeTest {
 
     verifyNoMoreInteractions(scoped);
 
-    activityScope.destroy();
+    root.destroyChild(activityScope);
     assertThat(able.destroyed).isTrue();
-    verify(scoped).onDestroy();
+    verify(scoped).onExitScope();
   }
 
   class FauxActivity {
@@ -197,6 +209,12 @@ public class MortarActivityScopeTest {
       childScope = activityScope.requireChild(new ModuleAndBlueprint("child"));
       childScope.register(childBundler);
     }
+  }
+
+  @Test public void onRegisteredIsDebounced() {
+    activityScope.register(scoped);
+    activityScope.register(scoped);
+    verify(scoped, times(1)).onEnterScope(activityScope);
   }
 
   @Test public void childInfoSurvivesProcessDeath() {
@@ -288,6 +306,9 @@ public class MortarActivityScopeTest {
         return "key";
       }
 
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
         if (i.incrementAndGet() < 1) activityScope.register(this);
       }
@@ -296,7 +317,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onExitScope() {
         throw new UnsupportedOperationException();
       }
     });
@@ -318,6 +339,9 @@ public class MortarActivityScopeTest {
         return "key";
       }
 
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
         if (i.incrementAndGet() < 1) activityScope.register(this);
       }
@@ -326,7 +350,7 @@ public class MortarActivityScopeTest {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onExitScope() {
         throw new UnsupportedOperationException();
       }
     });
@@ -344,15 +368,20 @@ public class MortarActivityScopeTest {
         return "k";
       }
 
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
-        if (loads.incrementAndGet() > 2) activityScope.destroy();
+        if (loads.incrementAndGet() > 2) {
+          root.destroyChild(activityScope);
+        }
       }
 
       @Override public void onSave(Bundle outState) {
         throw new UnsupportedOperationException();
       }
 
-      @Override public void onDestroy() {
+      @Override public void onExitScope() {
         destroys.incrementAndGet();
       }
     }
@@ -377,15 +406,18 @@ public class MortarActivityScopeTest {
         return "k";
       }
 
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
       @Override public void onLoad(Bundle savedInstanceState) {
       }
 
       @Override public void onSave(Bundle outState) {
         saves.incrementAndGet();
-        activityScope.destroy();
+        root.destroyChild(activityScope);
       }
 
-      @Override public void onDestroy() {
+      @Override public void onExitScope() {
         destroys.incrementAndGet();
       }
     }
@@ -403,13 +435,13 @@ public class MortarActivityScopeTest {
 
   @Test(expected = IllegalStateException.class)
   public void cannotOnCreateDestroyed() {
-    activityScope.destroy();
+    root.destroyChild(activityScope);
     activityScope.onCreate(null);
   }
 
   @Test(expected = IllegalStateException.class)
   public void cannotOnSaveDestroyed() {
-    activityScope.destroy();
+    root.destroyChild(activityScope);
     activityScope.onSaveInstanceState(new Bundle());
   }
 
@@ -466,7 +498,6 @@ public class MortarActivityScopeTest {
   /** <a href="https://github.com/square/mortar/issues/46">Issue 46</a> */
   @Test
   public void registerWithDescendantScopesCreatedDuringParentOnCreateGetOnlyOneOnLoadCall() {
-    final MyBundler peerBundler = new MyBundler("bro");
     final MyBundler childBundler = new MyBundler("child");
     final MyBundler grandChildBundler = new MyBundler("grandChild");
 
@@ -538,7 +569,8 @@ public class MortarActivityScopeTest {
         childScope.register(childBundler);
         assertThat(childBundler.loaded).isFalse();
 
-        MortarScope grandchildScope = childScope.requireChild(new ModuleAndBlueprint("grandchild scope"));
+        MortarScope grandchildScope = childScope.requireChild(
+            new ModuleAndBlueprint("grandchild scope"));
         grandchildScope.register(grandchildBundler);
         assertThat(grandchildBundler.loaded).isFalse();
       }

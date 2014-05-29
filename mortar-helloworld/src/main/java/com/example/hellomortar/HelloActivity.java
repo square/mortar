@@ -51,7 +51,8 @@ public class HelloActivity extends Activity {
     super.onDestroy();
 
     if (isFinishing() && activityScope != null) {
-      activityScope.destroy();
+      MortarScope parentScope = ((HelloApplication) getApplication()).getRootScope();
+      parentScope.destroyChild(activityScope);
       activityScope = null;
     }
   }

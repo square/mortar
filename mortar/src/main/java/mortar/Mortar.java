@@ -51,6 +51,9 @@ public class Mortar {
    * <p/>
    * It is expected that this method will be called from {@link Activity#onCreate}. Calling
    * it at other times may lead to surprises.
+   * <p/>
+   * This scope can be destroyed by the {@link MortarScope#destroyChild} method on the
+   * given parent.
    */
   public static MortarActivityScope requireActivityScope(MortarScope parentScope,
       final Blueprint blueprint) {
@@ -67,6 +70,18 @@ public class Mortar {
     }
 
     return activityScope;
+  }
+
+  /**
+   * Destroys a scope previously created by {@link #createRootScope(boolean)} or
+   * {@link #createRootScope(boolean, ObjectGraph)}.
+   */
+  public static void destroyRootScope(MortarScope rootScope) {
+    RealScope realScope = (RealScope) rootScope;
+    if (!realScope.isRoot()) {
+      throw new IllegalArgumentException(String.format("%s is not a root", realScope.getName()));
+    }
+    realScope.doDestroy();
   }
 
   /**
@@ -89,7 +104,8 @@ public class Mortar {
       throw new IllegalArgumentException(format(
           "Cannot find scope in %s. Make sure your Activity overrides getSystemService() "
               + " to return its scope if isScopeSystemService() is true",
-          context.getClass().getName()));
+          context.getClass().getName()
+      ));
     }
     return scope;
   }

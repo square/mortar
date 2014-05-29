@@ -27,8 +27,9 @@ import static org.fest.assertions.api.Assertions.assertThat;
 @RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class PresenterTest {
 
+  private final MortarScope root = Mortar.createRootScope(false);
   MortarActivityScope scope =
-      Mortar.requireActivityScope(Mortar.createRootScope(false), new Blueprint() {
+      Mortar.requireActivityScope(root, new Blueprint() {
         @Override public String getMortarScopeName() {
           return "name";
         }
@@ -38,7 +39,7 @@ public class PresenterTest {
         }
       });
 
-  class SomeView {
+  static class SomeView {
   }
 
   class ChildPresenter extends Presenter<SomeView> {
@@ -116,8 +117,14 @@ public class PresenterTest {
   }
 
   class SimplePresenter extends Presenter<SomeView> {
+    MortarScope registered;
+    MortarScope destroyed;
     boolean loaded;
     Object droppedView;
+
+    @Override protected void onEnterScope(MortarScope scope) {
+      registered = scope;
+    }
 
     @Override protected MortarScope extractScope(SomeView view) {
       return scope;
@@ -130,6 +137,10 @@ public class PresenterTest {
     @Override public void dropView(SomeView view) {
       droppedView = view;
       super.dropView(view);
+    }
+
+    @Override protected void onExitScope() {
+      destroyed = scope;
     }
   }
 
@@ -185,5 +196,35 @@ public class PresenterTest {
     presenter.takeView(viewOne);
     presenter.takeView(viewTwo);
     assertThat(presenter.droppedView).isSameAs(viewOne);
+  }
+
+  @Test public void onRegisteredIsFired() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView viewOne = new SomeView();
+
+    presenter.takeView(viewOne);
+    assertThat(presenter.registered).isSameAs(scope);
+  }
+
+  @Test public void onRegisteredIsDebounced() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView viewOne = new SomeView();
+
+    presenter.takeView(viewOne);
+    presenter.dropView(viewOne);
+    presenter.registered = null;
+
+    presenter.takeView(viewOne);
+    assertThat(presenter.registered).isNull();
+  }
+
+  @Test public void onDestroyedIsFired() {
+    SimplePresenter presenter = new SimplePresenter();
+    SomeView viewOne = new SomeView();
+
+    presenter.takeView(viewOne);
+    root.destroyChild(scope);
+
+    assertThat(presenter.destroyed).isSameAs(scope);
   }
 }
