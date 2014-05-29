@@ -114,6 +114,5 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
   @Override public void onExitScope(MortarScope scope) {
     Popup<D, R> popUp = getView();
     if (popUp != null && popUp.isShowing()) popUp.dismiss(!WITH_FLOURISH);
-    super.onExitScope(scope);
   }
 }

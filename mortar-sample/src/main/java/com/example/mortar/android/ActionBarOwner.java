@@ -71,7 +71,6 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.View> {
   }
 
   @Override public void onLoad(Bundle savedInstanceState) {
-    super.onLoad(savedInstanceState);
     if (config != null) update();
   }
 

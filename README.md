@@ -42,24 +42,26 @@ activity scopes for their various screens and regions.
 ### Lifecycle
 
 A MortarScope provides a simple life cycle: it can tell interested parties
-when it is destroyed if they implement the [Scoped][scoped] interface.
+when they enter and exit it if they implement the [Scoped][scoped] interface.
 Scopes created at the Activity level or below can also manage instances of the
-[Bundler][bundler] interface, which give access to the host Activity's persistence
-Bundle. And that's the entire lifecycle that Mortar apps need to deal with:
+[Bundler][bundler] interface, which give access to the host Activity's
+persistence Bundle. And that's the entire lifecycle that Mortar apps need to
+deal with:
 
+  * `Scoped#onEnterScope(MortarScope)`
   * `Bundler#onLoad(Bundle)`
   * `Bundler#onSave(Bundle)`
-  * `Scoped#onDestroy()`
+  * `Scoped#onExitScope(MortarScope)`
 
 Note in particular that an activity's scope is not destroyed when a particular
 instance of that activity is destroyed. It sticks around until someone calls
-`MortarScope#destroy()`, typically in the `Activity#onDestroy` method if
-`isFinishing()` is true. Any objects registered at or below the activity scope
-will survive any number of onLoad and onSave calls as the device is rotated, as
-the app pauses, etc. Of course process death and resurrection can strike at
-any time, so each onSave() call should archive as if it were the last, and
-each onLoad() should check to see if it's really a reload. But that's a lot
-simpler than the usual gymnastics.
+`MortarScope#destroyChild(MortarScope)`, e.g. in the `Activity#onDestroy`
+method if `isFinishing()` is true. Any objects registered at or below the
+activity scope will survive any number of onLoad and onSave calls as the
+device is rotated, as the app pauses, etc. Of course process death and
+resurrection can strike at any time, so each onSave() call should archive as
+if it were the last, and each onLoad() should check to see if it's really a
+reload. But that's a lot simpler than the usual gymnastics.
 
 ### Singletons Where You Want Them
 
@@ -101,12 +103,14 @@ you're using Flow's [Layouts][layouts] utility to handle view creation.
  * {@literal @}Layout annotation.
  */
 void showScreen(Blueprint nextScreen) {
+  MortarScope activityScope = Mortar.getMortarScope(this);
+
   View currentView = getCurrentView();
   if (currentView != null) {
-    Mortar.getMortarScope(currentView.getContext()).destroy();
+    activityScope.destroyChild(Mortar.getMortarScope(currentView.getContext()));
   }
 
-  MortarScope newScope = Mortar.getMortarScope(this).requireChild(nextScreen);
+  MortarScope newScope = activityScope.requireChild(nextScreen);
   Context newContext = newScope.createContext(this);
   View screenView = Layouts.createView(newContext, nextScreen);
 
@@ -221,7 +225,6 @@ public class MyScreen implements Blueprint {
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
-      super.onLoad(savedInstanceState);
       if (lastResult == null && savedInstanceState != null) {
         lastResult = savedInstanceState.getParcelable("last");
       }
@@ -229,7 +232,6 @@ public class MyScreen implements Blueprint {
     }
 
     @Override public void onSave(Bundle outState) {
-      super.onSave(outState);
       if (lastResult != null) outState.putParcelable("last", lastResult);
     }
 
@@ -333,7 +335,8 @@ public abstract class MyBaseActivity extends Activity {
   @Override public void onDestroy() {
     super.onDestroy();
     if (isFinishing()) {
-      activityScope.destroy();
+      MortarScope parentScope = Mortar.getScope(getApplication());
+      parentScope.destroyChild(activityScope);
       activityScope = null;
     }
   }

@@ -93,7 +93,6 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
-      super.onLoad(savedInstanceState);
       ChatView v = getView();
       if (v == null) return;
 
@@ -115,7 +114,6 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
     @Override protected void onExitScope(MortarScope scope) {
       ensureStopped();
-      super.onExitScope(scope);
     }
 
     public void onConversationSelected(int position) {
