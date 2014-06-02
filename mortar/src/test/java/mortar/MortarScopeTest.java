@@ -584,6 +584,16 @@ public class MortarScopeTest {
 
   @Test
   public void destroyIsIdempotent() {
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    MortarScope child = root.requireChild(new NoModules());
+
+    root.destroyChild(child);
+    root.destroyChild(child);
+    // Ta da.
+  }
+
+  @Test
+  public void rootDestroyIsIdempotent() {
     MortarScope scope = Mortar.createRootScope(false, create(new Able()));
     Mortar.destroyRootScope(scope);
     Mortar.destroyRootScope(scope);

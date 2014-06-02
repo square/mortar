@@ -67,8 +67,7 @@ class RealScope implements MortarScope {
       throw new IllegalArgumentException(format("Scope %s cannot register %s instance %s. "
               + "Only %ss and their children can provide bundle services", getName(),
           Bundler.class.getSimpleName(), ((Bundler) scoped).getMortarBundleKey(),
-          MortarActivityScope.class.getSimpleName()
-      ));
+          MortarActivityScope.class.getSimpleName()));
     }
 
     doRegister(scoped);
@@ -122,11 +121,11 @@ class RealScope implements MortarScope {
   }
 
   @Override public void destroyChild(MortarScope child) {
-    String name = child.getName();
-    RealScope realChild = children.get(name);
-    if (realChild != child) {
+    RealScope realChild = (RealScope) child;
+    if (realChild.parent != this) {
       throw new IllegalArgumentException(format("%s was created by another scope", name));
     }
+
     realChild.doDestroy();
   }
 
