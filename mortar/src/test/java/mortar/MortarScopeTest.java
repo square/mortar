@@ -587,17 +587,43 @@ public class MortarScopeTest {
     MortarScope root = Mortar.createRootScope(false, create(new Able()));
     MortarScope child = root.requireChild(new NoModules());
 
+    final AtomicInteger destroys = new AtomicInteger(0);
+    child.register(new Scoped() {
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
+      @Override public void onExitScope() {
+        destroys.addAndGet(1);
+      }
+    });
+
     root.destroyChild(child);
+    assertThat(destroys.get()).isEqualTo(1);
+
     root.destroyChild(child);
-    // Ta da.
+    assertThat(destroys.get()).isEqualTo(1);
   }
 
   @Test
   public void rootDestroyIsIdempotent() {
     MortarScope scope = Mortar.createRootScope(false, create(new Able()));
+
+    final AtomicInteger destroys = new AtomicInteger(0);
+    scope.register(new Scoped() {
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
+      @Override public void onExitScope() {
+        destroys.addAndGet(1);
+      }
+    });
+
+
     Mortar.destroyRootScope(scope);
+    assertThat(destroys.get()).isEqualTo(1);
+
     Mortar.destroyRootScope(scope);
-    // Ta da.
+    assertThat(destroys.get()).isEqualTo(1);
   }
 
   @Test

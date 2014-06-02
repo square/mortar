@@ -34,8 +34,7 @@ public interface MortarScope {
   /**
    * Register the given {@link Scoped} instance to have its {@link Scoped#onExitScope()}
    * method called from {@link MortarScope#destroy}. Redundant calls are safe, they will not lead
-   * to
-   * double registration.
+   * to double registration.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */
