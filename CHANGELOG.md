@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 0.16 *(2014-06-02)*
+------------------
+  * Repairs idempotence of MortarScope#destroyChild
+
+  * Adds MortarScope#isDetroyed
+
 Version 0.15 *(2014-05-29)*
 ------------------
   * API break: Presenter#onDestroy and Scoped#onDestroy are now onExitScope(MortarScope).
