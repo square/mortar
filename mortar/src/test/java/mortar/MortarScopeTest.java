@@ -599,4 +599,17 @@ public class MortarScopeTest {
     Mortar.destroyRootScope(scope);
     // Ta da.
   }
+
+  @Test
+  public void isDestroyedStartsFalse() {
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    assertThat(root.isDestroyed()).isFalse();
+  }
+
+  @Test
+  public void isDestroyedGetsSet() {
+    MortarScope root = Mortar.createRootScope(false, create(new Able()));
+    Mortar.destroyRootScope(root);
+    assertThat(root.isDestroyed()).isTrue();
+  }
 }

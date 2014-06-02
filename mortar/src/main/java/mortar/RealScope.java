@@ -129,6 +129,10 @@ class RealScope implements MortarScope {
     realChild.doDestroy();
   }
 
+  @Override public boolean isDestroyed() {
+    return dead;
+  }
+
   void replaceChild(String childName, RealScope scope) {
     if (scope.getParent() != this) {
       throw new IllegalArgumentException("Replacement scope must have receiver as parent");

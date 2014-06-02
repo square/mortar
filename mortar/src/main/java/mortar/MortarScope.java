@@ -33,7 +33,8 @@ public interface MortarScope {
 
   /**
    * Register the given {@link Scoped} instance to have its {@link Scoped#onExitScope()}
-   * method called from {@link MortarScope#destroy}. Redundant calls are safe, they will not lead to
+   * method called from {@link MortarScope#destroy}. Redundant calls are safe, they will not lead
+   * to
    * double registration.
    *
    * @throws IllegalStateException if this scope has been destroyed
@@ -72,4 +73,7 @@ public interface MortarScope {
    * to this instance. Redundant calls to this method are safe.
    */
   void destroyChild(MortarScope child);
+
+  /** Returns true if this scope has been destroyed, false otherwise. */
+  boolean isDestroyed();
 }
