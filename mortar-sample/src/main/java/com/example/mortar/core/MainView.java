@@ -47,4 +47,13 @@ public class MainView extends FrameLayout implements CanShowScreen<Blueprint> {
   @Override public void showScreen(Blueprint screen, Flow.Direction direction) {
     screenMaestro.showScreen(screen, direction);
   }
+
+  public void onScopeDestroyed() {
+    screenMaestro.onScopeDestroyed();
+  }
+  
+  @Override protected void onDetachedFromWindow() {
+    super.onDetachedFromWindow();
+    screenMaestro.onContainerDetached();
+  }
 }

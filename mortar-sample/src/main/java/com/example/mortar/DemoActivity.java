@@ -48,6 +48,7 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
 
   @Inject ActionBarOwner actionBarOwner;
   private Flow mainFlow;
+  private MainView mainView;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -63,7 +64,7 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
 
     activityScope.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    MainView mainView = (MainView) findViewById(R.id.container);
+    mainView = (MainView) findViewById(R.id.container);
     mainFlow = mainView.getFlow();
 
     actionBarOwner.takeView(this);
@@ -128,6 +129,7 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
       MortarScope parentScope = Mortar.getScope(getApplication());
       parentScope.destroyChild(activityScope);
       activityScope = null;
+      mainView.onScopeDestroyed();
     }
   }
 
