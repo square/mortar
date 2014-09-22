@@ -21,8 +21,9 @@
     android:versionName="1.0">
 
   <uses-sdk
-      android:minSdkVersion="10"
-      android:targetSdkVersion="17"/>
+      android:minSdkVersion="15"
+      android:targetSdkVersion="20"
+      />
 
   <uses-permission android:name="android.permission.INTERNET" />
 
@@ -34,7 +35,7 @@
     <activity
         android:launchMode="singleTop"
         android:name=".DemoActivity"
-        android:theme="@style/Theme.Sherlock.Light.DarkActionBar"
+        android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
         >
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
