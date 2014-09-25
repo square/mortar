@@ -19,17 +19,18 @@ import android.os.Bundle;
 import mortar.dagger1support.Dagger1Blueprint;
 import com.example.mortar.R;
 import com.example.mortar.android.ActionBarOwner;
-import com.example.mortar.core.Main;
-import com.example.mortar.core.MainScope;
+import com.example.mortar.core.MortarDemoActivityBlueprint;
 import com.example.mortar.model.Chat;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.Message;
+import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.ChatView;
 import com.example.mortar.view.Confirmation;
 import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
 import flow.Layout;
+import flow.Path;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.PopupPresenter;
@@ -39,27 +40,19 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.subscriptions.Subscriptions;
 
-@Layout(R.layout.chat_view) //
-public class ChatScreen extends Dagger1Blueprint implements HasParent<ChatListScreen> {
+@Layout(R.layout.chat_view) @WithModule(ChatScreen.Module.class)
+public class ChatScreen extends Path implements HasParent {
   private final int conversationIndex;
 
   public ChatScreen(int conversationIndex) {
     this.conversationIndex = conversationIndex;
   }
 
-  @Override public String getMortarScopeName() {
-    return "ChatScreen{" + "conversationIndex=" + conversationIndex + '}';
-  }
-
-  @Override public Object getDaggerModule() {
-    return new Module();
-  }
-
   @Override public ChatListScreen getParent() {
     return new ChatListScreen();
   }
 
-  @dagger.Module(injects = ChatView.class, addsTo = Main.Module.class)
+  @dagger.Module(injects = ChatView.class, addsTo = MortarDemoActivityBlueprint.Module.class)
   public class Module {
     @Provides Chat provideConversation(Chats chats) {
       return chats.getChat(conversationIndex);
@@ -69,16 +62,14 @@ public class ChatScreen extends Dagger1Blueprint implements HasParent<ChatListSc
   @Singleton
   public static class Presenter extends ViewPresenter<ChatView> {
     private final Chat chat;
-    private final Flow flow;
     private final ActionBarOwner actionBar;
     private final PopupPresenter<Confirmation, Boolean> confirmer;
 
     private Subscription running = Subscriptions.empty();
 
     @Inject
-    public Presenter(Chat chat, @MainScope Flow flow, ActionBarOwner actionBar) {
+    public Presenter(Chat chat, ActionBarOwner actionBar) {
       this.chat = chat;
-      this.flow = flow;
       this.actionBar = actionBar;
       this.confirmer = new PopupPresenter<Confirmation, Boolean>() {
         @Override protected void onPopupResult(Boolean confirmed) {
@@ -123,7 +114,7 @@ public class ChatScreen extends Dagger1Blueprint implements HasParent<ChatListSc
     }
 
     public void onConversationSelected(int position) {
-      flow.goTo(new MessageScreen(chat.getId(), position));
+      Flow.get(getView().getContext()).goTo(new MessageScreen(chat.getId(), position));
     }
 
     public void visibilityChanged(boolean visible) {

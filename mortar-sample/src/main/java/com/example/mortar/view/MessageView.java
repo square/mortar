@@ -18,12 +18,10 @@ package com.example.mortar.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import mortar.dagger1support.Dagger1;
-import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.OnClick;
 import com.example.mortar.R;
 import com.example.mortar.screen.MessageScreen;
 import javax.inject.Inject;
@@ -31,8 +29,8 @@ import javax.inject.Inject;
 public class MessageView extends LinearLayout {
   @Inject MessageScreen.Presenter presenter;
 
-  @InjectView(R.id.user) TextView userView;
-  @InjectView(R.id.message) TextView messageView;
+  private TextView userView;
+  private TextView messageView;
 
   public MessageView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -42,8 +40,17 @@ public class MessageView extends LinearLayout {
 
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
-    ButterKnife.inject(this);
+    messageView = (TextView) findViewById(R.id.message);
+    userView = (TextView) findViewById(R.id.user);
+    userView.setOnClickListener(new OnClickListener() {
+      @Override public void onClick(View v) {
+        presenter.onUserSelected();
+      }
+    });
+  }
 
+  @Override protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 
@@ -58,9 +65,5 @@ public class MessageView extends LinearLayout {
 
   public void setMessage(String message) {
     messageView.setText(message);
-  }
-
-  @OnClick(R.id.user) void userClicked() {
-    presenter.onUserSelected();
   }
 }

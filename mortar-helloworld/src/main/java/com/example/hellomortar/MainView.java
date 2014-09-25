@@ -35,6 +35,10 @@ public class MainView extends LinearLayout {
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
     textView = (TextView) findViewById(R.id.text);
+  }
+
+  @Override protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 

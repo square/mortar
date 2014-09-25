@@ -18,38 +18,32 @@ package com.example.mortar.screen;
 import android.os.Bundle;
 import mortar.dagger1support.Dagger1Blueprint;
 import com.example.mortar.R;
-import com.example.mortar.core.Main;
+import com.example.mortar.core.MortarDemoActivityBlueprint;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.User;
+import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.FriendView;
 import dagger.Provides;
 import flow.HasParent;
 import flow.Layout;
+import flow.Path;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.ViewPresenter;
 
-@Layout(R.layout.friend_view) //
-public class FriendScreen extends Dagger1Blueprint implements HasParent<FriendListScreen> {
+@Layout(R.layout.friend_view) @WithModule(FriendScreen.Module.class)
+public class FriendScreen extends Path implements HasParent {
   private final int index;
 
   public FriendScreen(int index) {
     this.index = index;
   }
 
-  @Override public String getMortarScopeName() {
-    return "FriendScreen{" + "index=" + index + '}';
-  }
-
-  @Override public Object getDaggerModule() {
-    return new Module();
-  }
-
   @Override public FriendListScreen getParent() {
     return new FriendListScreen();
   }
 
-  @dagger.Module(injects = FriendView.class, addsTo = Main.Module.class)
+  @dagger.Module(injects = FriendView.class, addsTo = MortarDemoActivityBlueprint.Module.class)
   public class Module {
     @Provides User provideFriend(Chats chats) {
       return chats.getFriend(index);

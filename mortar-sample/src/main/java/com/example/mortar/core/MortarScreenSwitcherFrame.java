@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.example.mortar.core;
 
-public @interface MainScope {
+import android.content.Context;
+import android.util.AttributeSet;
+import com.example.flow.pathview.FramePathContainerView;
+import com.example.flow.pathview.SimplePathContainer;
+import com.example.mortar.R;
+import com.example.mortar.mortarflow.MortarContextFactory;
+import flow.Path;
+
+public class MortarScreenSwitcherFrame extends FramePathContainerView {
+  public MortarScreenSwitcherFrame(Context context, AttributeSet attrs) {
+    super(context, attrs, new SimplePathContainer(R.id.screen_switcher_tag,
+        Path.contextFactory(new MortarContextFactory())));
+  }
 }

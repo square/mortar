@@ -59,7 +59,7 @@
     <dependency>
       <groupId>com.squareup.flow</groupId>
       <artifactId>flow-sample</artifactId>
-      <version>0.8</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.netflix.rxjava</groupId>
@@ -76,11 +76,6 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.3</version>
-    </dependency>
-    <dependency>
-      <groupId>com.jakewharton</groupId>
-      <artifactId>butterknife</artifactId>
-      <version>5.1.2</version>
     </dependency>
 
     <dependency>

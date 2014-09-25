@@ -30,11 +30,11 @@
   <application
       android:label="Mortar"
       android:icon="@drawable/mortar_icon"
-      android:name=".DemoApplication"
+      android:name=".MortarDemoApplication"
       >
     <activity
         android:launchMode="singleTop"
-        android:name=".DemoActivity"
+        android:name=".MortarDemoActivity"
         android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
         >
       <intent-filter>

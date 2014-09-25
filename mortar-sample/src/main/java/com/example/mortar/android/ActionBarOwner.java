@@ -15,16 +15,17 @@
  */
 package com.example.mortar.android;
 
-import android.content.Context;
 import android.os.Bundle;
-import mortar.Mortar;
+import dagger.Module;
+import dagger.Provides;
+import javax.inject.Singleton;
 import mortar.MortarScope;
 import mortar.Presenter;
 import rx.functions.Action0;
 
 /** Allows shared configuration of the Android ActionBar. */
-public class ActionBarOwner extends Presenter<ActionBarOwner.View> {
-  public interface View {
+public class ActionBarOwner extends Presenter<ActionBarOwner.Activity> {
+  public interface Activity {
     void setShowHomeEnabled(boolean enabled);
 
     void setUpButtonEnabled(boolean enabled);
@@ -33,7 +34,7 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.View> {
 
     void setMenu(MenuAction action);
 
-    Context getMortarContext();
+    MortarScope getScope();
   }
 
   public static class Config {
@@ -83,17 +84,24 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.View> {
     return config;
   }
 
-  @Override protected MortarScope extractScope(View view) {
-    return Mortar.getScope(view.getMortarContext());
+  @Override protected MortarScope extractScope(Activity activity) {
+    return activity.getScope();
   }
 
   private void update() {
-    if (!hasView()) return;
-    View view = getView();
+	if (!hasView()) return;
+    Activity activity = getView();
 
-    view.setShowHomeEnabled(config.showHomeEnabled);
-    view.setUpButtonEnabled(config.upButtonEnabled);
-    view.setTitle(config.title);
-    view.setMenu(config.action);
+    activity.setShowHomeEnabled(config.showHomeEnabled);
+    activity.setUpButtonEnabled(config.upButtonEnabled);
+    activity.setTitle(config.title);
+    activity.setMenu(config.action);
+  }
+
+  @Module(library = true)
+  public static class ActionBarModule {
+    @Provides @Singleton ActionBarOwner provideActionBarOwner() {
+      return new ActionBarOwner();
+    }
   }
 }
