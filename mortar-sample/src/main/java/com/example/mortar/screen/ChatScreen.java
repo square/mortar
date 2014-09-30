@@ -35,8 +35,8 @@ import mortar.Blueprint;
 import mortar.PopupPresenter;
 import mortar.ViewPresenter;
 import rx.Subscription;
-import rx.util.functions.Action0;
-import rx.util.functions.Action1;
+import rx.functions.Action0;
+import rx.functions.Action1;
 
 @Layout(R.layout.chat_view) //
 public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {

@@ -87,6 +87,10 @@ public class Chat {
           @Override public void unsubscribe() {
             canceled.set(true);
           }
+
+          @Override public boolean isUnsubscribed() {
+            return canceled.get();
+          }
         };
       }
     });

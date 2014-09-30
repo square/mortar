@@ -146,6 +146,10 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
     actionBar.setHomeButtonEnabled(enabled);
   }
 
+  @Override public void setTitle(CharSequence title) {
+    getSupportActionBar().setTitle(title);
+  }
+
   @Override public void setMenu(ActionBarOwner.MenuAction action) {
     if (action != actionBarMenuAction) {
       actionBarMenuAction = action;

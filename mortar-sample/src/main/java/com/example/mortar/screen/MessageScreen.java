@@ -30,7 +30,7 @@ import javax.inject.Singleton;
 import mortar.Blueprint;
 import mortar.ViewPresenter;
 import rx.Observable;
-import rx.util.functions.Action1;
+import rx.functions.Action1;
 
 @Layout(R.layout.message_view) //
 public class MessageScreen implements HasParent<ChatScreen>, Blueprint {

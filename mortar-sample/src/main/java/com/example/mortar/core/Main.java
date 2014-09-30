@@ -27,7 +27,7 @@ import flow.Parcer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
-import rx.util.functions.Action0;
+import rx.functions.Action0;
 
 public class Main implements Blueprint {
 

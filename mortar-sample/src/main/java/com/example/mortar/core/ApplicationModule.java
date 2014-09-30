@@ -29,13 +29,13 @@ import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
 import rx.Scheduler;
-import rx.concurrency.ExecutorScheduler;
+import rx.schedulers.Schedulers;
 
 @Module(includes = Chats.Module.class, library = true)
 public class ApplicationModule {
   @Provides @Singleton @MainThread Scheduler provideMainThread() {
     final Handler handler = new Handler(Looper.getMainLooper());
-    return new ExecutorScheduler(new Executor() {
+    return Schedulers.from(new Executor() {
       @Override public void execute(Runnable command) {
         handler.post(command);
       }
@@ -52,7 +52,8 @@ public class ApplicationModule {
 
   @Provides @Singleton QuoteService provideQuoteService() {
     RestAdapter restAdapter =
-        new RestAdapter.Builder().setServer("http://www.iheartquotes.com/api/v1/")
+        new RestAdapter.Builder()
+            .setEndpoint("http://www.iheartquotes.com/api/v1/")
             .setConverter(new GsonConverter(new Gson()))
             .build();
     return restAdapter.create(QuoteService.class);
