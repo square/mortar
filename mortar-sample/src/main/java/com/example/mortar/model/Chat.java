@@ -48,11 +48,11 @@ public class Chat {
   }
 
   public Observable<Message> getMessage(int index) {
-    return Observable.from(messages.get(index));
+    return Observable.just(messages.get(index));
   }
 
   public Observable<Message> getMessages() {
-    Observable<Message> getMessages = Observable.create(new Observable.OnSubscribeFunc<Message>() {
+    Observable<Message> getMessages = Observable.just(new Observable.OnSubscribeFunc<Message>() {
       @Override public Subscription onSubscribe(final Observer<? super Message> observer) {
         final AtomicBoolean canceled = new AtomicBoolean(false);
         final Random random = new Random();
