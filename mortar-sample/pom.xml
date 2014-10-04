@@ -59,9 +59,9 @@
       <version>${rx-java.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.netflix.rxjava</groupId>
-      <artifactId>rxjava-android</artifactId>
-      <version>${rx-java.version}</version>
+      <groupId>com.netflix.rxjava</groupId>
+      <artifactId>rxjava-android</artifactId>
+      <version>${rx-java.version}</version>
     </dependency>
 
     <dependency>
