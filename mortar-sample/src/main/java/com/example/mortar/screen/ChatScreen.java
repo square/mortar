@@ -37,6 +37,7 @@ import mortar.ViewPresenter;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.subscriptions.Subscriptions;
 
 @Layout(R.layout.chat_view) //
 public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
@@ -72,7 +73,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     private final ActionBarOwner actionBar;
     private final PopupPresenter<Confirmation, Boolean> confirmer;
 
-    private Subscription running;
+    private Subscription running = Subscriptions.empty();
 
     @Inject
     public Presenter(Chat chat, @MainScope Flow flow, ActionBarOwner actionBar) {
@@ -119,7 +120,6 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
       flow.goTo(new MessageScreen(chat.getId(), position));
     }
 
-
     public void visibilityChanged(boolean visible) {
       if (visible) {
         ensureRunning();
@@ -129,26 +129,21 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     }
 
     private void ensureRunning() {
-      if (running == null) {
-        // If we're resuming with an existing view it's already showing some of the
-        // messages. Clear it out. Hacky demo code, what can I say?
-        getView().getItems().clear();
+      // If we're resuming with an existing view it's already showing some of the
+      // messages. Clear it out. Hacky demo code, what can I say?
+      getView().getItems().clear();
 
-        running = chat.getMessages().subscribe(new Action1<Message>() {
-          @Override public void call(Message message) {
-            ChatView view = getView();
-            if (view == null) return;
-            view.getItems().add(message);
-          }
-        });
-      }
+      running = chat.getMessages().subscribe(new Action1<Message>() {
+        @Override public void call(Message message) {
+          ChatView view = getView();
+          if (view == null) return;
+          view.getItems().add(message);
+        }
+      });
     }
 
     private void ensureStopped() {
-      if (running != null) {
-        running.unsubscribe();
-        running = null;
-      }
+      running.unsubscribe();
     }
   }
 }
