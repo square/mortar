@@ -28,6 +28,10 @@
   <name>Mortar Sample</name>
   <packaging>apk</packaging>
 
+  <properties>
+    <rx-java.version>0.20.5</rx-java.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.squareup.mortar</groupId>
@@ -52,7 +56,12 @@
     <dependency>
       <groupId>com.netflix.rxjava</groupId>
       <artifactId>rxjava-core</artifactId>
-      <version>0.20.4</version>
+      <version>${rx-java.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.netflix.rxjava</groupId>
+      <artifactId>rxjava-android</artifactId>
+      <version>${rx-java.version}</version>
     </dependency>
 
     <dependency>
