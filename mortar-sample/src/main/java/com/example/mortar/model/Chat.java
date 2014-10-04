@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class Chat {
   private static final int SLEEP_MILLIS = 500;
@@ -39,7 +41,7 @@ public class Chat {
     this.chats = chats;
     this.id = id;
     this.users = users;
-    messages = new CopyOnWriteArrayList<Message>(seed);
+    messages = new CopyOnWriteArrayList<>(seed);
   }
 
   public int getId() {
@@ -53,42 +55,41 @@ public class Chat {
   public Observable<Message> getMessages() {
     return Observable.create(new Observable.OnSubscribe<Message>() {
       @Override public void call(final Subscriber<? super Message> subscriber) {
-        final AtomicBoolean canceled = new AtomicBoolean(false);
         final Random random = new Random();
-
-        chats.messagePollThread.execute(new Runnable() {
-          @Override public void run() {
-            while (!canceled.get()) {
-              if (random.nextInt(PROBABILITY) == 0) {
-                try {
-                  User from = users.get(random.nextInt(users.size()));
-                  Message next = new Message(from, chats.service.getQuote().quote);
-                  messages.add(next);
-                  if (!subscriber.isUnsubscribed()) {
-                    subscriber.onNext(next);
-                  }
-                } catch (RetrofitError e) {
-                  // Bad response? Lost connectivity? Who cares, it's a demo.
-                  Log.w(getClass().getSimpleName(), e);
-                  if (!subscriber.isUnsubscribed()) {
-                    subscriber.onError(e);
-                  }
-                }
+        while (true) {
+          if (random.nextInt(PROBABILITY) == 0) {
+            try {
+              User from = users.get(random.nextInt(users.size()));
+              Message next = new Message(from, chats.service.getQuote().quote);
+              messages.add(next);
+              if (!subscriber.isUnsubscribed()) {
+                subscriber.onNext(next);
               }
-
-              try {
-                // Hijacking the thread like this is sleazey, but you get the idea.
-                Thread.sleep(SLEEP_MILLIS);
-              } catch (InterruptedException e) {
-                canceled.set(true);
+            } catch (RetrofitError e) {
+              // Bad response? Lost connectivity? Who cares, it's a demo.
+              Log.w(getClass().getSimpleName(), e);
+              if (!subscriber.isUnsubscribed()) {
+                subscriber.onError(e);
+                break;
               }
             }
           }
-        });
+
+          try {
+            // Hijacking the thread like this is sleazey, but you get the idea.
+            Thread.sleep(SLEEP_MILLIS);
+          } catch (InterruptedException e) {
+            if (!subscriber.isUnsubscribed()) {
+              subscriber.onError(e);
+            }
+            break;
+          }
+        }
       }
     })
     .startWith(messages) //
-    .observeOn(chats.mainThread);
+    .subscribeOn(Schedulers.io()) //
+    .observeOn(AndroidSchedulers.mainThread());
   }
 
   @Override public String toString() {
