@@ -20,7 +20,6 @@ import android.util.Log;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Subscriber;
