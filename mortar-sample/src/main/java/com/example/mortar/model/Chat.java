@@ -23,8 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import retrofit.RetrofitError;
 import rx.Observable;
-import rx.Observer;
-import rx.Subscription;
+import rx.Subscriber;
 
 public class Chat {
   private static final int SLEEP_MILLIS = 500;
@@ -52,8 +51,8 @@ public class Chat {
   }
 
   public Observable<Message> getMessages() {
-    Observable<Message> getMessages = Observable.just(new Observable.OnSubscribeFunc<Message>() {
-      @Override public Subscription onSubscribe(final Observer<? super Message> observer) {
+    return Observable.create(new Observable.OnSubscribe<Message>() {
+      @Override public void call(final Subscriber<? super Message> subscriber) {
         final AtomicBoolean canceled = new AtomicBoolean(false);
         final Random random = new Random();
 
@@ -65,10 +64,15 @@ public class Chat {
                   User from = users.get(random.nextInt(users.size()));
                   Message next = new Message(from, chats.service.getQuote().quote);
                   messages.add(next);
-                  observer.onNext(next);
+                  if (!subscriber.isUnsubscribed()) {
+                    subscriber.onNext(next);
+                  }
                 } catch (RetrofitError e) {
                   // Bad response? Lost connectivity? Who cares, it's a demo.
                   Log.w(getClass().getSimpleName(), e);
+                  if (!subscriber.isUnsubscribed()) {
+                    subscriber.onError(e);
+                  }
                 }
               }
 
@@ -79,23 +83,12 @@ public class Chat {
                 canceled.set(true);
               }
             }
-            observer.onCompleted();
           }
         });
-
-        return new Subscription() {
-          @Override public void unsubscribe() {
-            canceled.set(true);
-          }
-
-          @Override public boolean isUnsubscribed() {
-            return canceled.get();
-          }
-        };
       }
-    });
-
-    return getMessages.startWith(messages).observeOn(chats.mainThread);
+    })
+    .startWith(messages) //
+    .observeOn(chats.mainThread);
   }
 
   @Override public String toString() {
