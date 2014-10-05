@@ -20,9 +20,9 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import butterknife.Views;
 import com.example.mortar.R;
 import com.example.mortar.screen.MessageScreen;
 import javax.inject.Inject;
@@ -42,7 +42,7 @@ public class MessageView extends LinearLayout {
 
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
-    Views.inject(this);
+    ButterKnife.inject(this);
 
     presenter.takeView(this);
   }

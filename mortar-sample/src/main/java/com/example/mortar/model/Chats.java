@@ -15,7 +15,6 @@
  */
 package com.example.mortar.model;
 
-import com.example.mortar.core.MainThread;
 import dagger.Provides;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +22,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import rx.Scheduler;
 
 import static java.util.Arrays.asList;
 
@@ -34,13 +32,11 @@ public class Chats {
 
   final User me = new User(-1, "Me");
 
-  final Scheduler mainThread;
   final Executor messagePollThread;
   final QuoteService service;
 
   @Inject
-  Chats(@MainThread Scheduler mainThread, Executor messagePollThread, QuoteService service) {
-    this.mainThread = mainThread;
+  Chats(Executor messagePollThread, QuoteService service) {
     this.messagePollThread = messagePollThread;
     this.service = service;
 

@@ -61,10 +61,11 @@ public abstract class FlowOwner<S extends Blueprint, V extends View & CanShowScr
     outState.putParcelable(FLOW_KEY, flow.getBackstack().getParcelable(parcer));
   }
 
-  @Override public void go(Backstack backstack, Flow.Direction flowDirection) {
+  @Override public void go(Backstack backstack, Flow.Direction flowDirection, Flow.Callback callback) {
     //noinspection unchecked
     S newScreen = (S) backstack.current().getScreen();
     showScreen(newScreen, flowDirection);
+    callback.onComplete();
   }
 
   public boolean onRetreatSelected() {
