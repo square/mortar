@@ -1,14 +1,9 @@
 package mortar;
 
-import dagger.ObjectGraph;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class MortarScopeDevHelper {
 
@@ -20,8 +15,8 @@ public class MortarScopeDevHelper {
    */
   public static String scopeHierarchyToString(MortarScope mortarScope) {
     StringBuilder result = new StringBuilder("Mortar Hierarchy:\n");
-    MortarScope MortarScope = getMortarScope(mortarScope);
-    Node rootNode = new MortarScopeNode(MortarScope);
+    MortarScope rootScope = getRootScope(mortarScope);
+    Node rootNode = new MortarScopeNode(rootScope);
     nodeHierarchyToString(result, 0, 0, rootNode);
     return result.toString();
   }
@@ -46,7 +41,6 @@ public class MortarScopeDevHelper {
 
     @Override public List<Node> getChildNodes() {
       List<Node> childNodes = new ArrayList<Node>();
-      ModuleNode.addModuleChildren(mortarScope, childNodes);
       addScopeChildren(childNodes);
       return childNodes;
     }
@@ -62,106 +56,8 @@ public class MortarScopeDevHelper {
     }
   }
 
-  static class ModuleNode implements Node {
 
-    private static Class<?> OBJECT_GRAPH_CLASS;
-    private static Field INJECTABLE_TYPES_FIELD;
-    private static boolean COULD_NOT_LOAD;
-
-    static {
-      try {
-        OBJECT_GRAPH_CLASS = Class.forName("dagger.ObjectGraph$DaggerObjectGraph");
-        INJECTABLE_TYPES_FIELD = OBJECT_GRAPH_CLASS.getDeclaredField("injectableTypes");
-        INJECTABLE_TYPES_FIELD.setAccessible(true);
-      } catch (Exception e) {
-        COULD_NOT_LOAD = true;
-      }
-    }
-
-    static void addModuleChildren(MortarScope mortarScope, List<Node> childNodes) {
-      if (COULD_NOT_LOAD) {
-        childNodes.add(new Node() {
-          @Override public String getName() {
-            return "ERROR Could not access Dagger fields";
-          }
-
-          @Override public List<Node> getChildNodes() {
-            return Collections.emptyList();
-          }
-        });
-        return;
-      }
-
-      ObjectGraph objectGraph = mortarScope.getObjectGraph();
-
-      if (!OBJECT_GRAPH_CLASS.isInstance(objectGraph)) {
-        throw new IllegalArgumentException(
-            objectGraph + " is not an instance of " + OBJECT_GRAPH_CLASS);
-      }
-
-      Map<String, Class<?>> injectableTypes;
-
-      try {
-        //noinspection unchecked
-        injectableTypes = (Map<String, Class<?>>) INJECTABLE_TYPES_FIELD.get(objectGraph);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      // Mapping Map<Inject, Module> to Map<Module, List<Inject>>
-      Map<Class<?>, List<Node>> injectsByModule = new LinkedHashMap<Class<?>, List<Node>>();
-      for (Map.Entry<String, Class<?>> injectableType : injectableTypes.entrySet()) {
-        Class<?> moduleClass = injectableType.getValue();
-        List<Node> moduleInjects = injectsByModule.get(moduleClass);
-        if (moduleInjects == null) {
-          moduleInjects = new ArrayList<Node>();
-          injectsByModule.put(moduleClass, moduleInjects);
-        }
-        moduleInjects.add(new InjectNode(injectableType.getKey()));
-      }
-
-      Set<Map.Entry<Class<?>, List<Node>>> injectsByModuleSet = injectsByModule.entrySet();
-      for (Map.Entry<Class<?>, List<Node>> moduleAndInjects : injectsByModuleSet) {
-        childNodes.add(new ModuleNode(moduleAndInjects.getKey(), moduleAndInjects.getValue()));
-      }
-    }
-
-    private final Class<?> moduleClass;
-    private final List<Node> injects;
-
-    ModuleNode(Class<?> moduleClass, List<Node> injects) {
-      this.moduleClass = moduleClass;
-      this.injects = injects;
-    }
-
-    @Override public String getName() {
-      return "MODULE " + moduleClass.getName();
-    }
-
-    @Override public List<Node> getChildNodes() {
-      return injects;
-    }
-  }
-
-  static class InjectNode implements Node {
-    private static final int MEMBER_PREFIX = "members/".length();
-
-    private final String name;
-
-    InjectNode(String moduleMember) {
-      // Inject keys name starts with "members/" which we don't care about.
-      this.name = "INJECT " + moduleMember.substring(MEMBER_PREFIX);
-    }
-
-    @Override public String getName() {
-      return name;
-    }
-
-    @Override public List<Node> getChildNodes() {
-      return Collections.emptyList();
-    }
-  }
-
-  private static MortarScope getMortarScope(MortarScope mortarScope) {
+  private static MortarScope getRootScope(MortarScope mortarScope) {
     if (!(mortarScope instanceof RealScope)) {
       return mortarScope;
     }

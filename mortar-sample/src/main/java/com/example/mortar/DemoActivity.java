@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import mortar.dagger1support.Dagger1;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -59,7 +60,7 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
 
     MortarScope parentScope = Mortar.getScope(getApplication());
     activityScope = Mortar.requireActivityScope(parentScope, new Main());
-    Mortar.inject(this, this);
+    Dagger1.inject(this, this);
 
     activityScope.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);

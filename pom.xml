@@ -35,6 +35,8 @@
 
   <modules>
     <module>mortar</module>
+    <module>dagger1support</module>
+    <module>dagger2support</module>
     <module>mortar-helloworld</module>
     <module>mortar-sample</module>
   </modules>
@@ -51,6 +53,7 @@
     <android.version>4.1.1.4</android.version>
     <android.platform>19</android.platform>
     <dagger.version>1.2.2</dagger.version>
+    <dagger2.version>2.0-SNAPSHOT</dagger2.version>
 
     <!-- Test Dependencies -->
     <junit.version>4.10</junit.version>
@@ -83,6 +86,17 @@
         <groupId>com.squareup.dagger</groupId>
         <artifactId>dagger-compiler</artifactId>
         <version>${dagger.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.dagger</groupId>
+        <artifactId>dagger</artifactId>
+        <version>${dagger2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.dagger</groupId>
+        <artifactId>dagger-compiler</artifactId>
+        <version>${dagger2.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.squareup</groupId>

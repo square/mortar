@@ -16,7 +16,6 @@
 package mortar;
 
 import android.content.Context;
-import dagger.ObjectGraph;
 
 public interface MortarScope {
   String ROOT_NAME = "Root";
@@ -25,16 +24,16 @@ public interface MortarScope {
   String getName();
 
   /**
-   * Returns the {@link ObjectGraph} for this scope.
+   * Returns the graph for this scope.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */
-  ObjectGraph getObjectGraph();
+  <T> T getObjectGraph();
 
   /**
    * Register the given {@link Scoped} instance to have its {@link Scoped#onExitScope()}
-   * method called from {@link MortarScope#destroy}. Redundant calls are safe, they will not lead
-   * to double registration.
+   * method called from {@link MortarScope#destroyChild(MortarScope)}. Redundant calls are safe,
+   * they will not lead to double registration.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */
@@ -50,8 +49,8 @@ public interface MortarScope {
   /**
    * Returns the existing child whose name matches the given {@link Blueprint}'s
    * {@link Blueprint#getMortarScopeName()} value. If there is none, a new child is created
-   * based on {@link Blueprint#getDaggerModule()}. Note that {@link Blueprint#getDaggerModule()} is
-   * not called otherwise.
+   * based on {@link Blueprint#createSubgraph(Object)}. Note that
+   * {@link Blueprint#createSubgraph(Object)} is not called otherwise.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */

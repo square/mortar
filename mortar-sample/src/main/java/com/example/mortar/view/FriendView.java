@@ -19,16 +19,16 @@ package com.example.mortar.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.TextView;
+import mortar.dagger1support.Dagger1;
 import com.example.mortar.screen.FriendScreen;
 import javax.inject.Inject;
-import mortar.Mortar;
 
 public class FriendView extends TextView  {
   @Inject FriendScreen.Presenter presenter;
 
   public FriendView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Mortar.inject(context, this);
+    Dagger1.inject(context, this);
   }
 
   @Override protected void onFinishInflate() {

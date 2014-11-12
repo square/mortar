@@ -22,6 +22,7 @@ import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
+import mortar.dagger2support.Dagger2;
 import mortar.ViewPresenter;
 
 public class Main implements Blueprint {
@@ -29,11 +30,13 @@ public class Main implements Blueprint {
     return getClass().getName();
   }
 
-  @Override public Object getDaggerModule() {
-    return new Module();
+  @Override public Object createSubgraph(Object parentGraph) {
+    return Dagger2.buildComponent(Component.class);
   }
 
-  @dagger.Module(injects = { HelloActivity.class, MainView.class }) class Module {
+  @dagger.Component @Singleton interface Component {
+    void inject(HelloActivity t);
+    void inject(MainView t);
   }
 
   @Singleton

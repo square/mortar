@@ -20,6 +20,7 @@ import android.os.Bundle;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarScope;
+import mortar.dagger2support.Dagger2;
 
 public class HelloActivity extends Activity {
   private MortarActivityScope activityScope;
@@ -29,7 +30,7 @@ public class HelloActivity extends Activity {
 
     MortarScope parentScope = ((HelloApplication) getApplication()).getRootScope();
     activityScope = Mortar.requireActivityScope(parentScope, new Main());
-    Mortar.inject(this, this);
+    Dagger2.<Main.Component>get(this).inject(this);
     activityScope.onCreate(savedInstanceState);
 
     setContentView(R.layout.main_view);

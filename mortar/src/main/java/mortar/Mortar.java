@@ -17,7 +17,6 @@ package mortar;
 
 import android.app.Activity;
 import android.content.Context;
-import dagger.ObjectGraph;
 
 import static java.lang.String.format;
 
@@ -33,16 +32,8 @@ public class Mortar {
    * Creates a core scope to live above the activity level, typically an app-wide singleton managed
    * by a custom {@link android.app.Application}.
    */
-  public static MortarScope createRootScope(boolean validate) {
-    return new RealScope(validate, ObjectGraph.create());
-  }
-
-  /**
-   * Creates a core scope to live above the activity level, typically an app-wide singleton managed
-   * by a custom {@link android.app.Application}.
-   */
-  public static MortarScope createRootScope(boolean validate, ObjectGraph objectGraph) {
-    return new RealScope(validate, objectGraph);
+  public static MortarScope createRootScope(Object objectGraph) {
+    return new RealScope(objectGraph);
   }
 
   /**
@@ -73,8 +64,7 @@ public class Mortar {
   }
 
   /**
-   * Destroys a scope previously created by {@link #createRootScope(boolean)} or
-   * {@link #createRootScope(boolean, ObjectGraph)}.
+   * Destroys a scope previously created by {@link Mortar#createRootScope(Object)}.
    */
   public static void destroyRootScope(MortarScope rootScope) {
     RealScope realScope = (RealScope) rootScope;
@@ -85,20 +75,12 @@ public class Mortar {
   }
 
   /**
-   * A convenience wrapper for {@link #getScope} to simplify dynamic injection, typically
-   * for {@link Activity} and {@link android.view.View} instances that must be instantiated
-   * by Android.
-   */
-  public static void inject(Context context, Object object) {
-    getScope(context).getObjectGraph().inject(object);
-  }
-
-  /**
    * Find the scope for the given {@link Context}.
    *
    * @see MortarScope#createContext(android.content.Context)
    */
   public static MortarScope getScope(Context context) {
+    //noinspection unchecked
     MortarScope scope = (MortarScope) context.getSystemService(MORTAR_SCOPE_SERVICE);
     if (scope == null) {
       throw new IllegalArgumentException(format(

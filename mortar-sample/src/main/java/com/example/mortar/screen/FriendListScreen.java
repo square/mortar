@@ -16,6 +16,7 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
+import mortar.dagger1support.Dagger1Blueprint;
 import com.example.mortar.R;
 import com.example.mortar.core.Main;
 import com.example.mortar.core.MainScope;
@@ -29,11 +30,10 @@ import flow.Layout;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.Blueprint;
 import mortar.ViewPresenter;
 
 @Layout(R.layout.friend_list_view) //
-public class FriendListScreen implements HasParent<ChatListScreen>, Blueprint {
+public class FriendListScreen extends Dagger1Blueprint implements HasParent<ChatListScreen> {
 
   @Override public String getMortarScopeName() {
     return getClass().getName();

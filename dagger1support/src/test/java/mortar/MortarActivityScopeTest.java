@@ -20,6 +20,7 @@ import dagger.Module;
 import dagger.ObjectGraph;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import mortar.dagger1support.Dagger1Blueprint;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,10 +86,10 @@ public class MortarActivityScopeTest {
     }
   }
 
-  @Module static class ModuleAndBlueprint implements Blueprint {
+  static class MyBlueprint extends Dagger1Blueprint {
     private final String name;
 
-    ModuleAndBlueprint(String name) {
+    MyBlueprint(String name) {
       this.name = name;
     }
 
@@ -97,8 +98,11 @@ public class MortarActivityScopeTest {
     }
 
     @Override public Object getDaggerModule() {
-      return this;
+      return new MyModule();
     }
+  }
+
+  @Module static class MyModule {
   }
 
   @Mock Scoped scoped;
@@ -113,8 +117,8 @@ public class MortarActivityScopeTest {
   }
 
   private void resetScope() {
-    root = createRootScope(false, ObjectGraph.create(new ModuleAndBlueprint("root")));
-    activityScope = requireActivityScope(root, new ModuleAndBlueprint("activity"));
+    root = createRootScope(ObjectGraph.create(new MyModule()));
+    activityScope = requireActivityScope(root, new MyBlueprint("activity"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -136,7 +140,7 @@ public class MortarActivityScopeTest {
 
   @Test
   public void childLifeCycle() {
-    doLifecycleTest(activityScope.requireChild(new ModuleAndBlueprint("child")));
+    doLifecycleTest(activityScope.requireChild(new MyBlueprint("child")));
   }
 
   private void doLifecycleTest(MortarScope registerScope) {
@@ -206,7 +210,7 @@ public class MortarActivityScopeTest {
     void create(Bundle bundle) {
       activityScope.onCreate(bundle);
       activityScope.register(rootBundler);
-      childScope = activityScope.requireChild(new ModuleAndBlueprint("child"));
+      childScope = activityScope.requireChild(new MyBlueprint("child"));
       childScope.register(childBundler);
     }
   }
@@ -462,7 +466,7 @@ public class MortarActivityScopeTest {
   @Test
   public void deliversChildScopeStateWhenRequireChildDuringRegisterAfterOnCreate() {
     final MyBundler childScopeBundler = new MyBundler("childScopeBundler");
-    final ModuleAndBlueprint childScopeBlueprint = new ModuleAndBlueprint("ChildScope");
+    final MyBlueprint childScopeBlueprint = new MyBlueprint("ChildScope");
 
     // When that bundler is loaded, it creates a child scope and register a bundler on it.
     MyBundler activityScopeBundler = new MyBundler("activityScopeBundler") {
@@ -507,12 +511,12 @@ public class MortarActivityScopeTest {
       @Override public void onLoad(Bundle savedInstanceState) {
         if (spawnSubScope.get()) {
           MortarScope childScope =
-              activityScope.requireChild(new ModuleAndBlueprint("child scope"));
+              activityScope.requireChild(new MyBlueprint("child scope"));
           childScope.register(childBundler);
           // 1. We're in the middle of loading, so the usual register > load call doesn't happen.
           assertThat(childBundler.loaded).isFalse();
 
-          childScope.requireChild(new ModuleAndBlueprint("grandchild scope"))
+          childScope.requireChild(new MyBlueprint("grandchild scope"))
               .register(grandChildBundler);
           assertThat(grandChildBundler.loaded).isFalse();
         }
@@ -533,9 +537,9 @@ public class MortarActivityScopeTest {
     final MyBundler grandchildBundler = new MyBundler("grandchild");
 
     final MortarScope childScope =
-        activityScope.requireChild(new ModuleAndBlueprint("child scope"));
+        activityScope.requireChild(new MyBlueprint("child scope"));
     final MortarScope grandChildScope =
-        childScope.requireChild(new ModuleAndBlueprint("grandchild scope"));
+        childScope.requireChild(new MyBlueprint("grandchild scope"));
 
     activityScope.register(new MyBundler("outer") {
       @Override public void onLoad(Bundle savedInstanceState) {
@@ -565,12 +569,12 @@ public class MortarActivityScopeTest {
         activityScope.register(peerBundler);
         assertThat(peerBundler.loaded).isTrue();
 
-        MortarScope childScope = activityScope.requireChild(new ModuleAndBlueprint("child scope"));
+        MortarScope childScope = activityScope.requireChild(new MyBlueprint("child scope"));
         childScope.register(childBundler);
         assertThat(childBundler.loaded).isFalse();
 
         MortarScope grandchildScope = childScope.requireChild(
-            new ModuleAndBlueprint("grandchild scope"));
+            new MyBlueprint("grandchild scope"));
         grandchildScope.register(grandchildBundler);
         assertThat(grandchildBundler.loaded).isFalse();
       }
@@ -586,7 +590,7 @@ public class MortarActivityScopeTest {
    */
   @Test
   public void descendantScopesCreatedDuringParentOnLoadAreNotStuckInLoadingMode() {
-    final ModuleAndBlueprint subscopeBlueprint = new ModuleAndBlueprint("subscope");
+    final MyBlueprint subscopeBlueprint = new MyBlueprint("subscope");
 
     activityScope.register(new MyBundler("outer") {
       @Override public void onLoad(Bundle savedInstanceState) {
@@ -610,7 +614,7 @@ public class MortarActivityScopeTest {
       @Override public void onLoad(Bundle savedInstanceState) {
         super.onLoad(savedInstanceState);
 
-        activityScope.requireChild(new ModuleAndBlueprint("childScope")).register(childBundler);
+        activityScope.requireChild(new MyBlueprint("childScope")).register(childBundler);
         assertThat(childBundler.loaded).isFalse();
       }
     });
@@ -635,7 +639,7 @@ public class MortarActivityScopeTest {
 
     activityScope.register(new MyBundler("root") {
       @Override public void onLoad(Bundle savedInstanceState) {
-        activityScope.requireChild(new ModuleAndBlueprint("childScope")).register(childBundler);
+        activityScope.requireChild(new MyBlueprint("childScope")).register(childBundler);
         assertThat(childBundler.loaded).isFalse();
 
         activityScope.register(service);

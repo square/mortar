@@ -34,7 +34,7 @@ public class PresenterTest {
           return "name";
         }
 
-        @Override public Object getDaggerModule() {
+        @Override public Object createSubgraph(Object parentGraph) {
           return null;
         }
       });

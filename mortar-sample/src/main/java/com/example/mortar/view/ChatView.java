@@ -24,10 +24,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import mortar.dagger1support.Dagger1;
 import com.example.mortar.model.Message;
 import com.example.mortar.screen.ChatScreen;
 import javax.inject.Inject;
-import mortar.Mortar;
 
 public class ChatView extends ListView {
   @Inject ChatScreen.Presenter presenter;
@@ -36,7 +36,7 @@ public class ChatView extends ListView {
 
   public ChatView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Mortar.inject(context, this);
+    Dagger1.inject(context, this);
     confirmerPopup = new ConfirmerPopup(context);
 
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);

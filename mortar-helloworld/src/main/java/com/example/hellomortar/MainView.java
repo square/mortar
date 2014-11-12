@@ -20,7 +20,7 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import javax.inject.Inject;
-import mortar.Mortar;
+import mortar.dagger2support.Dagger2;
 
 public class MainView extends LinearLayout {
   @Inject Main.Presenter presenter;
@@ -29,7 +29,7 @@ public class MainView extends LinearLayout {
 
   public MainView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Mortar.inject(context, this);
+    Dagger2.<Main.Component>get(context).inject(this);
   }
 
   @Override protected void onFinishInflate() {
