@@ -29,7 +29,7 @@ public abstract class Presenter<V> {
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
-      if (getView() != null && !loaded) {
+      if (hasView() && !loaded) {
         loaded = true;
         Presenter.this.onLoad(savedInstanceState);
       }
@@ -108,6 +108,14 @@ public abstract class Presenter<V> {
    */
   protected final V getView() {
     return view;
+  }
+
+  /**
+   * @return true if this presenter is currently managing a view, or false if {@link #takeView} has
+   * never been called, or after {@link #dropView}.
+   */
+  protected final boolean hasView() {
+    return view != null;
   }
 
   /** Like {@link Bundler#onEnterScope}. */

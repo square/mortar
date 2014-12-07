@@ -57,18 +57,15 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
     }
 
     whatToShow = info;
-    Popup<D, R> view = getView();
-    if (view == null) return;
-    view.show(whatToShow, WITH_FLOURISH, this);
+    if (!hasView()) return;
+    getView().show(whatToShow, WITH_FLOURISH, this);
   }
 
   public void dismiss() {
     if (whatToShow != null) {
       whatToShow = null;
-
+      if (!hasView()) return;
       Popup<D, R> popUp = getView();
-      if (popUp == null) return;
-
       if (popUp.isShowing()) popUp.dismiss(WITH_FLOURISH);
     }
   }
@@ -97,8 +94,8 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
     if (whatToShow == null) return;
 
+    if (!hasView()) return;
     Popup<D, R> view = getView();
-    if (view == null) return;
 
     if (!view.isShowing()) {
       view.show(whatToShow, !WITH_FLOURISH, this);

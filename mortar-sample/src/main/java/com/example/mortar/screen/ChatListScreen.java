@@ -60,10 +60,8 @@ public class ChatListScreen implements Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      ChatListView view = getView();
-      if (view == null) return;
-
-      view.showConversations(chats);
+      if (!hasView()) return;
+      getView().showConversations(chats);
     }
 
     public void onConversationSelected(int position) {

@@ -75,13 +75,13 @@ public class MessageScreen implements HasParent<ChatScreen>, Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      if (getView() == null) return;
+      if (!hasView()) return;
 
       messageSource.subscribe(new Action1<Message>() {
         @Override public void call(Message message) {
-          MessageView view = getView();
-          if (view == null) return;
+          if (!hasView()) return;
           Presenter.this.message = message;
+          MessageView view = getView();
           view.setUser(message.from.name);
           view.setMessage(message.body);
         }
