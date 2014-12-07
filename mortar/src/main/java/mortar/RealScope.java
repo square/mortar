@@ -121,11 +121,15 @@ class RealScope implements MortarScope {
   }
 
   @Override public void destroyChild(MortarScope child) {
+    if (child == null) {
+      throw new IllegalArgumentException(
+          format("Tried to destroy null child from scope %s", this));
+    }
     RealScope realChild = (RealScope) child;
     if (realChild.parent != this) {
-      throw new IllegalArgumentException(format("%s was created by another scope", name));
+      throw new IllegalArgumentException(
+          format("%s was created by scope %s, not %s.", realChild, realChild.parent, this));
     }
-
     realChild.doDestroy();
   }
 
