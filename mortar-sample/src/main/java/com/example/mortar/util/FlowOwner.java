@@ -77,10 +77,8 @@ public abstract class FlowOwner<S extends Blueprint, V extends View & CanShowScr
   }
 
   protected void showScreen(S newScreen, Flow.Direction flowDirection) {
-    V view = getView();
-    if (view == null) return;
-
-    view.showScreen(newScreen, flowDirection);
+    if (!hasView()) return;
+    getView().showScreen(newScreen, flowDirection);
   }
 
   public final Flow getFlow() {

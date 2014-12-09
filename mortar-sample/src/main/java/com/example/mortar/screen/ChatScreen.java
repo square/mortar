@@ -29,8 +29,6 @@ import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
 import flow.Layout;
-import flow.Parcer;
-import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.Blueprint;
@@ -95,8 +93,7 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
-      ChatView v = getView();
-      if (v == null) return;
+      if (!hasView()) return;
 
       ActionBarOwner.Config actionBarConfig = actionBar.getConfig();
 
@@ -111,13 +108,12 @@ public class ChatScreen implements HasParent<ChatListScreen>, Blueprint {
 
       actionBar.setConfig(actionBarConfig);
 
-      confirmer.takeView(v.getConfirmerPopup());
+      confirmer.takeView(getView().getConfirmerPopup());
 
       running = chat.getMessages().subscribe(new Action1<Message>() {
         @Override public void call(Message message) {
-          ChatView view = getView();
-          if (view == null) return;
-          view.getItems().add(message);
+          if (!hasView()) return;
+          getView().getItems().add(message);
         }
       });
     }

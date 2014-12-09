@@ -88,8 +88,8 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.View> {
   }
 
   private void update() {
+    if (!hasView()) return;
     View view = getView();
-    if (view == null) return;
 
     view.setShowHomeEnabled(config.showHomeEnabled);
     view.setUpButtonEnabled(config.upButtonEnabled);

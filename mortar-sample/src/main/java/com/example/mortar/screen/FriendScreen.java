@@ -66,10 +66,8 @@ public class FriendScreen implements HasParent<FriendListScreen>, Blueprint {
 
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
-      FriendView view = getView();
-      if (view == null) return;
-
-      view.setText(friend.name);
+      if (!hasView()) return;
+      getView().setText(friend.name);
     }
   }
 }
