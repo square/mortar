@@ -24,7 +24,9 @@ public class HelloApplication extends Application {
 
   @Override public void onCreate() {
     super.onCreate();
-    rootScope = Mortar.createRootScope(BuildConfig.DEBUG);
+    // No shared app level graph.
+    Object root = null;
+    rootScope = Mortar.createRootScope(root);
   }
 
   public MortarScope getRootScope() {

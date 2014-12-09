@@ -16,9 +16,7 @@
 package mortar;
 
 import android.content.Context;
-import dagger.ObjectGraph;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,36 +28,32 @@ import static java.lang.String.format;
 
 class RealScope implements MortarScope {
 
-  protected final boolean validate;
   protected final Map<String, RealScope> children = new LinkedHashMap<>();
 
   protected boolean dead;
 
   private final Set<Scoped> tearDowns = new HashSet<>();
-  private final ObjectGraph graph;
+  private final Object graph;
   private final RealScope parent;
   private final String name;
 
-  RealScope(boolean validate, ObjectGraph objectGraph) {
-    this(MortarScope.ROOT_NAME, null, validate, objectGraph);
+  RealScope(Object objectGraph) {
+    this(MortarScope.ROOT_NAME, null, objectGraph);
   }
 
-  RealScope(String name, RealScope parent, boolean validate, ObjectGraph graph) {
+  RealScope(String name, RealScope parent, Object graph) {
     this.graph = graph;
     this.parent = parent;
     this.name = name;
-    this.validate = validate;
-
-    if (validate) graph.validate();
   }
 
   @Override public final String getName() {
     return name;
   }
 
-  @Override public final ObjectGraph getObjectGraph() {
+  @Override public final <T> T getObjectGraph() {
     assertNotDead();
-    return graph;
+    return (T) graph;
   }
 
   @Override public void register(Scoped scoped) {
@@ -67,7 +61,8 @@ class RealScope implements MortarScope {
       throw new IllegalArgumentException(format("Scope %s cannot register %s instance %s. "
               + "Only %ss and their children can provide bundle services", getName(),
           Bundler.class.getSimpleName(), ((Bundler) scoped).getMortarBundleKey(),
-          MortarActivityScope.class.getSimpleName()));
+          MortarActivityScope.class.getSimpleName()
+      ));
     }
 
     doRegister(scoped);
@@ -99,17 +94,8 @@ class RealScope implements MortarScope {
     RealScope child = findChild(childName);
 
     if (child == null) {
-      Object daggerModule = blueprint.getDaggerModule();
-      ObjectGraph newGraph;
-      if (daggerModule == null) {
-        newGraph = graph.plus();
-      } else if (daggerModule instanceof Collection) {
-        Collection c = (Collection) daggerModule;
-        newGraph = graph.plus(c.toArray(new Object[c.size()]));
-      } else {
-        newGraph = graph.plus(daggerModule);
-      }
-      child = new RealScope(childName, this, validate, newGraph);
+      Object newGraph = blueprint.createSubgraph(graph);
+      child = new RealScope(childName, this, newGraph);
       children.put(childName, child);
     }
 

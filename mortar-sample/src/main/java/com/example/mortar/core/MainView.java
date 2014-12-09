@@ -18,12 +18,12 @@ package com.example.mortar.core;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
+import mortar.dagger1support.Dagger1;
 import com.example.mortar.util.CanShowScreen;
 import com.example.mortar.util.ScreenConductor;
 import flow.Flow;
 import javax.inject.Inject;
 import mortar.Blueprint;
-import mortar.Mortar;
 
 public class MainView extends FrameLayout implements CanShowScreen<Blueprint> {
   @Inject Main.Presenter presenter;
@@ -31,7 +31,7 @@ public class MainView extends FrameLayout implements CanShowScreen<Blueprint> {
 
   public MainView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Mortar.inject(context, this);
+    Dagger1.inject(context, this);
     screenMaestro = new ScreenConductor<Blueprint>(context, this);
   }
 

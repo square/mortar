@@ -16,6 +16,7 @@
 package com.example.mortar;
 
 import android.app.Application;
+import mortar.dagger1support.Dagger1;
 import com.example.mortar.core.ApplicationModule;
 import dagger.ObjectGraph;
 import mortar.Mortar;
@@ -27,8 +28,7 @@ public class DemoApplication extends Application {
   @Override public void onCreate() {
     super.onCreate();
 
-    rootScope =
-        Mortar.createRootScope(BuildConfig.DEBUG, ObjectGraph.create(new ApplicationModule()));
+    rootScope = Dagger1.createRootScope(ObjectGraph.create(new ApplicationModule()));
   }
 
   @Override public Object getSystemService(String name) {

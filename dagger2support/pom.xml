@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright 2014 Square Inc.
+  ~ Copyright 2013 Square Inc.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,6 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -24,27 +24,15 @@
     <version>0.17-SNAPSHOT</version>
   </parent>
 
-  <artifactId>mortar-helloworld</artifactId>
-  <name>Hello Mortar</name>
-  <packaging>apk</packaging>
+  <artifactId>dagger2support</artifactId>
+  <name>Dagger2 Support</name>
 
   <dependencies>
-    <dependency>
+	<dependency>
       <groupId>com.squareup.mortar</groupId>
       <artifactId>mortar</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.squareup.mortar</groupId>
-      <artifactId>dagger2support</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.android</groupId>
-      <artifactId>support-v4</artifactId>
-      <version>r7</version>
-    </dependency>
-
     <dependency>
       <groupId>com.google.dagger</groupId>
       <artifactId>dagger</artifactId>
@@ -56,29 +44,36 @@
     </dependency>
 
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup</groupId>
+      <artifactId>fest-android</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.robolectric</groupId>
+      <artifactId>robolectric</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Must go after junit for classpath sanity -->
+    <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>android</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.jayway.maven.plugins.android.generation2</groupId>
-        <artifactId>android-maven-plugin</artifactId>
-        <extensions>true</extensions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 </project>

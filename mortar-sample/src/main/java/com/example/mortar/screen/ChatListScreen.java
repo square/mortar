@@ -16,6 +16,7 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
+import mortar.dagger1support.Dagger1Blueprint;
 import com.example.mortar.R;
 import com.example.mortar.core.Main;
 import com.example.mortar.model.Chat;
@@ -27,11 +28,10 @@ import flow.Layout;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.Blueprint;
 import mortar.ViewPresenter;
 
 @Layout(R.layout.chat_list_view) //
-public class ChatListScreen implements Blueprint {
+public class ChatListScreen extends Dagger1Blueprint {
 
   @Override public String getMortarScopeName() {
     return getClass().getName();

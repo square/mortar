@@ -22,18 +22,18 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import mortar.dagger1support.Dagger1;
 import com.example.mortar.model.Chat;
 import com.example.mortar.screen.ChatListScreen;
 import java.util.List;
 import javax.inject.Inject;
-import mortar.Mortar;
 
 public class ChatListView extends ListView {
   @Inject ChatListScreen.Presenter presenter;
 
   public ChatListView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Mortar.inject(context, this);
+    Dagger1.inject(context, this);
   }
 
   @Override protected void onFinishInflate() {

@@ -39,6 +39,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.squareup.mortar</groupId>
+      <artifactId>dagger1support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>support-v4</artifactId>
       <version>r7</version>

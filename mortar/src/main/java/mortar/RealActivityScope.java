@@ -36,7 +36,7 @@ class RealActivityScope extends RealScope implements MortarActivityScope {
   private Set<Bundler> bundlers = new HashSet<>();
 
   RealActivityScope(RealScope original) {
-    super(original.getName(), original.getParent(), original.validate, original.getObjectGraph());
+    super(original.getName(), original.getParent(), original.getObjectGraph());
   }
 
   @Override public void register(Scoped scoped) {
@@ -100,7 +100,8 @@ class RealActivityScope extends RealScope implements MortarActivityScope {
     latestSavedInstanceState = outState;
 
     myLoadingState = LoadingState.SAVING;
-    for (Bundler b : new ArrayList<>(bundlers)) {
+    List<Bundler> copy = new ArrayList<>(bundlers);
+    for (Bundler b : copy) {
       // If anyone's onSave method destroyed us, short circuit.
       if (isDead()) return;
 
