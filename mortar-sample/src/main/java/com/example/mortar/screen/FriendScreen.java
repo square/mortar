@@ -16,9 +16,8 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import mortar.dagger1support.Dagger1Blueprint;
+import com.example.mortar.MortarDemoActivity;
 import com.example.mortar.R;
-import com.example.mortar.core.MortarDemoActivityBlueprint;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.User;
 import com.example.mortar.mortarscreen.WithModule;
@@ -43,7 +42,7 @@ public class FriendScreen extends Path implements HasParent {
     return new FriendListScreen();
   }
 
-  @dagger.Module(injects = FriendView.class, addsTo = MortarDemoActivityBlueprint.Module.class)
+  @dagger.Module(injects = FriendView.class, addsTo = MortarDemoActivity.Module.class)
   public class Module {
     @Provides User provideFriend(Chats chats) {
       return chats.getFriend(index);

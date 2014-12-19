@@ -18,6 +18,7 @@ package mortar;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
+import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,6 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static mortar.Mortar.requireActivityScope;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -88,7 +88,7 @@ public class PopupPresenterTest {
   }
 
   private MortarActivityScope newScope() {
-    return requireActivityScope(root, mock(Blueprint.class));
+    return Mortar.createActivityScope(root, "activity" + new Random().nextInt(), null);
   }
 
   @Test public void takeViewDoesNotShowView() {

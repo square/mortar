@@ -16,9 +16,8 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import mortar.dagger1support.Dagger1Blueprint;
+import com.example.mortar.MortarDemoActivity;
 import com.example.mortar.R;
-import com.example.mortar.core.MortarDemoActivityBlueprint;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.Message;
 import com.example.mortar.mortarscreen.WithModule;
@@ -48,7 +47,7 @@ public class MessageScreen extends Path implements HasParent {
     return new ChatScreen(chatId);
   }
 
-  @dagger.Module(injects = MessageView.class, addsTo = MortarDemoActivityBlueprint.Module.class)
+  @dagger.Module(injects = MessageView.class, addsTo = MortarDemoActivity.Module.class)
   public class Module {
     @Provides Observable<Message> provideMessage(Chats chats) {
       return chats.getChat(chatId).getMessage(messageId);

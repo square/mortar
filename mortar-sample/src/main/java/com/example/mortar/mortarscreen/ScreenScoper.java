@@ -2,15 +2,14 @@ package com.example.mortar.mortarscreen;
 
 import android.content.Context;
 import android.content.res.Resources;
-
+import dagger.ObjectGraph;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import mortar.Blueprint;
 import mortar.Mortar;
 import mortar.MortarScope;
-import mortar.dagger1support.Dagger1Blueprint;
+import mortar.dagger1support.Dagger1;
 
 import static java.lang.String.format;
 
@@ -40,24 +39,20 @@ public class ScreenScoper {
   public MortarScope getScreenScope(Resources resources, MortarScope parentScope, final String name,
       final Object screen) {
     ModuleFactory moduleFactory = getModuleFactory(screen);
-    MortarScope childScope;
+    Object childModule;
     if (moduleFactory != NO_FACTORY) {
-      Blueprint blueprint = moduleFactory.createBlueprint(resources, name, screen);
-      childScope = parentScope.requireChild(blueprint);
+      childModule = moduleFactory.createDaggerModule(resources, screen);
     } else {
       // We need every screen to have a scope, so that anything it injects is scoped.  We need
       // this even if the screen doesn't declare a module, because Dagger allows injection of
       // objects that are annotated even if they don't appear in a module.
-      Blueprint blueprint = new Dagger1Blueprint() {
-        @Override public String getMortarScopeName() {
-          return name;
-        }
-
-        @Override public Object getDaggerModule() {
-          return null;
-        }
-      };
-      childScope = parentScope.requireChild(blueprint);
+      childModule = null;
+    }
+    ObjectGraph parentGraph = parentScope.getObjectGraph();
+    MortarScope childScope = parentScope.findChild(name);
+    if (childScope == null) {
+      ObjectGraph childGraph = Dagger1.createSubgraph(parentGraph, childModule);
+      childScope = parentScope.createChild(name, childGraph);
     }
     return childScope;
   }

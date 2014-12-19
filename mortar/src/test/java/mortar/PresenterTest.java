@@ -16,6 +16,7 @@
 package mortar;
 
 import android.os.Bundle;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -24,22 +25,18 @@ import org.robolectric.annotation.Config;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 // Robolectric allows us to use Bundles.
-@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
-public class PresenterTest {
-
-  private final MortarScope root = Mortar.createRootScope(false);
-  MortarActivityScope scope =
-      Mortar.requireActivityScope(root, new Blueprint() {
-        @Override public String getMortarScopeName() {
-          return "name";
-        }
-
-        @Override public Object createSubgraph(Object parentGraph) {
-          return null;
-        }
-      });
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE) public class PresenterTest {
 
   static class SomeView {
+  }
+
+  MortarScope root;
+  MortarActivityScope scope;
+
+  @Before public void setUp() {
+    root = Mortar.createRootScope(false);
+
+    scope = Mortar.createActivityScope(root, "name", null);
   }
 
   class ChildPresenter extends Presenter<SomeView> {
@@ -144,7 +141,7 @@ public class PresenterTest {
     }
   }
 
-  /**  https://github.com/square/mortar/issues/59 */
+  /** https://github.com/square/mortar/issues/59 */
   @Test public void onLoadOnlyOncePerView() {
     SimplePresenter presenter = new SimplePresenter();
     SomeView view = new SomeView();

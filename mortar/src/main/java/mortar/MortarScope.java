@@ -47,14 +47,11 @@ public interface MortarScope {
   MortarScope findChild(String name);
 
   /**
-   * Returns the existing child whose name matches the given {@link Blueprint}'s
-   * {@link Blueprint#getMortarScopeName()} value. If there is none, a new child is created
-   * based on {@link Blueprint#createSubgraph(Object)}. Note that
-   * {@link Blueprint#createSubgraph(Object)} is not called otherwise.
+   * Creates a new child scope based on the given name and subgraph.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */
-  MortarScope requireChild(Blueprint blueprint);
+  MortarScope createChild(String childName, Object childObjectGraph);
 
   /**
    * Creates a new Context based on the given parent and this scope. e.g.:
