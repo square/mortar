@@ -27,7 +27,7 @@
       android:layout_height="wrap_content"
       android:padding="16dp"
       android:textAppearance="?android:textAppearanceMedium"
-      android:background="?attr/selectableItemBackground"
+      android:background="?android:attr/selectableItemBackground"
       />
 
   <TextView android:id="@+id/message"

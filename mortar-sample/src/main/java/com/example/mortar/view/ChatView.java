@@ -16,7 +16,6 @@
 
 package com.example.mortar.view;
 
-import android.R;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
@@ -42,8 +41,8 @@ public class ChatView extends ListView {
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
   }
 
-  @Override protected void onFinishInflate() {
-    super.onFinishInflate();
+  @Override protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 
@@ -66,7 +65,7 @@ public class ChatView extends ListView {
         (ArrayAdapter<Message>) getAdapter();
 
     if (adapter == null) {
-      adapter = new ArrayAdapter<Message>(getContext(), R.layout.simple_list_item_1);
+      adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1);
       setAdapter(adapter);
       adapter.setNotifyOnChange(true);
       setOnItemClickListener(new OnItemClickListener() {

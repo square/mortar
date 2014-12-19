@@ -15,13 +15,14 @@
  */
 package com.example.mortar.core;
 
+import com.example.flow.GsonParceler;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.QuoteService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dagger.Module;
 import dagger.Provides;
-import flow.Parcer;
+import flow.Parceler;
 import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
@@ -32,14 +33,13 @@ public class ApplicationModule {
     return new GsonBuilder().create();
   }
 
-  @Provides @Singleton Parcer<Object> provideParcer(Gson gson) {
-    return new GsonParcer<>(gson);
+  @Provides @Singleton Parceler provideParcer(Gson gson) {
+    return new GsonParceler(gson);
   }
 
   @Provides @Singleton QuoteService provideQuoteService() {
     RestAdapter restAdapter =
-        new RestAdapter.Builder()
-            .setEndpoint("http://www.iheartquotes.com/api/v1/")
+        new RestAdapter.Builder().setEndpoint("http://www.iheartquotes.com/api/v1/")
             .setConverter(new GsonConverter(new Gson()))
             .build();
     return restAdapter.create(QuoteService.class);

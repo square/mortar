@@ -17,6 +17,7 @@
 
 <com.example.hellomortar.MainView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
@@ -26,8 +27,15 @@
       android:id="@+id/text"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:fontFamily="sans-serif-condensed"
-      android:textSize="25dp"
+      android:textSize="25sp"
       android:gravity="center"
+      />
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:text="Rotate me and watch the update count increase."
+      android:textSize="18sp"
+      android:gravity="center"
+      tools:ignore="HardcodedText"
       />
 </com.example.hellomortar.MainView>

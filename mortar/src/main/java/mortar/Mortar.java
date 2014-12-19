@@ -37,29 +37,23 @@ public class Mortar {
   }
 
   /**
-   * Returns the existing {@link MortarActivityScope} scope for the given {@link Activity}, or
-   * uses the {@link Blueprint} to create one if none is found.
-   * <p/>
+   * Creates a {@link MortarActivityScope} child scope from an application scope. Used to forward
+   * lifecycle callbacks to child scopes.
+   *
+   *  <p/>
    * It is expected that this method will be called from {@link Activity#onCreate}. Calling
    * it at other times may lead to surprises.
    * <p/>
    * This scope can be destroyed by the {@link MortarScope#destroyChild} method on the
    * given parent.
    */
-  public static MortarActivityScope requireActivityScope(MortarScope parentScope,
-      final Blueprint blueprint) {
-    String name = blueprint.getMortarScopeName();
-    RealScope unwrapped = (RealScope) parentScope.requireChild(blueprint);
-
+  public static MortarActivityScope createActivityScope(MortarScope parentScope, String childName,
+      Object childGraph) {
+    RealScope unwrapped = (RealScope) parentScope.createChild(childName, childGraph);
     RealActivityScope activityScope;
-    if (unwrapped instanceof MortarActivityScope) {
-      activityScope = (RealActivityScope) unwrapped;
-    } else {
-      RealScope realParentScope = (RealScope) parentScope;
-      activityScope = new RealActivityScope(unwrapped);
-      realParentScope.replaceChild(name, activityScope);
-    }
-
+    RealScope realParentScope = (RealScope) parentScope;
+    activityScope = new RealActivityScope(unwrapped);
+    realParentScope.replaceChild(childName, activityScope);
     return activityScope;
   }
 
@@ -86,8 +80,7 @@ public class Mortar {
       throw new IllegalArgumentException(format(
           "Cannot find scope in %s. Make sure your Activity overrides getSystemService() "
               + " to return its scope if isScopeSystemService() is true",
-          context.getClass().getName()
-      ));
+          context.getClass().getName()));
     }
     return scope;
   }

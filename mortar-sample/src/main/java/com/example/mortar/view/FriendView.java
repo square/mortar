@@ -31,8 +31,8 @@ public class FriendView extends TextView  {
     Dagger1.inject(context, this);
   }
 
-  @Override protected void onFinishInflate() {
-    super.onFinishInflate();
+  @Override protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
     presenter.takeView(this);
   }
 

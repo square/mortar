@@ -29,7 +29,12 @@ public class HelloActivity extends Activity {
     super.onCreate(savedInstanceState);
 
     MortarScope parentScope = ((HelloApplication) getApplication()).getRootScope();
-    activityScope = Mortar.requireActivityScope(parentScope, new Main());
+    String scopeName = Main.class.getName();
+    activityScope = (MortarActivityScope) parentScope.findChild(scopeName);
+    if (activityScope == null) {
+      Main.Component activityGraph = Dagger2.buildComponent(Main.Component.class);
+      activityScope = Mortar.createActivityScope(parentScope, scopeName, activityGraph);
+    }
     Dagger2.<Main.Component>get(this).inject(this);
     activityScope.onCreate(savedInstanceState);
 

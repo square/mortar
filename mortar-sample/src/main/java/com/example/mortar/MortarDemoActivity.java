@@ -15,40 +15,75 @@
  */
 package com.example.mortar;
 
-import android.content.Context;
+import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import mortar.dagger1support.Dagger1;
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import android.view.Menu;
+import android.view.MenuItem;
+import com.example.flow.pathview.HandlesBack;
+import com.example.flow.pathview.HandlesUp;
+import com.example.flow.util.FlowBundler;
 import com.example.mortar.android.ActionBarOwner;
-import com.example.mortar.core.Main;
-import com.example.mortar.core.MainView;
+import com.example.mortar.core.ApplicationModule;
+import com.example.mortar.screen.FriendListScreen;
+import dagger.ObjectGraph;
 import flow.Flow;
+import flow.HasParent;
+import flow.Path;
+import flow.PathContainerView;
 import javax.inject.Inject;
 import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarScope;
 import mortar.MortarScopeDevHelper;
+import mortar.dagger1support.Dagger1;
+import rx.functions.Action0;
 
 import static android.content.Intent.ACTION_MAIN;
 import static android.content.Intent.CATEGORY_LAUNCHER;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
-/**
- * Hooks up the {@link MortarActivityScope}. Loads the {@link com.example.mortar.core.MainView}
- * and lets it know about up button and back button presses. Shares control of the {@link
- * ActionBar} via the {@link com.example.mortar.android.ActionBarOwner}.
- */
-public class DemoActivity extends SherlockActivity implements ActionBarOwner.View {
+public class MortarDemoActivity extends android.app.Activity
+    implements ActionBarOwner.Activity, Flow.Dispatcher {
+
+  @dagger.Module( //
+      addsTo = ApplicationModule.class,
+      includes = ActionBarOwner.ActionBarModule.class,
+      injects = MortarDemoActivity.class,
+      library = true //
+  )
+  public static class Module {
+  }
+
   private MortarActivityScope activityScope;
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
   @Inject ActionBarOwner actionBarOwner;
-  private Flow mainFlow;
+
+  private PathContainerView container;
+  private HandlesBack containerAsHandlesBack;
+  private HandlesUp containerAsHandlesUp;
+  private Flow flow;
+
+  @Override public MortarScope getScope() {
+    return activityScope;
+  }
+
+  @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
+    Path newScreen = traversal.destination.current();
+    boolean hasUp = newScreen instanceof HasParent;
+    String title = newScreen.getClass().getSimpleName();
+    ActionBarOwner.MenuAction menu =
+        hasUp ? null : new ActionBarOwner.MenuAction("Friends", new Action0() {
+          @Override public void call() {
+            flow.goTo(new FriendListScreen());
+          }
+        });
+    actionBarOwner.setConfig(new ActionBarOwner.Config(false, hasUp, title, menu));
+
+    container.dispatch(traversal, callback);
+  }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -58,46 +93,66 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
       return;
     }
 
+    flow = getFlowBundler().onCreate(savedInstanceState);
+
     MortarScope parentScope = Mortar.getScope(getApplication());
-    activityScope = Mortar.requireActivityScope(parentScope, new Main());
+
+    String scopeName = getLocalClassName() + "-task-" + getTaskId();
+
+    activityScope = (MortarActivityScope) parentScope.findChild(scopeName);
+    if (activityScope == null) {
+      ObjectGraph parentGraph = parentScope.getObjectGraph();
+      Module activityModule = new Module();
+      ObjectGraph activityGraph = Dagger1.createSubgraph(parentGraph, activityModule);
+      activityScope = Mortar.createActivityScope(parentScope, scopeName, activityGraph);
+    }
     Dagger1.inject(this, this);
 
     activityScope.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-    MainView mainView = (MainView) findViewById(R.id.container);
-    mainFlow = mainView.getFlow();
 
     actionBarOwner.takeView(this);
+
+    setContentView(R.layout.root_layout);
+    container = (PathContainerView) findViewById(R.id.container);
+    containerAsHandlesBack = (HandlesBack) container;
+    containerAsHandlesUp = (HandlesUp) container;
+  }
+
+  @Override protected void onResume() {
+    super.onResume();
+    flow.setDispatcher(this);
+  }
+
+  @Override protected void onPause() {
+    flow.removeDispatcher(this);
+    super.onPause();
   }
 
   @Override public Object getSystemService(String name) {
-    if (Mortar.isScopeSystemService(name)) {
-      return activityScope;
-    }
+    if (Flow.isFlowSystemService(name)) return flow;
+    if (Mortar.isScopeSystemService(name)) return activityScope;
+
     return super.getSystemService(name);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
+    getFlowBundler().onSaveInstanceState(outState);
     activityScope.onSaveInstanceState(outState);
   }
 
   /** Inform the view about back events. */
   @Override public void onBackPressed() {
-    // Give the view a chance to handle going back. If it declines the honor, let super do its thing.
-    if (!mainFlow.goBack()) super.onBackPressed();
+    if (!containerAsHandlesBack.onBackPressed()) super.onBackPressed();
   }
 
   /** Inform the view about up events. */
   @Override public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == android.R.id.home) {
-      return mainFlow.goUp();
-    }
-
+    if (item.getItemId() == android.R.id.home) return containerAsHandlesUp.onUpPressed();
     return super.onOptionsItemSelected(item);
   }
 
-  /** Configure the action bar menu as required by {@link ActionBarOwner.View}. */
+  /** Configure the action bar menu as required by {@link ActionBarOwner.Activity}. */
   @Override public boolean onCreateOptionsMenu(Menu menu) {
     if (actionBarMenuAction != null) {
       menu.add(actionBarMenuAction.title)
@@ -120,8 +175,6 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
   }
 
   @Override protected void onDestroy() {
-    super.onDestroy();
-
     actionBarOwner.dropView(this);
 
     // activityScope may be null in case isWrongInstance() returned true in onCreate()
@@ -130,25 +183,23 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
       parentScope.destroyChild(activityScope);
       activityScope = null;
     }
-  }
 
-  @Override public Context getMortarContext() {
-    return this;
+    super.onDestroy();
   }
 
   @Override public void setShowHomeEnabled(boolean enabled) {
-    ActionBar actionBar = getSupportActionBar();
+    ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
   }
 
   @Override public void setUpButtonEnabled(boolean enabled) {
-    ActionBar actionBar = getSupportActionBar();
+    ActionBar actionBar = getActionBar();
     actionBar.setDisplayHomeAsUpEnabled(enabled);
     actionBar.setHomeButtonEnabled(enabled);
   }
 
   @Override public void setTitle(CharSequence title) {
-    getSupportActionBar().setTitle(title);
+    getActionBar().setTitle(title);
   }
 
   @Override public void setMenu(ActionBarOwner.MenuAction action) {
@@ -171,5 +222,9 @@ public class DemoActivity extends SherlockActivity implements ActionBarOwner.Vie
       return intent.hasCategory(CATEGORY_LAUNCHER) && isMainAction;
     }
     return false;
+  }
+
+  private FlowBundler getFlowBundler() {
+    return ((MortarDemoApplication) getApplication()).getFlowBundler();
   }
 }

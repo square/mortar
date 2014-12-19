@@ -16,34 +16,26 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import mortar.dagger1support.Dagger1Blueprint;
+import com.example.mortar.MortarDemoActivity;
 import com.example.mortar.R;
-import com.example.mortar.core.Main;
-import com.example.mortar.core.MainScope;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.User;
+import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.FriendListView;
 import dagger.Provides;
 import flow.Flow;
 import flow.HasParent;
 import flow.Layout;
+import flow.Path;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.ViewPresenter;
 
-@Layout(R.layout.friend_list_view) //
-public class FriendListScreen extends Dagger1Blueprint implements HasParent<ChatListScreen> {
+@Layout(R.layout.friend_list_view) @WithModule(FriendListScreen.Module.class)
+public class FriendListScreen extends Path implements HasParent {
 
-  @Override public String getMortarScopeName() {
-    return getClass().getName();
-  }
-
-  @Override public Object getDaggerModule() {
-    return new Module();
-  }
-
-  @dagger.Module(injects = FriendListView.class, addsTo = Main.Module.class)
+  @dagger.Module(injects = FriendListView.class, addsTo = MortarDemoActivity.Module.class)
   public static class Module {
     @Provides List<User> provideFriends(Chats chats) {
       return chats.getFriends();
@@ -53,11 +45,9 @@ public class FriendListScreen extends Dagger1Blueprint implements HasParent<Chat
   @Singleton
   public static class Presenter extends ViewPresenter<FriendListView> {
     private final List<User> friends;
-    private final Flow flow;
 
-    @Inject Presenter(List<User> friends, @MainScope Flow flow) {
+    @Inject Presenter(List<User> friends) {
       this.friends = friends;
-      this.flow = flow;
     }
 
     @Override public void onLoad(Bundle savedInstanceState) {
@@ -67,7 +57,7 @@ public class FriendListScreen extends Dagger1Blueprint implements HasParent<Chat
     }
 
     public void onFriendSelected(int position) {
-      flow.goTo(new FriendScreen(position));
+      Flow.get(getView()).goTo(new FriendScreen(position));
     }
   }
 
