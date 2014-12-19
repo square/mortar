@@ -53,6 +53,7 @@ class RealScope implements MortarScope {
 
   @Override public final <T> T getObjectGraph() {
     assertNotDead();
+    //noinspection unchecked
     return (T) graph;
   }
 
@@ -61,8 +62,7 @@ class RealScope implements MortarScope {
       throw new IllegalArgumentException(format("Scope %s cannot register %s instance %s. "
               + "Only %ss and their children can provide bundle services", getName(),
           Bundler.class.getSimpleName(), ((Bundler) scoped).getMortarBundleKey(),
-          MortarActivityScope.class.getSimpleName()
-      ));
+          MortarActivityScope.class.getSimpleName()));
     }
 
     doRegister(scoped);
@@ -86,19 +86,13 @@ class RealScope implements MortarScope {
     return children.get(childName);
   }
 
-  @Override
-  public MortarScope requireChild(Blueprint blueprint) {
+  @Override public MortarScope createChild(String childName, Object childObjectGraph) {
     assertNotDead();
-
-    String childName = blueprint.getMortarScopeName();
-    RealScope child = findChild(childName);
-
-    if (child == null) {
-      Object newGraph = blueprint.createSubgraph(graph);
-      child = new RealScope(childName, this, newGraph);
-      children.put(childName, child);
+    if (children.containsKey(childName)) {
+      throw new IllegalArgumentException(name + " Scope already has a child named " + childName);
     }
-
+    RealScope child = new RealScope(childName, this, childObjectGraph);
+    children.put(childName, child);
     return child;
   }
 
@@ -108,8 +102,7 @@ class RealScope implements MortarScope {
 
   @Override public void destroyChild(MortarScope child) {
     if (child == null) {
-      throw new IllegalArgumentException(
-          format("Tried to destroy null child from scope %s", this));
+      throw new IllegalArgumentException(format("Tried to destroy null child from scope %s", this));
     }
     RealScope realChild = (RealScope) child;
     if (realChild.parent != this) {

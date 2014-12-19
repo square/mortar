@@ -89,7 +89,7 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.Activity> {
   }
 
   private void update() {
-	if (!hasView()) return;
+    if (!hasView()) return;
     Activity activity = getView();
 
     activity.setShowHomeEnabled(config.showHomeEnabled);

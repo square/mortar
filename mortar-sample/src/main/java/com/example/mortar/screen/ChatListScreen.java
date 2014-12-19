@@ -16,9 +16,8 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import mortar.dagger1support.Dagger1Blueprint;
+import com.example.mortar.MortarDemoActivity;
 import com.example.mortar.R;
-import com.example.mortar.core.MortarDemoActivityBlueprint;
 import com.example.mortar.model.Chat;
 import com.example.mortar.model.Chats;
 import com.example.mortar.mortarscreen.WithModule;
@@ -35,7 +34,7 @@ import mortar.ViewPresenter;
 @Layout(R.layout.chat_list_view) @WithModule(ChatListScreen.Module.class)
 public class ChatListScreen extends Path {
 
-  @dagger.Module(injects = ChatListView.class, addsTo = MortarDemoActivityBlueprint.Module.class)
+  @dagger.Module(injects = ChatListView.class, addsTo = MortarDemoActivity.Module.class)
   public static class Module {
     @Provides List<Chat> provideConversations(Chats chats) {
       return chats.getAll();

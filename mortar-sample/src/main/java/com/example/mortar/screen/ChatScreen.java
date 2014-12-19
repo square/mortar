@@ -16,10 +16,9 @@
 package com.example.mortar.screen;
 
 import android.os.Bundle;
-import mortar.dagger1support.Dagger1Blueprint;
+import com.example.mortar.MortarDemoActivity;
 import com.example.mortar.R;
 import com.example.mortar.android.ActionBarOwner;
-import com.example.mortar.core.MortarDemoActivityBlueprint;
 import com.example.mortar.model.Chat;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.Message;
@@ -52,7 +51,7 @@ public class ChatScreen extends Path implements HasParent {
     return new ChatListScreen();
   }
 
-  @dagger.Module(injects = ChatView.class, addsTo = MortarDemoActivityBlueprint.Module.class)
+  @dagger.Module(injects = ChatView.class, addsTo = MortarDemoActivity.Module.class)
   public class Module {
     @Provides Chat provideConversation(Chats chats) {
       return chats.getChat(conversationIndex);

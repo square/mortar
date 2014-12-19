@@ -19,15 +19,15 @@ import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import mortar.dagger1support.Dagger1;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.example.flow.pathview.HandlesBack;
 import com.example.flow.pathview.HandlesUp;
 import com.example.flow.util.FlowBundler;
 import com.example.mortar.android.ActionBarOwner;
-import com.example.mortar.core.MortarDemoActivityBlueprint;
+import com.example.mortar.core.ApplicationModule;
 import com.example.mortar.screen.FriendListScreen;
+import dagger.ObjectGraph;
 import flow.Flow;
 import flow.HasParent;
 import flow.Path;
@@ -37,6 +37,7 @@ import mortar.Mortar;
 import mortar.MortarActivityScope;
 import mortar.MortarScope;
 import mortar.MortarScopeDevHelper;
+import mortar.dagger1support.Dagger1;
 import rx.functions.Action0;
 
 import static android.content.Intent.ACTION_MAIN;
@@ -45,6 +46,16 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
 public class MortarDemoActivity extends android.app.Activity
     implements ActionBarOwner.Activity, Flow.Dispatcher {
+
+  @dagger.Module( //
+      addsTo = ApplicationModule.class,
+      includes = ActionBarOwner.ActionBarModule.class,
+      injects = MortarDemoActivity.class,
+      library = true //
+  )
+  public static class Module {
+  }
+
   private MortarActivityScope activityScope;
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
@@ -85,7 +96,16 @@ public class MortarDemoActivity extends android.app.Activity
     flow = getFlowBundler().onCreate(savedInstanceState);
 
     MortarScope parentScope = Mortar.getScope(getApplication());
-    activityScope = Mortar.requireActivityScope(parentScope, new MortarDemoActivityBlueprint(this));
+
+    String scopeName = getLocalClassName() + "-task-" + getTaskId();
+
+    activityScope = (MortarActivityScope) parentScope.findChild(scopeName);
+    if (activityScope == null) {
+      ObjectGraph parentGraph = parentScope.getObjectGraph();
+      Module activityModule = new Module();
+      ObjectGraph activityGraph = Dagger1.createSubgraph(parentGraph, activityModule);
+      activityScope = Mortar.createActivityScope(parentScope, scopeName, activityGraph);
+    }
     Dagger1.inject(this, this);
 
     activityScope.onCreate(savedInstanceState);

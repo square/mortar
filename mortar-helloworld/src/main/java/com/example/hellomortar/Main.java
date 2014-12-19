@@ -21,18 +21,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import mortar.Blueprint;
-import mortar.dagger2support.Dagger2;
 import mortar.ViewPresenter;
 
-public class Main implements Blueprint {
-  @Override public String getMortarScopeName() {
-    return getClass().getName();
-  }
-
-  @Override public Object createSubgraph(Object parentGraph) {
-    return Dagger2.buildComponent(Component.class);
-  }
+public class Main {
 
   @dagger.Component @Singleton interface Component {
     void inject(HelloActivity t);
