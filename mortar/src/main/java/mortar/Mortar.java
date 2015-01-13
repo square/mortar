@@ -43,9 +43,6 @@ public class Mortar {
    *  <p/>
    * It is expected that this method will be called from {@link Activity#onCreate}. Calling
    * it at other times may lead to surprises.
-   * <p/>
-   * This scope can be destroyed by the {@link MortarScope#destroyChild} method on the
-   * given parent.
    */
   public static MortarActivityScope createActivityScope(MortarScope parentScope, String childName,
       Object childGraph) {
@@ -55,17 +52,6 @@ public class Mortar {
     activityScope = new RealActivityScope(unwrapped);
     realParentScope.replaceChild(childName, activityScope);
     return activityScope;
-  }
-
-  /**
-   * Destroys a scope previously created by {@link Mortar#createRootScope(Object)}.
-   */
-  public static void destroyRootScope(MortarScope rootScope) {
-    RealScope realScope = (RealScope) rootScope;
-    if (!realScope.isRoot()) {
-      throw new IllegalArgumentException(String.format("%s is not a root", realScope.getName()));
-    }
-    realScope.doDestroy();
   }
 
   /**

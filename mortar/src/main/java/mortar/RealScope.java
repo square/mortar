@@ -77,10 +77,6 @@ class RealScope implements MortarScope {
     return parent;
   }
 
-  boolean isRoot() {
-    return parent == null;
-  }
-
   @Override public RealScope findChild(String childName) {
     assertNotDead();
     return children.get(childName);
@@ -100,18 +96,6 @@ class RealScope implements MortarScope {
     return new MortarContextWrapper(parentContext, this);
   }
 
-  @Override public void destroyChild(MortarScope child) {
-    if (child == null) {
-      throw new IllegalArgumentException(format("Tried to destroy null child from scope %s", this));
-    }
-    RealScope realChild = (RealScope) child;
-    if (realChild.parent != this) {
-      throw new IllegalArgumentException(
-          format("%s was created by scope %s, not %s.", realChild, realChild.parent, this));
-    }
-    realChild.doDestroy();
-  }
-
   @Override public boolean isDestroyed() {
     return dead;
   }
@@ -127,7 +111,7 @@ class RealScope implements MortarScope {
     children.remove(child.getName());
   }
 
-  void doDestroy() {
+  @Override public void destroy() {
     if (dead) return;
     dead = true;
 
@@ -136,7 +120,7 @@ class RealScope implements MortarScope {
     if (parent != null) parent.onChildDestroyed(this);
 
     List<RealScope> snapshot = new ArrayList<>(children.values());
-    for (RealScope child : snapshot) child.doDestroy();
+    for (RealScope child : snapshot) child.destroy();
   }
 
   @Override public String toString() {
