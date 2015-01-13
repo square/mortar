@@ -31,9 +31,12 @@ public interface MortarScope {
   <T> T getObjectGraph();
 
   /**
-   * Register the given {@link Scoped} instance to have its {@link Scoped#onExitScope()}
-   * method called from {@link MortarScope#destroyChild(MortarScope)}. Redundant calls are safe,
-   * they will not lead to double registration.
+   * Register the given {@link Scoped} instance to have its {@link Scoped#onEnterScope(MortarScope)}
+   * and {@link Scoped#onExitScope()} methods called. Redundant registrations are safe,
+   * they will not lead to additional calls to these two methods.
+   * <p>
+   * Calls to {@link Scoped#onEnterScope(MortarScope) onEnterScope} are dispatched asynchronously if
+   * a {@code register} call is already in progress.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */
@@ -67,7 +70,7 @@ public interface MortarScope {
    * registration list. Recursively destroys all children. Parent scope drops its reference
    * to this instance. Redundant calls to this method are safe.
    */
-  void destroyChild(MortarScope child);
+  void destroy();
 
   /** Returns true if this scope has been destroyed, false otherwise. */
   boolean isDestroyed();

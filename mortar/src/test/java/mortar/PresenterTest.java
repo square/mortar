@@ -215,12 +215,12 @@ import static org.fest.assertions.api.Assertions.assertThat;
     assertThat(presenter.registered).isNull();
   }
 
-  @Test public void onDestroyedIsFired() {
+  @Test public void onExitIsFired() {
     SimplePresenter presenter = new SimplePresenter();
     SomeView viewOne = new SomeView();
 
     presenter.takeView(viewOne);
-    root.destroyChild(scope);
+    scope.destroy();
 
     assertThat(presenter.destroyed).isSameAs(scope);
   }

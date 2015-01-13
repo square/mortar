@@ -148,7 +148,7 @@ public class PopupPresenterTest {
   @Test public void destroyDismissesWithoutFlourish() {
     presenter.takeView(view);
     when(view.isShowing()).thenReturn(true);
-    root.destroyChild(scope);
+    scope.destroy();
     verify(view).dismiss(eq(WITHOUT_FLOURISH));
   }
 
