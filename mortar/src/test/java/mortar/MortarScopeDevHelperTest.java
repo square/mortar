@@ -17,7 +17,6 @@ package mortar;
 
 import org.junit.Test;
 
-import static mortar.Mortar.createRootScope;
 import static mortar.MortarScopeDevHelper.scopeHierarchyToString;
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -25,18 +24,18 @@ public class MortarScopeDevHelperTest {
   private static final char BLANK = '\u00a0';
 
   @Test public void nestedScopeHierarchyToString() {
-    MortarScope root = createRootScope(emptyObjectGraph());
-    root.createChild("Cadet", null);
+    MortarScope root = MortarScope.buildRootScope().build();
+    root.buildChild("Cadet").build();
 
-    MortarScope colonel = root.createChild("Colonel", null);
-    colonel.createChild("ElderColonel", null);
-    colonel.createChild("ZeElderColonel", null);
+    MortarScope colonel = root.buildChild("Colonel").build();
+    colonel.buildChild("ElderColonel").build();
+    colonel.buildChild("ZeElderColonel").build();
 
-    MortarScope elder = root.createChild("Elder", null);
-    elder.createChild("ElderCadet", null);
-    elder.createChild("ZeElderCadet", null);
-    elder.createChild("ElderElder", null);
-    elder.createChild("AnElderCadet", null);
+    MortarScope elder = root.buildChild("Elder").build();
+    elder.buildChild("ElderCadet").build();
+    elder.buildChild("ZeElderCadet").build();
+    elder.buildChild("ElderElder").build();
+    elder.buildChild("AnElderCadet").build();
 
     String hierarchy = scopeHierarchyToString(root);
     assertThat(hierarchy).isEqualTo("" //
@@ -55,8 +54,8 @@ public class MortarScopeDevHelperTest {
   }
 
   @Test public void startsFromMortarScope() {
-    MortarScope root = createRootScope(emptyObjectGraph());
-    MortarScope child = root.createChild("Child", null);
+    MortarScope root = MortarScope.buildRootScope().build();
+    MortarScope child = root.buildChild("Child").build();
 
     String hierarchy = scopeHierarchyToString(child);
 
@@ -68,9 +67,9 @@ public class MortarScopeDevHelperTest {
   }
 
   @Test public void noSpaceAtLineBeginnings() {
-    MortarScope root = createRootScope(emptyObjectGraph());
-    MortarScope child = root.createChild("Child", null);
-    child.createChild("Grand Child", null);
+    MortarScope root = MortarScope.buildRootScope().build();
+    MortarScope child = root.buildChild("Child").build();
+    child.buildChild("Grand Child").build();
 
     String hierarchy = scopeHierarchyToString(root);
 
@@ -80,9 +79,5 @@ public class MortarScopeDevHelperTest {
         + BLANK + "`-SCOPE Child\n" //
         + BLANK + "  `-SCOPE Grand Child\n" //
     );
-  }
-
-  private Object emptyObjectGraph() {
-    return new Object();
   }
 }

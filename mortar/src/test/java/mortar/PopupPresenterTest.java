@@ -18,7 +18,7 @@ package mortar;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
-import java.util.Random;
+import mortar.bundler.BundleServiceRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +28,7 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static mortar.bundler.BundleServiceRunner.getBundleServiceRunner;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -66,29 +67,33 @@ public class PopupPresenterTest {
   @Mock Context context;
 
   MortarScope root;
-  MortarActivityScope scope;
+  MortarScope activityScope;
   TestPopupPresenter presenter;
 
   @Before public void setUp() {
     initMocks(this);
     when(view.getContext()).thenReturn(context);
-    when((context).getSystemService(anyString())).then(returnScope());
-    root = Mortar.createRootScope(false);
-    scope = newScope();
-    scope.onCreate(null);
+    when((context).getSystemService(anyString())).then(returnScopedService());
+
+    newProcess();
+    getBundleServiceRunner(activityScope).onCreate(null);
     presenter = new TestPopupPresenter();
   }
 
-  private Answer<Object> returnScope() {
-    return new Answer<Object>() {
-      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
-        return scope;
-      }
-    };
+  /** Simulate a new proecess by creating brand new scope instances. */
+  private void newProcess() {
+    root = MortarScope.buildRootScope().build();
+    activityScope = root.buildChild("activity")
+        .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
+        .build();
   }
 
-  private MortarActivityScope newScope() {
-    return Mortar.createActivityScope(root, "activity" + new Random().nextInt(), null);
+  private Answer<Object> returnScopedService() {
+    return new Answer<Object>() {
+      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
+        return activityScope.getService((String) invocation.getArguments()[0]);
+      }
+    };
   }
 
   @Test public void takeViewDoesNotShowView() {
@@ -148,7 +153,7 @@ public class PopupPresenterTest {
   @Test public void destroyDismissesWithoutFlourish() {
     presenter.takeView(view);
     when(view.isShowing()).thenReturn(true);
-    scope.destroy();
+    activityScope.destroy();
     verify(view).dismiss(eq(WITHOUT_FLOURISH));
   }
 
@@ -158,10 +163,10 @@ public class PopupPresenterTest {
     presenter.show(info);
 
     Bundle state = new Bundle();
-    scope.onSaveInstanceState(state);
+    getBundleServiceRunner(activityScope).onSaveInstanceState(state);
 
-    scope = newScope();
-    scope.onCreate(state);
+    newProcess();
+    getBundleServiceRunner(activityScope).onCreate(state);
 
     presenter = new TestPopupPresenter();
     presenter.takeView(view);
@@ -184,9 +189,9 @@ public class PopupPresenterTest {
     presenter2.show(info2);
 
     Bundle state = new Bundle();
-    scope.onSaveInstanceState(state);
-    scope = newScope();
-    scope.onCreate(state);
+    getBundleServiceRunner(activityScope).onSaveInstanceState(state);
+    newProcess();
+    getBundleServiceRunner(activityScope).onCreate(state);
 
     presenter1 = new TestPopupPresenter(customStateKey1);
     presenter1.takeView(view);

@@ -22,7 +22,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import mortar.dagger1support.Dagger1;
+import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.model.User;
 import com.example.mortar.screen.FriendListScreen;
 import java.util.List;
@@ -33,7 +33,7 @@ public class FriendListView extends ListView {
 
   public FriendListView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Dagger1.inject(context, this);
+    ObjectGraphService.inject(context, this);
   }
 
   @Override protected void onAttachedToWindow() {

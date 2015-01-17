@@ -23,7 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
-import mortar.dagger1support.Dagger1;
+import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.model.Message;
 import com.example.mortar.screen.ChatScreen;
 import javax.inject.Inject;
@@ -35,7 +35,7 @@ public class ChatView extends ListView {
 
   public ChatView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Dagger1.inject(context, this);
+    ObjectGraphService.inject(context, this);
     confirmerPopup = new ConfirmerPopup(context);
 
     setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);

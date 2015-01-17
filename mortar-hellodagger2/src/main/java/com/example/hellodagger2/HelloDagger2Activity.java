@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.hellomortar;
+package com.example.hellodagger2;
 
 import android.app.Activity;
 import android.os.Bundle;
 import mortar.MortarScope;
 import mortar.bundler.BundleServiceRunner;
+import mortar.dagger2support.DaggerService;
 
 import static mortar.MortarScope.buildChild;
 import static mortar.MortarScope.findChild;
+import static mortar.dagger2support.DaggerService.createComponent;
 
-public class HelloActivity extends Activity {
+public class HelloDagger2Activity extends Activity {
   @Override public Object getSystemService(String name) {
     MortarScope activityScope = findChild(getApplicationContext(), getScopeName());
 
     if (activityScope == null) {
       activityScope = buildChild(getApplicationContext(), getScopeName()) //
           .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
-          .withService(HelloPresenter.class.getName(), new HelloPresenter())
+          .withService(DaggerService.SERVICE_NAME, createComponent(Main.Component.class))
           .build();
     }
 

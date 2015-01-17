@@ -15,7 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    >
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -35,24 +38,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.squareup.mortar</groupId>
-      <artifactId>dagger2support</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>support-v4</artifactId>
       <version>r7</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.dagger</groupId>
-      <artifactId>dagger</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.dagger</groupId>
-      <artifactId>dagger-compiler</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

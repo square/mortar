@@ -15,13 +15,16 @@
  */
 package com.example.mortar.android;
 
+import android.content.Context;
 import android.os.Bundle;
 import dagger.Module;
 import dagger.Provides;
 import javax.inject.Singleton;
-import mortar.MortarScope;
 import mortar.Presenter;
+import mortar.bundler.BundleService;
 import rx.functions.Action0;
+
+import static mortar.bundler.BundleService.getBundleService;
 
 /** Allows shared configuration of the Android ActionBar. */
 public class ActionBarOwner extends Presenter<ActionBarOwner.Activity> {
@@ -34,7 +37,7 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.Activity> {
 
     void setMenu(MenuAction action);
 
-    MortarScope getScope();
+    Context getContext();
   }
 
   public static class Config {
@@ -84,8 +87,8 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.Activity> {
     return config;
   }
 
-  @Override protected MortarScope extractScope(Activity activity) {
-    return activity.getScope();
+  @Override protected BundleService extractBundleService(Activity activity) {
+    return getBundleService(activity.getContext());
   }
 
   private void update() {

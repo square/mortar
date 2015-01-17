@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.hellomortar;
+package com.example.hellodagger2;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import javax.inject.Inject;
-import mortar.dagger2support.Dagger2;
+import mortar.dagger2support.DaggerService;
 
 public class MainView extends LinearLayout {
   @Inject Main.Presenter presenter;
@@ -29,7 +29,7 @@ public class MainView extends LinearLayout {
 
   public MainView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Dagger2.<Main.Component>get(context).inject(this);
+    DaggerService.<Main.Component>getDaggerComponent(context).inject(this);
   }
 
   @Override protected void onFinishInflate() {
@@ -43,8 +43,8 @@ public class MainView extends LinearLayout {
   }
 
   @Override protected void onDetachedFromWindow() {
-    super.onDetachedFromWindow();
     presenter.dropView(this);
+    super.onDetachedFromWindow();
   }
 
   public void show(CharSequence stuff) {

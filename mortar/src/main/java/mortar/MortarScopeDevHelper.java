@@ -40,30 +40,22 @@ public class MortarScopeDevHelper {
     }
 
     @Override public List<Node> getChildNodes() {
-      List<Node> childNodes = new ArrayList<Node>();
+      List<Node> childNodes = new ArrayList<>();
       addScopeChildren(childNodes);
       return childNodes;
     }
 
     private void addScopeChildren(List<Node> childNodes) {
-      if (!(mortarScope instanceof RealScope)) {
-        return;
-      }
-      RealScope realScope = (RealScope) mortarScope;
-      for (MortarScope childScope : realScope.children.values()) {
+      for (MortarScope childScope : mortarScope.children.values()) {
         childNodes.add(new MortarScopeNode(childScope));
       }
     }
   }
 
 
-  private static MortarScope getRootScope(MortarScope mortarScope) {
-    if (!(mortarScope instanceof RealScope)) {
-      return mortarScope;
-    }
-    RealScope scope = (RealScope) mortarScope;
-    while (scope.getParent() != null) {
-      scope = scope.getParent();
+  private static MortarScope getRootScope(MortarScope scope) {
+    while (scope.parent != null) {
+      scope = scope.parent;
     }
     return scope;
   }

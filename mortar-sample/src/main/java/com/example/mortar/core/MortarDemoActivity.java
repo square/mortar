@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.mortar;
+package com.example.mortar.core;
 
 import android.app.ActionBar;
-import android.content.Intent;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -24,39 +24,31 @@ import android.view.MenuItem;
 import com.example.flow.pathview.HandlesBack;
 import com.example.flow.pathview.HandlesUp;
 import com.example.flow.util.FlowBundler;
+import com.example.mortar.R;
 import com.example.mortar.android.ActionBarOwner;
-import com.example.mortar.core.ApplicationModule;
 import com.example.mortar.screen.FriendListScreen;
-import dagger.ObjectGraph;
 import flow.Flow;
 import flow.HasParent;
 import flow.Path;
 import flow.PathContainerView;
 import javax.inject.Inject;
-import mortar.Mortar;
-import mortar.MortarActivityScope;
 import mortar.MortarScope;
 import mortar.MortarScopeDevHelper;
-import mortar.dagger1support.Dagger1;
+import mortar.bundler.BundleServiceRunner;
+import mortar.dagger1support.ObjectGraphService;
 import rx.functions.Action0;
 
-import static android.content.Intent.ACTION_MAIN;
-import static android.content.Intent.CATEGORY_LAUNCHER;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static mortar.bundler.BundleServiceRunner.getBundleServiceRunner;
 
+/**
+ * A well intentioned but overly complex sample that demonstrates
+ * the use of Mortar, Flow and Dagger in a single app.
+ */
 public class MortarDemoActivity extends android.app.Activity
     implements ActionBarOwner.Activity, Flow.Dispatcher {
 
-  @dagger.Module( //
-      addsTo = ApplicationModule.class,
-      includes = ActionBarOwner.ActionBarModule.class,
-      injects = MortarDemoActivity.class,
-      library = true //
-  )
-  public static class Module {
-  }
-
-  private MortarActivityScope activityScope;
+  private MortarScope activityScope;
   private ActionBarOwner.MenuAction actionBarMenuAction;
 
   @Inject ActionBarOwner actionBarOwner;
@@ -66,8 +58,8 @@ public class MortarDemoActivity extends android.app.Activity
   private HandlesUp containerAsHandlesUp;
   private Flow flow;
 
-  @Override public MortarScope getScope() {
-    return activityScope;
+  @Override public Context getContext() {
+    return this;
   }
 
   @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
@@ -88,27 +80,21 @@ public class MortarDemoActivity extends android.app.Activity
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (isWrongInstance()) {
-      finish();
-      return;
-    }
-
     flow = getFlowBundler().onCreate(savedInstanceState);
 
-    MortarScope parentScope = Mortar.getScope(getApplication());
+    MortarScope parentScope = MortarScope.getScope(getApplication());
 
     String scopeName = getLocalClassName() + "-task-" + getTaskId();
 
-    activityScope = (MortarActivityScope) parentScope.findChild(scopeName);
+    activityScope = parentScope.findChild(scopeName);
     if (activityScope == null) {
-      ObjectGraph parentGraph = parentScope.getObjectGraph();
-      Module activityModule = new Module();
-      ObjectGraph activityGraph = Dagger1.createSubgraph(parentGraph, activityModule);
-      activityScope = Mortar.createActivityScope(parentScope, scopeName, activityGraph);
+      activityScope = parentScope.buildChild(scopeName)
+          .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
+          .build();
     }
-    Dagger1.inject(this, this);
+    ObjectGraphService.inject(this, this);
 
-    activityScope.onCreate(savedInstanceState);
+    getBundleServiceRunner(activityScope).onCreate(savedInstanceState);
 
     actionBarOwner.takeView(this);
 
@@ -130,15 +116,16 @@ public class MortarDemoActivity extends android.app.Activity
 
   @Override public Object getSystemService(String name) {
     if (Flow.isFlowSystemService(name)) return flow;
-    if (Mortar.isScopeSystemService(name)) return activityScope;
 
-    return super.getSystemService(name);
+    return activityScope != null && activityScope.hasService(name) ? activityScope.getService(name)
+        : super.getSystemService(name);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
     getFlowBundler().onSaveInstanceState(outState);
-    activityScope.onSaveInstanceState(outState);
+    getBundleServiceRunner(this).
+        onSaveInstanceState(outState);
   }
 
   /** Inform the view about back events. */
@@ -179,8 +166,7 @@ public class MortarDemoActivity extends android.app.Activity
 
     // activityScope may be null in case isWrongInstance() returned true in onCreate()
     if (isFinishing() && activityScope != null) {
-      MortarScope parentScope = Mortar.getScope(getApplication());
-      parentScope.destroyChild(activityScope);
+      activityScope.destroy();
       activityScope = null;
     }
 
@@ -207,21 +193,6 @@ public class MortarDemoActivity extends android.app.Activity
       actionBarMenuAction = action;
       invalidateOptionsMenu();
     }
-  }
-
-  /**
-   * Dev tools and the play store (and others?) launch with a different intent, and so
-   * lead to a redundant instance of this activity being spawned. <a
-   * href="http://stackoverflow.com/questions/17702202/find-out-whether-the-current-activity-will-be-task-root-eventually-after-pendin"
-   * >Details</a>.
-   */
-  private boolean isWrongInstance() {
-    if (!isTaskRoot()) {
-      Intent intent = getIntent();
-      boolean isMainAction = intent.getAction() != null && intent.getAction().equals(ACTION_MAIN);
-      return intent.hasCategory(CATEGORY_LAUNCHER) && isMainAction;
-    }
-    return false;
   }
 
   private FlowBundler getFlowBundler() {

@@ -1,21 +1,23 @@
 /*
- * Copyright 2014 Square Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2014 Square Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package mortar;
 
 import android.os.Bundle;
+import mortar.bundler.BundleService;
+import mortar.bundler.BundleServiceRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,18 +27,19 @@ import org.robolectric.annotation.Config;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 // Robolectric allows us to use Bundles.
-@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE) public class PresenterTest {
-
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
+public class PresenterTest {
   static class SomeView {
   }
 
   MortarScope root;
-  MortarActivityScope scope;
+  MortarScope activityScope;
 
   @Before public void setUp() {
-    root = Mortar.createRootScope(false);
-
-    scope = Mortar.createActivityScope(root, "name", null);
+    root = MortarScope.buildRootScope().build();
+    activityScope = root.buildChild("name")
+        .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
+        .build();
   }
 
   class ChildPresenter extends Presenter<SomeView> {
@@ -47,8 +50,8 @@ import static org.fest.assertions.api.Assertions.assertThat;
       this.payload = payload;
     }
 
-    @Override protected MortarScope extractScope(SomeView view) {
-      return scope;
+    @Override protected BundleService extractBundleService(SomeView view) {
+      return BundleService.getBundleService(activityScope);
     }
 
     @Override protected void onSave(Bundle savedInstanceState) {
@@ -64,8 +67,8 @@ import static org.fest.assertions.api.Assertions.assertThat;
   }
 
   class ParentPresenter extends Presenter<SomeView> {
-    @Override protected MortarScope extractScope(SomeView view) {
-      return scope;
+    @Override protected BundleService extractBundleService(SomeView view) {
+      return BundleService.getBundleService(activityScope);
     }
 
     // The child presenters are anonymous inner classes but of the same
@@ -90,7 +93,9 @@ import static org.fest.assertions.api.Assertions.assertThat;
   }
 
   @Test public void childPresentersGetTheirOwnBundles() {
-    scope.onCreate(null);
+    BundleServiceRunner bundleServiceRunner =
+        BundleServiceRunner.getBundleServiceRunner(activityScope);
+    bundleServiceRunner.onCreate(null);
 
     ParentPresenter presenter = new ParentPresenter();
     SomeView view = new SomeView();
@@ -98,10 +103,10 @@ import static org.fest.assertions.api.Assertions.assertThat;
     presenter.takeView(view);
 
     Bundle bundle = new Bundle();
-    scope.onSaveInstanceState(bundle);
+    bundleServiceRunner.onSaveInstanceState(bundle);
     presenter.dropView(view);
 
-    scope.onCreate(bundle);
+    bundleServiceRunner.onCreate(bundle);
     presenter.takeView(view);
 
     /**
@@ -123,8 +128,8 @@ import static org.fest.assertions.api.Assertions.assertThat;
       registered = scope;
     }
 
-    @Override protected MortarScope extractScope(SomeView view) {
-      return scope;
+    @Override protected BundleService extractBundleService(SomeView view) {
+      return BundleService.getBundleService(activityScope);
     }
 
     @Override protected void onLoad(Bundle savedInstanceState) {
@@ -137,7 +142,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
     }
 
     @Override protected void onExitScope() {
-      destroyed = scope;
+      destroyed = activityScope;
     }
   }
 
@@ -150,7 +155,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
     assertThat(presenter.loaded).isTrue();
 
     presenter.loaded = false;
-    scope.onCreate(null);
+    BundleServiceRunner.getBundleServiceRunner(activityScope).onCreate(null);
     assertThat(presenter.loaded).isFalse();
   }
 
@@ -200,7 +205,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
     SomeView viewOne = new SomeView();
 
     presenter.takeView(viewOne);
-    assertThat(presenter.registered).isSameAs(scope);
+    assertThat(presenter.registered).isSameAs(activityScope);
   }
 
   @Test public void onRegisteredIsDebounced() {
@@ -220,8 +225,8 @@ import static org.fest.assertions.api.Assertions.assertThat;
     SomeView viewOne = new SomeView();
 
     presenter.takeView(viewOne);
-    scope.destroy();
+    activityScope.destroy();
 
-    assertThat(presenter.destroyed).isSameAs(scope);
+    assertThat(presenter.destroyed).isSameAs(activityScope);
   }
 }

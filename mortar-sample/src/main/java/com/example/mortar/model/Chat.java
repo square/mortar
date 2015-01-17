@@ -16,7 +16,6 @@
 package com.example.mortar.model;
 
 import android.text.TextUtils;
-import android.util.Log;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -65,8 +64,6 @@ public class Chat {
                 subscriber.onNext(next);
               }
             } catch (RetrofitError e) {
-              // Bad response? Lost connectivity? Who cares, it's a demo.
-              Log.w(getClass().getSimpleName(), e);
               if (!subscriber.isUnsubscribed()) {
                 subscriber.onError(e);
                 break;

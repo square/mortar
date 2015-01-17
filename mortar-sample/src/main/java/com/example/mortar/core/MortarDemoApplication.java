@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.mortar;
+package com.example.mortar.core;
 
 import android.app.Application;
-import mortar.dagger1support.Dagger1;
 import com.example.flow.GsonParceler;
 import com.example.flow.util.FlowBundler;
-import com.example.mortar.core.ApplicationModule;
 import com.example.mortar.screen.ChatListScreen;
 import com.google.gson.Gson;
 import dagger.ObjectGraph;
 import flow.Backstack;
 import javax.annotation.Nullable;
-import mortar.Mortar;
 import mortar.MortarScope;
+import mortar.dagger1support.ObjectGraphService;
 
 public class MortarDemoApplication extends Application {
   private final FlowBundler flowBundler = new FlowBundler(new GsonParceler(new Gson())) {
@@ -39,7 +37,9 @@ public class MortarDemoApplication extends Application {
   @Override public void onCreate() {
     super.onCreate();
 
-    rootScope = Dagger1.createRootScope(ObjectGraph.create(new ApplicationModule()));
+    rootScope = MortarScope.buildRootScope()
+        .withService(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new RootModule()))
+        .build();
   }
 
   public FlowBundler getFlowBundler() {
@@ -47,9 +47,9 @@ public class MortarDemoApplication extends Application {
   }
 
   @Override public Object getSystemService(String name) {
-    if (Mortar.isScopeSystemService(name)) {
-      return rootScope;
-    }
+    Object mortarService = rootScope.getService(name);
+    if (mortarService != null) return mortarService;
+
     return super.getSystemService(name);
   }
 }

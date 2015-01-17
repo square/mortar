@@ -17,21 +17,22 @@ package mortar;
 
 import android.os.Bundle;
 import android.os.Parcelable;
+import mortar.bundler.BundleService;
 
 /**
  * @param <D> the type of info this dialog displays. D must provide value-based implementations
  * of {@link #hashCode()} and {@link #equals(Object)} in order for debouncing code in {@link #show}
  * to work properly.
  *
- * When using multiple {@link PopupPresenter}s of the same type in the same view, construct them with
- * {@link #PopupPresenter(String)} to give them a name to distinguish them.
+ * When using multiple {@link PopupPresenter}s of the same type in the same view, construct them
+ * with {@link #PopupPresenter(String)} to give them a name to distinguish them.
  */
 public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<Popup<D, R>> {
   private static final boolean WITH_FLOURISH = true;
 
-  private D whatToShow;
-
   private final String whatToShowKey;
+
+  private D whatToShow;
 
   /**
    * @param customStateKey custom key name for saving state, useful when you have multiple instance
@@ -77,8 +78,8 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
   abstract protected void onPopupResult(R result);
 
-  @Override protected MortarScope extractScope(Popup<D, R> view) {
-    return Mortar.getScope(view.getContext());
+  @Override protected BundleService extractBundleService(Popup<D, R> view) {
+    return BundleService.getBundleService(view.getContext());
   }
 
   @Override public void dropView(Popup<D, R> view) {

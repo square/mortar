@@ -16,6 +16,7 @@
 package com.example.mortar.core;
 
 import com.example.flow.GsonParceler;
+import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.QuoteService;
 import com.google.gson.Gson;
@@ -27,8 +28,14 @@ import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
 
-@Module(includes = Chats.Module.class, library = true)
-public class ApplicationModule {
+/**
+ * Defines app-wide singletons.
+ */
+@Module(
+    includes = { ActionBarOwner.ActionBarModule.class, Chats.Module.class },
+    injects = MortarDemoActivity.class,
+    library = true)
+public class RootModule {
   @Provides @Singleton Gson provideGson() {
     return new GsonBuilder().create();
   }

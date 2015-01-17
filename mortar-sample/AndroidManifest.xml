@@ -22,19 +22,20 @@
 
   <uses-sdk
       android:minSdkVersion="15"
-      android:targetSdkVersion="20"
+      android:targetSdkVersion="21"
       />
 
-  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.INTERNET"/>
 
   <application
       android:label="Mortar"
       android:icon="@drawable/mortar_icon"
-      android:name=".MortarDemoApplication"
+      android:name=".core.MortarDemoApplication"
+      android:allowBackup="true"
       >
     <activity
-        android:launchMode="singleTop"
-        android:name=".MortarDemoActivity"
+        android:launchMode="singleInstance"
+        android:name=".core.MortarDemoActivity"
         android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
         >
       <intent-filter>

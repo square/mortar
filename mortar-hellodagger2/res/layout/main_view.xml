@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<com.example.hellomortar.HelloView
+<com.example.hellodagger2.MainView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -39,4 +39,4 @@
       android:gravity="center"
       tools:ignore="HardcodedText"
       />
-</com.example.hellomortar.HelloView>
+</com.example.hellodagger2.MainView>
