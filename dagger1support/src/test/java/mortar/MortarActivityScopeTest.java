@@ -20,6 +20,7 @@ import dagger.Module;
 import dagger.ObjectGraph;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import mortar.bundler.Bundler;
 import mortar.dagger1support.Dagger1;
 import mortar.dagger1support.Blueprint;
 import org.junit.Before;

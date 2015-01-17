@@ -33,48 +33,53 @@ class RealScope implements MortarScope {
   protected boolean dead;
 
   private final Set<Scoped> tearDowns = new HashSet<>();
-  private final Object graph;
-  private final RealScope parent;
+  private final Object seed;
+  final RealScope parent;
   private final String name;
+  private final Map<String, MortarServiceProvider> serviceProviders;
 
-  RealScope(Object objectGraph) {
-    this(MortarScope.ROOT_NAME, null, objectGraph);
-  }
-
-  RealScope(String name, RealScope parent, Object graph) {
-    this.graph = graph;
+  RealScope(String name, RealScope parent, Object seed,
+      Map<String, MortarServiceProvider> serviceProviders) {
+    this.seed = seed;
     this.parent = parent;
     this.name = name;
+    this.serviceProviders = serviceProviders;
   }
 
   @Override public final String getName() {
     return name;
   }
 
-  @Override public final <T> T getObjectGraph() {
+  @Override public String getPath() {
+    if (parent == null) return getName();
+    return parent.getPath() + ":" + getName();
+  }
+
+  @Override public Object getSeed() {
+    return seed;
+  }
+
+  @Override public Object getService(String serviceName) {
     assertNotDead();
-    //noinspection unchecked
-    return (T) graph;
+
+    if (MortarScope.class.getName().equals(serviceName)) return this;
+
+    MortarServiceProvider serviceProvider = serviceProviders.get(serviceName);
+    if (serviceProvider != null) return serviceProvider.getService(this);
+
+    if (parent != null) return parent.getService(serviceName);
+
+    return null;
+  }
+
+  @Override public Object getServiceProvider(String serviceName) {
+    assertNotDead();
+    return serviceProviders.get(serviceName);
   }
 
   @Override public void register(Scoped scoped) {
-    if (scoped instanceof Bundler) {
-      throw new IllegalArgumentException(format("Scope %s cannot register %s instance %s. "
-              + "Only %ss and their children can provide bundle services", getName(),
-          Bundler.class.getSimpleName(), ((Bundler) scoped).getMortarBundleKey(),
-          MortarActivityScope.class.getSimpleName()));
-    }
-
-    doRegister(scoped);
-  }
-
-  void doRegister(Scoped scoped) {
     assertNotDead();
     if (tearDowns.add(scoped)) scoped.onEnterScope(this);
-  }
-
-  RealScope getParent() {
-    return parent;
   }
 
   @Override public RealScope findChild(String childName) {
@@ -82,14 +87,20 @@ class RealScope implements MortarScope {
     return children.get(childName);
   }
 
-  @Override public MortarScope createChild(String childName, Object childObjectGraph) {
+  @Override public Builder buildChild(String childName) {
     assertNotDead();
-    if (children.containsKey(childName)) {
-      throw new IllegalArgumentException(name + " Scope already has a child named " + childName);
+
+    if (childName.contains(DIVIDER)) {
+      throw new IllegalArgumentException(format("Name \"%s\" must not contain '%s'",
+          childName, DIVIDER));
     }
-    RealScope child = new RealScope(childName, this, childObjectGraph);
-    children.put(childName, child);
-    return child;
+
+    if (children.containsKey(childName)) {
+      throw new IllegalArgumentException(
+          format("Scope \"%s\" already has a child named \"%s\"", name, childName));
+    }
+
+    return new Builder(childName, this);
   }
 
   @Override public Context createContext(Context parentContext) {
@@ -100,24 +111,19 @@ class RealScope implements MortarScope {
     return dead;
   }
 
-  void replaceChild(String childName, RealScope scope) {
-    if (scope.getParent() != this) {
-      throw new IllegalArgumentException("Replacement scope must have receiver as parent");
-    }
-    children.put(childName, scope);
-  }
-
-  void onChildDestroyed(RealScope child) {
-    children.remove(child.getName());
-  }
-
   @Override public void destroy() {
     if (dead) return;
     dead = true;
 
+    // TODO(ray) Wouldn't it make more sense to tear down the children first?
+    // And perhaps we shouldn't actually mark this scope dead until it's children
+    // have died first. If we do that, take some care that re-entrant calls
+    // to destroy() don't lead to redundant onExitScope calls. Maybe need an
+    // enum State {LIVE, DYING, DEAD}.
+
     for (Scoped s : tearDowns) s.onExitScope();
     tearDowns.clear();
-    if (parent != null) parent.onChildDestroyed(this);
+    if (parent != null) parent.children.remove(getName());
 
     List<RealScope> snapshot = new ArrayList<>(children.values());
     for (RealScope child : snapshot) child.destroy();

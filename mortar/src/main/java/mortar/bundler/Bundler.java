@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package mortar;
+package mortar.bundler;
 
 import android.os.Bundle;
+import mortar.MortarScope;
 
 /** Implemented by objects that want to persist via the bundle. */
-public interface Bundler extends Scoped {
+public interface Bundler {
+  void onEnterScope(MortarScope scope);
+
   /**
    * The key that will identify the bundles passed to this instance via {@link #onLoad}
    * and {@link #onSave}.
@@ -26,9 +29,9 @@ public interface Bundler extends Scoped {
   String getMortarBundleKey();
 
   /**
-   * Called when this object is {@link MortarActivityScope#register registered}, and each time
-   * {@link MortarActivityScope#onCreate} is called (e.g. after a configuration change like
-   * rotation, or after the app process is respawned). See {@link MortarActivityScope#register} for
+   * Called when this object is {@link BundleService#register registered}, and each time
+   * {@link BundleServiceProvider#onCreate} is called (e.g. after a configuration change like
+   * rotation, or after the app process is respawned). See {@link BundleService#register} for
    * details.
    *
    * <p>Note that receivers are likely to outlive multiple activity instances, and so receive
@@ -41,7 +44,7 @@ public interface Bundler extends Scoped {
   void onLoad(Bundle savedInstanceState);
 
   /**
-   * Called from the {@link MortarActivityScope#onSaveInstanceState}, to allow the receiver
+   * Called from the {@link BundleServiceProvider#onSaveInstanceState}, to allow the receiver
    * to save state before the process is killed. Note that receivers are likely to outlive multiple
    * activity instances, and so receive multiple calls of this method. Any state required to revive
    * a new instance of the receiver in a new process should be written out each time, as there is
@@ -51,4 +54,6 @@ public interface Bundler extends Scoped {
    * revived
    */
   void onSave(Bundle outState);
+
+  void onExitScope();
 }

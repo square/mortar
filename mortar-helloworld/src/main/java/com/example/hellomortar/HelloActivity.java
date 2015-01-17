@@ -17,49 +17,55 @@ package com.example.hellomortar;
 
 import android.app.Activity;
 import android.os.Bundle;
-import mortar.Mortar;
-import mortar.MortarActivityScope;
 import mortar.MortarScope;
-import mortar.dagger2support.Dagger2;
+import mortar.bundler.BundleServiceProvider;
+import mortar.dagger2support.DaggerServiceProvider;
 
 public class HelloActivity extends Activity {
-  private MortarActivityScope activityScope;
+  private MortarScope activityScope;
+  private BundleServiceProvider bundleServiceProvider;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     MortarScope parentScope = ((HelloApplication) getApplication()).getRootScope();
     String scopeName = Main.class.getName();
-    activityScope = (MortarActivityScope) parentScope.findChild(scopeName);
+    activityScope = parentScope.findChild(scopeName);
     if (activityScope == null) {
-      Main.Component activityGraph = Dagger2.buildComponent(Main.Component.class);
-      activityScope = Mortar.createActivityScope(parentScope, scopeName, activityGraph);
+      bundleServiceProvider = new BundleServiceProvider();
+
+      activityScope = parentScope.buildChild(scopeName)
+          .withService(DaggerServiceProvider.forComponent(Main.Component.class))
+          .withService(bundleServiceProvider)
+          .build();
+    } else {
+      bundleServiceProvider = new BundleServiceProvider.Finder().get(activityScope) ;
     }
-    Dagger2.<Main.Component>get(this).inject(this);
-    activityScope.onCreate(savedInstanceState);
+    DaggerServiceProvider.<Main.Component>getDaggerComponent(this).inject(this);
+    bundleServiceProvider.onCreate(savedInstanceState);
 
     setContentView(R.layout.main_view);
   }
 
   @Override public Object getSystemService(String name) {
-    if (Mortar.isScopeSystemService(name)) {
-      return activityScope;
+    if (activityScope != null) {
+      Object serviceFromMortar = activityScope.getService(name);
+      if (serviceFromMortar != null) return serviceFromMortar;
     }
+
     return super.getSystemService(name);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    activityScope.onSaveInstanceState(outState);
+    bundleServiceProvider.onSaveInstanceState(outState);
   }
 
   @Override protected void onDestroy() {
     super.onDestroy();
 
     if (isFinishing() && activityScope != null) {
-      MortarScope parentScope = ((HelloApplication) getApplication()).getRootScope();
-      parentScope.destroyChild(activityScope);
-      activityScope = null;
+      activityScope.destroy();
     }
   }
 }

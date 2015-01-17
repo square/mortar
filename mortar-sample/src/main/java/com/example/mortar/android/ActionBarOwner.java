@@ -84,7 +84,7 @@ public class ActionBarOwner extends Presenter<ActionBarOwner.Activity> {
     return config;
   }
 
-  @Override protected MortarScope extractScope(Activity activity) {
+  @Override protected MortarScope extractBundleService(Activity activity) {
     return activity.getScope();
   }
 

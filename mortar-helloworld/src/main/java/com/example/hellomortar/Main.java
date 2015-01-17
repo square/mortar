@@ -40,7 +40,7 @@ public class Main {
     }
 
     @Override protected void onLoad(Bundle savedInstanceState) {
-      super.onLoad(savedInstanceState);
+
       if (savedInstanceState != null && serial == -1) serial = savedInstanceState.getInt("serial");
 
       getView().show("Update #" + ++serial + " at " + format.format(new Date()));

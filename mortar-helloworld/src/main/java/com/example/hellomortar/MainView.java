@@ -20,7 +20,7 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import javax.inject.Inject;
-import mortar.dagger2support.Dagger2;
+import mortar.dagger2support.DaggerServiceProvider;
 
 public class MainView extends LinearLayout {
   @Inject Main.Presenter presenter;
@@ -29,7 +29,7 @@ public class MainView extends LinearLayout {
 
   public MainView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Dagger2.<Main.Component>get(context).inject(this);
+    DaggerServiceProvider.<Main.Component>getDaggerComponent(context).inject(this);
   }
 
   @Override protected void onFinishInflate() {
@@ -43,8 +43,8 @@ public class MainView extends LinearLayout {
   }
 
   @Override protected void onDetachedFromWindow() {
-    super.onDetachedFromWindow();
     presenter.dropView(this);
+    super.onDetachedFromWindow();
   }
 
   public void show(CharSequence stuff) {

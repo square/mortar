@@ -17,6 +17,7 @@ package mortar;
 
 import android.os.Bundle;
 import android.os.Parcelable;
+import mortar.bundler.BundleService;
 
 /**
  * @param <D> the type of info this dialog displays. D must provide value-based implementations
@@ -31,6 +32,9 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
   private D whatToShow;
 
+  // TODO(ray) If we're going to keep the presenters (NO!) the finder should be set via the
+  // constructor to fix some of our current testing woes.
+  private final BundleService.Finder serviceFinder = new BundleService.Finder();
   private final String whatToShowKey;
 
   /**
@@ -77,8 +81,8 @@ public abstract class PopupPresenter<D extends Parcelable, R> extends Presenter<
 
   abstract protected void onPopupResult(R result);
 
-  @Override protected MortarScope extractScope(Popup<D, R> view) {
-    return Mortar.getScope(view.getContext());
+  @Override protected BundleService extractBundleService(Popup<D, R> view) {
+    return serviceFinder.get(view.getContext());
   }
 
   @Override public void dropView(Popup<D, R> view) {

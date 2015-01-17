@@ -16,6 +16,8 @@
 package mortar;
 
 import android.os.Bundle;
+import mortar.bundler.BundleService;
+import mortar.bundler.Bundler;
 
 public abstract class Presenter<V> {
   private V view = null;
@@ -54,14 +56,14 @@ public abstract class Presenter<V> {
    * {@link android.view.View#onAttachedToWindow()}. (Redundant calls will safely no-op.) Sets the
    * view that will be returned from {@link #getView()}.
    * <p/>
-   * This presenter will be immediately {@link MortarActivityScope#register registered}
+   * This presenter will be immediately {@link BundleService#register registered}
    * (or re-registered) with the given view's scope, leading to an immediate call to {@link
    * #onLoad}.
    * <p/>
    * It is expected that {@link #dropView(Object)} will be called with the same argument when the
    * view is no longer active, e.g. from {@link android.view.View#onDetachedFromWindow()}.
    *
-   * @see MortarActivityScope#register
+   * @see BundleService#register
    */
   public final void takeView(V view) {
     if (view == null) throw new NullPointerException("new view must not be null");
@@ -70,7 +72,7 @@ public abstract class Presenter<V> {
       if (this.view != null) dropView(this.view);
 
       this.view = view;
-      extractScope(view).register(registration);
+      extractBundleService(view).register(registration);
     }
   }
 
@@ -100,7 +102,7 @@ public abstract class Presenter<V> {
   }
 
   /** Called by {@link #takeView}. Given a view instance, return its {@link MortarScope}. */
-  protected abstract MortarScope extractScope(V view);
+  protected abstract BundleService extractBundleService(V view);
 
   /**
    * Returns the view managed by this presenter, or null if {@link #takeView} has never been

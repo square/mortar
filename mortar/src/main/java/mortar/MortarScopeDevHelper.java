@@ -40,7 +40,7 @@ public class MortarScopeDevHelper {
     }
 
     @Override public List<Node> getChildNodes() {
-      List<Node> childNodes = new ArrayList<Node>();
+      List<Node> childNodes = new ArrayList<>();
       addScopeChildren(childNodes);
       return childNodes;
     }
@@ -62,8 +62,8 @@ public class MortarScopeDevHelper {
       return mortarScope;
     }
     RealScope scope = (RealScope) mortarScope;
-    while (scope.getParent() != null) {
-      scope = scope.getParent();
+    while (scope.parent != null) {
+      scope = scope.parent;
     }
     return scope;
   }
