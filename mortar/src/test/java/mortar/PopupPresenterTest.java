@@ -19,6 +19,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
 import java.util.Random;
+import mortar.bundler.BundleService;
+import mortar.bundler.BundleServiceProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,29 +68,35 @@ public class PopupPresenterTest {
   @Mock Context context;
 
   MortarScope root;
-  MortarActivityScope scope;
+  MortarScope activityScope;
   TestPopupPresenter presenter;
 
   @Before public void setUp() {
     initMocks(this);
     when(view.getContext()).thenReturn(context);
     when((context).getSystemService(anyString())).then(returnScope());
-    root = Mortar.createRootScope(false);
-    scope = newScope();
-    scope.onCreate(null);
+    root = MortarScope.Builder.ofRoot().build();
+    activityScope = newScope();
+    getService(activityScope).onCreate(null);
     presenter = new TestPopupPresenter();
   }
 
   private Answer<Object> returnScope() {
     return new Answer<Object>() {
       @Override public Object answer(InvocationOnMock invocation) throws Throwable {
-        return scope;
+        return activityScope;
       }
     };
   }
 
-  private MortarActivityScope newScope() {
-    return Mortar.createActivityScope(root, "activity" + new Random().nextInt(), null);
+  private MortarScope newScope() {
+    return root.buildChild("activity" + new Random().nextInt())
+        .withService(new BundleServiceProvider())
+        .build();
+  }
+
+  private BundleServiceProvider getService(MortarScope scope) {
+    return (BundleServiceProvider) scope.getService(BundleService.class.getName());
   }
 
   @Test public void takeViewDoesNotShowView() {
@@ -148,7 +156,7 @@ public class PopupPresenterTest {
   @Test public void destroyDismissesWithoutFlourish() {
     presenter.takeView(view);
     when(view.isShowing()).thenReturn(true);
-    root.destroyChild(scope);
+    activityScope.destroy();
     verify(view).dismiss(eq(WITHOUT_FLOURISH));
   }
 
@@ -158,10 +166,10 @@ public class PopupPresenterTest {
     presenter.show(info);
 
     Bundle state = new Bundle();
-    scope.onSaveInstanceState(state);
+    getService(activityScope).onSaveInstanceState(state);
 
-    scope = newScope();
-    scope.onCreate(state);
+    activityScope = newScope();
+    getService(activityScope).onCreate(state);
 
     presenter = new TestPopupPresenter();
     presenter.takeView(view);
@@ -184,9 +192,9 @@ public class PopupPresenterTest {
     presenter2.show(info2);
 
     Bundle state = new Bundle();
-    scope.onSaveInstanceState(state);
-    scope = newScope();
-    scope.onCreate(state);
+    getService(activityScope).onSaveInstanceState(state);
+    activityScope = newScope();
+    getService(activityScope).onCreate(state);
 
     presenter1 = new TestPopupPresenter(customStateKey1);
     presenter1.takeView(view);

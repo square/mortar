@@ -16,9 +16,12 @@
 package mortar;
 
 import android.view.View;
+import mortar.bundler.BundleService;
 
 public class ViewPresenter<V extends View> extends Presenter<V> {
-  @Override protected final MortarScope extractScope(V view) {
-    return Mortar.getScope(view.getContext());
+  private final BundleService.Finder serviceFinder = new BundleService.Finder();
+
+  @Override protected final BundleService extractBundleService(V view) {
+    return serviceFinder.get(view.getContext());
   }
 }

@@ -30,9 +30,9 @@ class MortarContextWrapper extends ContextWrapper {
   }
 
   @Override public Object getSystemService(String name) {
-    if (Mortar.isScopeSystemService(name)) {
-      return scope;
-    }
+    Object scopedService = scope.getService(name);
+    if (scopedService != null) return scopedService;
+
     if (LAYOUT_INFLATER_SERVICE.equals(name)) {
       if (inflater == null) {
         inflater = LayoutInflater.from(getBaseContext()).cloneInContext(this);

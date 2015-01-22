@@ -16,7 +16,6 @@
 package com.example.hellomortar;
 
 import android.app.Application;
-import mortar.Mortar;
 import mortar.MortarScope;
 
 public class HelloApplication extends Application {
@@ -24,12 +23,10 @@ public class HelloApplication extends Application {
 
   @Override public void onCreate() {
     super.onCreate();
-    // No shared app level graph.
-    Object root = null;
-    rootScope = Mortar.createRootScope(root);
+    rootScope = MortarScope.Builder.ofRoot().build();
   }
 
-  public MortarScope getRootScope() {
+  MortarScope getRootScope() {
     return rootScope;
   }
 }

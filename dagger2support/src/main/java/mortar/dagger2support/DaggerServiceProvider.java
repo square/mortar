@@ -2,19 +2,42 @@ package mortar.dagger2support;
 
 import android.content.Context;
 import java.lang.reflect.Method;
-import mortar.Mortar;
+import mortar.MortarScope;
+import mortar.MortarServiceProvider;
 
-public class Dagger2 {
+public class DaggerServiceProvider<T> implements MortarServiceProvider {
 
-  public static <T> T get(Context context) {
-    return Mortar.getScope(context).getObjectGraph();
+  // TODO(ray) Use the seed instead. Perhaps we look for a IsDaggerComponent interface to get it.
+  // And probably drop dagger from the Hello sample, or make a new one that adds dagger.
+
+  private final T daggerComponent;
+
+  protected DaggerServiceProvider(T daggerComponent) {
+    this.daggerComponent = daggerComponent;
+  }
+
+  @Override public String getName() {
+    return getClass().getName();
+  }
+
+  @Override public T getService(MortarScope scope) {
+    return daggerComponent;
+  }
+
+  /**
+   * Caller is required to know the type of the component for this context.
+   */
+  @SuppressWarnings("unchecked") //
+  public static <T> T getDaggerComponent(Context context) {
+    return (T) context.getSystemService(DaggerServiceProvider.class.getName());
   }
 
   /**
    * Magic method that creates a component with its dependencies set, by reflection. Relies on
    * Dagger2 naming conventions.
    */
-  public static <T> T buildComponent(Class<T> componentClass, Object... dependencies) {
+  public static <T> DaggerServiceProvider<T> forComponent(Class<T> componentClass,
+      Object... dependencies) {
     String fqn = componentClass.getName();
 
     String packageName = componentClass.getPackage().getName();
@@ -38,7 +61,8 @@ public class Dagger2 {
         }
       }
       //noinspection unchecked
-      return (T) builder.getClass().getMethod("build").invoke(builder);
+      T component = (T) builder.getClass().getMethod("build").invoke(builder);
+      return new DaggerServiceProvider<>(component);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
