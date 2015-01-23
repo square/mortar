@@ -20,9 +20,10 @@ public class Dagger2 {
     String packageName = componentClass.getPackage().getName();
     // Accounts for inner classes, ie MyApplication$Component
     String simpleName = fqn.substring(packageName.length() + 1);
+    String generatedName = (packageName + ".Dagger_" + simpleName).replace('$', '_');
 
     try {
-      Class<?> generatedClass = Class.forName(packageName + ".Dagger_" + simpleName);
+      Class<?> generatedClass = Class.forName(generatedName);
       Object builder = generatedClass.getMethod("builder").invoke(null);
 
       for (Method method : builder.getClass().getMethods()) {
