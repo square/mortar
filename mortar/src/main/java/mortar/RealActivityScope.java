@@ -109,7 +109,7 @@ class RealActivityScope extends RealScope implements MortarActivityScope {
     }
 
     for (RealScope child : children.values()) {
-      if (!(child instanceof RealActivityScope)) return;
+      if (!(child instanceof RealActivityScope)) continue;
       ((RealActivityScope) child).onSaveInstanceState(
           getNestedBundle(child, latestSavedInstanceState, true));
     }
