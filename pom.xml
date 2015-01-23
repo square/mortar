@@ -57,7 +57,8 @@
     <android.platform>19</android.platform>
     <android.support.version>r7</android.support.version>
     <dagger.version>1.2.2</dagger.version>
-    <dagger2.version>2.0-SNAPSHOT</dagger2.version>
+    <dagger2.version>2.0-20150122.022617-13</dagger2.version>
+    <dagger2compiler.version>2.0-20150122.022637-13</dagger2compiler.version>
 
     <!-- Test Dependencies -->
     <junit.version>4.10</junit.version>
@@ -99,7 +100,7 @@
       <dependency>
         <groupId>com.google.dagger</groupId>
         <artifactId>dagger-compiler</artifactId>
-        <version>${dagger2.version}</version>
+        <version>${dagger2compiler.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
