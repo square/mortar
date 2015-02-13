@@ -41,6 +41,7 @@
     <module>dagger1support</module>
     <module>dagger2support</module>
     <module>mortar-helloworld</module>
+    <module>mortar-hellodagger2</module>
     <module>mortar-sample</module>
   </modules>
 
@@ -57,8 +58,8 @@
     <android.platform>19</android.platform>
     <android.support.version>r7</android.support.version>
     <dagger.version>1.2.2</dagger.version>
-    <dagger2.version>2.0-20150122.022617-13</dagger2.version>
-    <dagger2compiler.version>2.0-20150122.022637-13</dagger2compiler.version>
+    <dagger2.version>2.0-SNAPSHOT</dagger2.version>
+    <dagger2compiler.version>2.0-SNAPSHOT</dagger2compiler.version>
 
     <!-- Test Dependencies -->
     <junit.version>4.10</junit.version>

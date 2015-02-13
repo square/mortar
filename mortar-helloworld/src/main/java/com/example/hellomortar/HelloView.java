@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Square Inc.
+ * Copyright 2014 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.example.mortar.view;
+package com.example.hellomortar;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import mortar.dagger1support.ObjectGraphService;
-import com.example.mortar.R;
-import com.example.mortar.screen.MessageScreen;
-import javax.inject.Inject;
 
-public class MessageView extends LinearLayout {
-  @Inject MessageScreen.Presenter presenter;
+public class HelloView extends LinearLayout {
+  private final HelloPresenter presenter;
 
-  private TextView userView;
-  private TextView messageView;
+  private TextView textView;
 
-  public MessageView(Context context, AttributeSet attrs) {
+  public HelloView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    setOrientation(VERTICAL);
-    ObjectGraphService.inject(context, this);
+    presenter = (HelloPresenter) context.getSystemService(HelloPresenter.class.getName());
   }
 
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
-    messageView = (TextView) findViewById(R.id.message);
-    userView = (TextView) findViewById(R.id.user);
-    userView.setOnClickListener(new OnClickListener() {
-      @Override public void onClick(View v) {
-        presenter.onUserSelected();
-      }
-    });
+    textView = (TextView) findViewById(R.id.text);
   }
 
   @Override protected void onAttachedToWindow() {
@@ -55,15 +41,11 @@ public class MessageView extends LinearLayout {
   }
 
   @Override protected void onDetachedFromWindow() {
-    super.onDetachedFromWindow();
     presenter.dropView(this);
+    super.onDetachedFromWindow();
   }
 
-  public void setUser(String user) {
-    userView.setText(user);
-  }
-
-  public void setMessage(String message) {
-    messageView.setText(message);
+  public void show(CharSequence stuff) {
+    textView.setText(stuff);
   }
 }

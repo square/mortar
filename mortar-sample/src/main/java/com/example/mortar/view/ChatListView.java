@@ -22,7 +22,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import mortar.dagger1support.Dagger1;
+import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.model.Chat;
 import com.example.mortar.screen.ChatListScreen;
 import java.util.List;
@@ -33,7 +33,7 @@ public class ChatListView extends ListView {
 
   public ChatListView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    Dagger1.inject(context, this);
+    ObjectGraphService.inject(context, this);
   }
 
   @Override protected void onAttachedToWindow() {

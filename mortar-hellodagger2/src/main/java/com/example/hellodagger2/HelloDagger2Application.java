@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.hellomortar;
+package com.example.hellodagger2;
 
 import android.app.Application;
 import mortar.MortarScope;
 
-public class HelloApplication extends Application {
+public class HelloDagger2Application extends Application {
   private MortarScope rootScope;
 
   @Override public Object getSystemService(String name) {

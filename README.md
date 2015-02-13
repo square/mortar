@@ -1,348 +1,136 @@
 # Mortar
 
-Mortar eases the use of [Dagger][dagger] to divide Android apps into
-composable modules. It is not a framework: there are no abstract Application
-or Activity classes here. Mortar eschews magic. Rather, Mortar is a simple
-library that makes it easy to pair thin views with dedicated controllers
-(Presenters), isolated from most of the vagaries of the Activity life cycle.
-The patterns it encourages have evolved in parallel across several Android
-teams at Square.
+## What's a Mortar?
 
-Mortar relies on Dagger, and of course the Android runtime, but those are its
-only direct dependencies. That said, it works very well with
-[Retrofit][retrofit], [Flow][flow] and [RxJava][rxjava].
-[Butterknife][butterknife] can be a fun partner too. (Use of all of these
-libraries is illustrated in the sample app.)
+Mortar provides a simplified, composable overlay for the Android lifecycle,
+to aid in the use of [Views as the modular unit of Android applications][rant].
+It leverages [Context#getSystemService][services] to act as an a la carte supplier
+of services like dependency injection, bundle persistence, and whatever else
+your app needs to provide itself.
+
+One of the most useful services Mortar can provide is its  
+[BundleService][bundle-service], which gives any View (or any object with access to the
+Activity context) safe access to the Activity lifecycle's persistence bundle.
+For fans of the [Model View Presenter][mvp] pattern, we provide a persisted
+[Presenter][presenter] class that builds on BundleService. Presenters are completely
+isolated from View concerns. They're particularly good at surviving
+configuration changes, weathering the storm as Android destroys your portrait
+Activity and Views and replaces them with landscape doppelgangers.
+
+Mortar can similarly make [Dagger][dagger] ObjectGraphs (or [Dagger2][dagger2]
+Components) visible as system services. Or not &mdash; these services are
+completely decoupled.
+
+Everything is managed by [MortarScope][scope] singletons, typically
+backing the top level Application and Activity contexts. You can also spawn
+your own shorter lived scopes to manage transient sessions, like the state of
+an object being built by a set of wizard screens.
+
+<!-- 
+  This example is a little bit confusing. Maybe explain why you would want to have an extended graph for a wizard, then explain how Mortar shadows the parent graph with that extended graph.
+-->
+
+These nested scopes can shadow the services provided by higher level scopes.
+For example, a [Dagger extension graph][ogplus] specific to your wizard session
+can cover the one normally available, transparently to the wizard Views &mdash;
+they can make calls like `ObjectGraphService.inject(getContext(), this)` without
+considering which graph will do the injection.
 
 ## The Big Picture
 
-A Mortar app has only a handful of Activity classes, ideally a single one. It
-does not have Fragments or Loaders. Instead its UI is built primarily of plain
-old [Views][view], which use [Dagger][dagger] to `@Inject` whatever services
-they need.
+An application will typically have a singleton MortarScope instance.
+Its job is to serve as a delegate to the app's `getSystemService` method, something like:
 
-Typically such a view is a thin thing that delegates all of its interesting
-work to an injected controller of type [Presenter][presenter]. A Presenter
-simplifies life by surviving configuration changes, and has just enough access
-to the Activity lifecycle to be restored after process death.
-
-As your app grows you probably want to divide it up into discrete parts, both
-to retain your sanity and to be miserly with the scarce resources available on
-a mobile device. You can divide it into a tree of [MortarScopes][scope]. Each
-scope is defined by a [Blueprint][blueprint] that can serve as a single point
-of reference for what that scope does, and in particular can define objects
-visible only to the scope and its children.
-
-Maybe a scope is associated with a particular view, or maybe it isn't. For
-example, an app might have a top level global scope that allows the injection
-of fundamental services; a child of that which manages objects that require an
-authenticated user; children of them for each Activity; and children of the
-activity scopes for their various screens and regions.
-
-### Lifecycle
-
-A MortarScope provides a simple life cycle: it can tell interested parties
-when they enter and exit it if they implement the [Scoped][scoped] interface.
-Scopes created at the Activity level or below can also manage instances of the
-[Bundler][bundler] interface, which give access to the host Activity's
-persistence Bundle. And that's the entire lifecycle that Mortar apps need to
-deal with:
-
-  * `Scoped#onEnterScope(MortarScope)`
-  * `Bundler#onLoad(Bundle)`
-  * `Bundler#onSave(Bundle)`
-  * `Scoped#onExitScope(MortarScope)`
-
-Note in particular that an activity's scope is not destroyed when a particular
-instance of that activity is destroyed. It sticks around until someone calls
-`MortarScope#destroyChild(MortarScope)`, e.g. in the `Activity#onDestroy`
-method if `isFinishing()` is true. Any objects registered at or below the
-activity scope will survive any number of onLoad and onSave calls as the
-device is rotated, as the app pauses, etc. Of course process death and
-resurrection can strike at any time, so each onSave() call should archive as
-if it were the last, and each onLoad() should check to see if it's really a
-reload. But that's a lot simpler than the usual gymnastics.
-
-### Singletons Where You Want Them
-
-Under the hood, scopes take advantage of one of Dagger's most interesting
-features, the ability for an object graph to spawn a child graph (see
-[ObjectGraph#plus][ogplus]). Singletons and other bindings defined in a parent
-graph can be injected by all of its offspring, but the parent graph itself is
-not modified by them. In practice, this means that a `@Singleton FooService`
-defined in the root scope is available for injection to all parts of the app.
-Any singletons defined in an activity's scope, say an `@Singleton FooEditor`,
-can be injected by the activity and any of its views, but is not accessible to
-the rest of the application.
-
-When a scope is destroyed it drops all references to its own object graph and
-makes its children do the same, freeing up everything to be GC'd. Each portion
-of the app has the convenience of global singletons, with no concerns that
-precious RAM is being consumed by things the user doesn't care about at the
-moment.
-
-Another example: suppose you have a set of screens that slide in and out next
-to a fixed portion of the screen, like a sidebar or an activity, and each
-screen needs to share in the management of that common region. The parent view
-that owns the common ground can be tied to a parent scope, and starts and
-stops child scopes for each child view. Children can simply inject the
-presenter that drives the shared region. They don't need to know how far
-up the view chain that action bar lives, or to somehow find their way to the
-activity. It's simply available.
-
-## Less Talk More Code
-
-Here's how you might actually write this stuff.
-
-This example presumes an activity is in charge of displaying subscreens and that
-you're using Flow's [Layouts][layouts] utility to handle view creation.
-
-```java
-/**
- * @param nextScreen blueprint of the screen to show, must have
- * {@literal @}Layout annotation.
- */
-void showScreen(Blueprint nextScreen) {
-  MortarScope activityScope = Mortar.getMortarScope(this);
-
-  View currentView = getCurrentView();
-  if (currentView != null) {
-    activityScope.destroyChild(Mortar.getMortarScope(currentView.getContext()));
-  }
-
-  MortarScope newScope = activityScope.requireChild(nextScreen);
-  Context newContext = newScope.createContext(this);
-  View screenView = Layouts.createView(newContext, nextScreen);
-
-  setContentView(screenView);
-}
-
-View getCurrentView() {
-  return ((ViewGroup)findViewById(android.R.id.content)).getChildAt(0);
-}
 ```
-
-It doesn't take a lot of imagination to see how you'd specify animations for
-the transition between these two views. You'd just…do it.
-
-### Take control
-
-This view-centered approach to composition doesn't mean that Mortar apps are
-untestable. It's trivial to move all the interesting parts of a view  over to
-a [Presenter][presenter]. And because presenters survive config changes like
-rotation, they can be a lot easier to work with than code trapped over in
-Context-land. To do this a view injects its presenter, lets that presenter
-know when it's ready to roll from `onFinishInflate()`, and surrenders control
-in `onDetachedFromWindow()`.
-
-Here's an example, with one small conceit—we're using Flow's [@Layout][layout]
-annotation for consistency with the previous example.
-
-```xml
-<com.example.MyView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-   >
-  <EditText
-      android:id="@id/some_text"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-    />
-  <Button
-      android:id="@id/some_button"
-      android:layout_height="wrap_content"
-      android:layout_width="wrap_content"
-      android:text="@string/button_text"
-    />
-</com.example.MyView>
-```
-
-```java
-public class MyView extends LinearLayout {
-  @Inject MyScreen.Presenter presenter;
-  private EditText someText;
-
-  public MyView(Context context) {
-    super(context);
-    Mortar.inject(context, this);
-  }
-
-  @Override protected void onFinishInflate() {
-    super.onFinishInflate();
-
-    someText = (TextView) findViewById(R.id.some_text);
-
-    findViewById(R.id.some_button).setOnClickListener(new OnClickListener() {
-      public void onClick(View view) {
-       presenter.someButtonClicked();
-      }
-    });
-
-    presenter.takeView(this);
-  }
-
-  @Override protected void onDetachedFromWindow() {
-    super.onDetachedFromWindow();
-    presenter.dropView(this);
-  }
-
-  public String getSomeText() {
-    return someText.getText().toString();
-  }
-
-  public void showResult(SomeResult result) {
-    ...
-  }
- }
-```
-
-```java
-@Layout(R.layout.my_view)
-public class MyScreen implements Blueprint {
-  @Override public String getMortarScopeName() {
-    return getClass().getName();
-  }
-
-  @Override public Object getDaggerModule() {
-    return new Module();
-  }
-
-  @dagger.Module(injects = MyView.class, addsTo = MyActivity.Module.class)
-  public class Module {
-  }
-
-  @Singleton
-  public class Presenter extends ViewPresenter<MyView> {
-    private final SomeAsyncService service;
-
-    private SomeResult lastResult;
-
-    @Inject
-    Presenter(SomeAsyncService service) {
-      this.service = service;
-    }
-
-    @Override public void onLoad(Bundle savedInstanceState) {
-      if (lastResult == null && savedInstanceState != null) {
-        lastResult = savedInstanceState.getParcelable("last");
-      }
-      updateView();
-    }
-
-    @Override public void onSave(Bundle outState) {
-      if (lastResult != null) outState.putParcelable("last", lastResult);
-    }
-
-    public void someButtonClicked() {
-      service.doSomethingAsync(getView().getSomeText(),
-          new AsyncCallback<SomeResult>() {
-            public void onResult(SomeResult result)
-              lastResult = result;
-              if (getView() != null) updateView();
-            }
-          });
-    }
-
-    private void updateView() {
-      getView().showResult(lastResult);
-    }
-  }
-}
-```
-
-Notice how naturally this presenter copes with the possibility that the view
-that made it start some asynchronous process might no longer be available when
-the result eventually arrives.
-
-Another subtle but important point: we're assuming that all views are
-instantiated as a side effect of inflating a layout file. While not an
-enforced requirement, this is certainly a best practice. It ensures that
-`onFinishInflate()` will not be called from the View's constructor (doing work
-with partially constructed objects is a classic Java pitfall), and  it means
-that Android theming will work as expected.
-
-### Bootstrapping
-
-Mortar requires a little bit of wiring to do its job. Its main trick is to
-require all Views' contexts to descend from a context that can return a
-Mortar specific system service. In practice this means your Activity
-creates a scope and returns it from `getSystemService()`, and when you
-create views for subscopes you manufacture their contexts by calling
-[MortarScope#createContext][createContext]. You'll also need a custom
-[Application][application] subclass to hold the root scope. (This is how
-scopes survive configuration changes.)
-
-So declare your custom app in `AndroidManifest.xml`:
-
-```xml
-<application
-    android:label="My App"
-    android:name=".MyApplication"
-    >
-```
-```java
 public class MyApplication extends Application {
-  private MortarScope applicationScope;
-
-  @Override public void onCreate() {
-    super.onCreate();
-    // Eagerly validate development builds (too slow for production).
-    applicationScope = Mortar.createRootScope(BuildConfig.DEBUG);
-  }
+  private MortarScope rootScope;
 
   @Override public Object getSystemService(String name) {
-    if (Mortar.isScopeSystemService(name)) {
-      return applicationScope;
-    }
-    return super.getSystemService(name);
+    if (rootScope == null) rootScope = MortarScope.buildRootScope().build();
+
+    return rootScope.hasService(name) ? rootScope.getService(name) : super.getSystemService(name);
   }
 }
 ```
 
-Make your activities, or a common superclass they all extend,  create or
-restore a `MortarActivityScope`.
+This exposes a single, core service, the scope itself. From the scope you can
+spawn child scopes, and you can register objects that implement the
+[Scoped][scoped] with it for setup and tear-down calls.
 
-```java
-public abstract class MyBaseActivity extends Activity {
-  private MortarActivityScope activityScope;
+  * `Scoped#onEnterScope(MortarScope)`
+  * `Scoped#onExitScope(MortarScope)`
+
+To make a scope provide other services, like a [Dagger ObjectGraph][og], 
+you register them while building the scope. That would make our Application's
+`getSystemService` method look like this:
+
+```
+  @Override public Object getSystemService(String name) {
+    if (rootScope == null) {
+      rootScope = MortarScope.buildRootScope()
+        .with(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new RootModule()))
+        .build();
+    }
+
+    return rootScope.hasService(name) ? rootScope.getService(name) : super.getSystemService(name);
+  }
+```
+
+Now any part of our app that has access to a `Context` can inject itself:
+
+```
+public class MyView extends LinearLayout {
+  @Inject SomeService service;
+
+  public MyView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+    ObjectGraphService.inject(context, this);
+  }
+}
+```
+
+To take advantage of the BundleService describe above, you'll put similar code
+into your Activity. If it doesn't exist already, you'll
+build a sub-scope to back the Activity's `getSystemService` method, and 
+while building it set up the `BundleServiceRunner`. You'll also notify 
+the BundleServiceRunner each time `onCreate` and `onSaveInstanceState` are 
+called, to make the persistence bundle available to the rest of the app. 
+
+```
+public class MyActivity extends Activity {
+  private MortarScope activityScope;
+
+  @Override public Object getSystemService(String name) {
+    MortarScope activityScope = MortarScope.findChild(getApplicationContext(), getScopeName());
+
+    if (activityScope == null) {
+      activityScope = MortarScope.buildChild(getApplicationContext(), getScopeName()) //
+          .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
+          .withService(HelloPresenter.class.getName(), new HelloPresenter())
+          .build();
+    }
+
+    return activityScope.hasService(name) ? activityScope.getService(name)
+        : super.getSystemService(name);
+  }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    MortarScope parentScope = Mortar.getScope(getApplication());
-    activityScope = Mortar.requireActivityScope(parentScope, getBlueprint());
-    activityScope.onCreate(savedInstanceState);
+    BundleServiceRunner.getBundleServiceRunner(this).onCreate(savedInstanceState);
+    setContentView(R.layout.main_view);
   }
-
-  @Override public Object getSystemService(String name) {
-    if (Mortar.isScopeSystemService(name)) {
-      return activityScope;
-    }
-    return super.getSystemService(name);
-  }
-
-  /**
-   * Return the {@link Blueprint} that defines the {@link MortarScope} for this activity.
-   */
-  protected abstract Blueprint getBlueprint();
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    activityScope.onSaveInstanceState(outState);
-  }
-
-  @Override public void onDestroy() {
-    super.onDestroy();
-    if (isFinishing()) {
-      MortarScope parentScope = Mortar.getScope(getApplication());
-      parentScope.destroyChild(activityScope);
-      activityScope = null;
-    }
+    BundleServiceRunner.getBundleServiceRunner(this).onSaveInstanceState(outState);
   }
 }
 ```
 
+With that in place, any object in your app can sign up with the `BundleService`
+to save and restore its state. This is nice for views, since Bundles are less
+of a hassle than the `Parcelable`s required by `View#onSaveInstanceState`,
+and a boon to any business objects in the rest of your app. 
 
 Download
 --------
@@ -363,12 +151,12 @@ compile 'com.squareup.mortar:mortar:(latest version)'
 
 ## Full Disclosure
 
-This stuff is in rapid development, and has been open sourced at an earlier
-time in its life than is typical for Square. While we have a lot of code
-written in this style, we are still in the process of migrating to Mortar per
-se. As its use broadens bugs will be fixed and apis will be broken. (Ideally
-the apis will need to change because of new uses that you find!)
+This stuff has been in "rapid" development over a pretty long gestation period, 
+but is finally stabilizing. We don't expect drastic changes before cutting a
+1.0 release, but we still cannot promise a stable API from release to release.
 
+Mortar is a key component of multiple Square apps, including our flagship
+[Square Register][register] app.
 
 License
 --------
@@ -387,21 +175,14 @@ License
     See the License for the specific language governing permissions and
     limitations under the License.
 
-
-[blueprint]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Blueprint.java
-[bundler]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Bundler.java
-[butterknife]: http://jakewharton.github.io/butterknife/
+[bundle-service]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/bundler/BundleService.java
+[mvp]: http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93presenter
 [dagger]: http://square.github.io/dagger/
-[flow]: https://github.com/square/flow
-[jar]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.squareup.mortar&a=mortar&v=LATEST
-[layout]: https://github.com/square/flow/blob/master/flow/src/main/java/flow/Layout.java
-[layouts]: https://github.com/square/flow/blob/master/flow/src/main/java/flow/Layouts.java
+[dagger2]: http://google.github.io/dagger/
+[og]: https://square.github.io/dagger/javadoc/dagger/ObjectGraph.html
 [ogplus]: https://github.com/square/dagger/blob/dagger-parent-1.1.0/core/src/main/java/dagger/ObjectGraph.java#L96
-[createContext]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/MortarScope.java#L67
 [presenter]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Presenter.java
-[retrofit]: http://square.github.io/retrofit/
-[rxjava]: https://github.com/Netflix/RxJava
-[scoped]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Scoped.java
+[rant]: http://corner.squareup.com/2014/10/advocating-against-android-fragments.html
+[register]: https://play.google.com/store/apps/details?id=com.squareup
 [scope]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/MortarScope.java
-[view]: http://developer.android.com/reference/android/view/View.html
-[application]: https://developer.android.com/reference/android/app/Application.html
+[services]: http://developer.android.com/reference/android/content/Context.html#getSystemService(java.lang.String)

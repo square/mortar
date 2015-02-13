@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.hellomortar;
+package com.example.hellodagger2;
 
 import android.os.Bundle;
 import java.text.DateFormat;
@@ -26,28 +26,23 @@ import mortar.ViewPresenter;
 public class Main {
 
   @dagger.Component @Singleton interface Component {
-    void inject(HelloActivity t);
     void inject(MainView t);
   }
 
   @Singleton
   static class Presenter extends ViewPresenter<MainView> {
     private final DateFormat format = new SimpleDateFormat();
-
     private int serial = -1;
 
     @Inject Presenter() {
     }
 
     @Override protected void onLoad(Bundle savedInstanceState) {
-      super.onLoad(savedInstanceState);
       if (savedInstanceState != null && serial == -1) serial = savedInstanceState.getInt("serial");
-
       getView().show("Update #" + ++serial + " at " + format.format(new Date()));
     }
 
     @Override protected void onSave(Bundle outState) {
-      super.onSave(outState);
       outState.putInt("serial", serial);
     }
   }

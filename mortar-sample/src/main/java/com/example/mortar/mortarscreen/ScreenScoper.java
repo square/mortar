@@ -2,14 +2,12 @@ package com.example.mortar.mortarscreen;
 
 import android.content.Context;
 import android.content.res.Resources;
-import dagger.ObjectGraph;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import mortar.Mortar;
 import mortar.MortarScope;
-import mortar.dagger1support.Dagger1;
+import mortar.dagger1support.ObjectGraphService;
 
 import static java.lang.String.format;
 
@@ -27,7 +25,7 @@ public class ScreenScoper {
   private final Map<Class, ModuleFactory> moduleFactoryCache = new LinkedHashMap<>();
 
   public MortarScope getScreenScope(Context context, String name, Object screen) {
-    MortarScope parentScope = Mortar.getScope(context);
+    MortarScope parentScope = MortarScope.getScope(context);
     return getScreenScope(context.getResources(), parentScope, name, screen);
   }
 
@@ -48,12 +46,15 @@ public class ScreenScoper {
       // objects that are annotated even if they don't appear in a module.
       childModule = null;
     }
-    ObjectGraph parentGraph = parentScope.getObjectGraph();
+
     MortarScope childScope = parentScope.findChild(name);
     if (childScope == null) {
-      ObjectGraph childGraph = Dagger1.createSubgraph(parentGraph, childModule);
-      childScope = parentScope.createChild(name, childGraph);
+      childScope = parentScope.buildChild(name)
+          .withService(ObjectGraphService.SERVICE_NAME,
+              ObjectGraphService.create(parentScope, childModule))
+          .build();
     }
+
     return childScope;
   }
 

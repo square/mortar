@@ -16,7 +16,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.hellomortar"
+    package="com.example.hellodagger2"
     android:versionCode="1"
     android:versionName="1.0">
 
@@ -27,13 +27,13 @@
 
   <application
       android:allowBackup="true"
-      android:label="Hello Mortar"
-      android:name=".HelloApplication"
+      android:label="Hello Dagger2"
+      android:name="com.example.hellodagger2.HelloDagger2Application"
       android:icon="@drawable/mortar_helloworld_icon"
       >
     <activity
         android:launchMode="singleTop"
-        android:name=".HelloActivity"
+        android:name="com.example.hellodagger2.HelloDagger2Activity"
         android:theme="@android:style/DeviceDefault.ButtonBar"
         >
       <intent-filter>
