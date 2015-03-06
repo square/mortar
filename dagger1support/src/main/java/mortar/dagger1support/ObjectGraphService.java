@@ -41,6 +41,15 @@ public class ObjectGraphService {
     getObjectGraph(context).inject(object);
   }
 
+  /**
+   * A convenience wrapper for {@link ObjectGraphService#getObjectGraph} to simplify dynamic
+   * injection, typically for {@link Activity} and {@link android.view.View} instances that must be
+   * instantiated by Android.
+   */
+  public static void inject(MortarScope scope, Object object) {
+    getObjectGraph(scope).inject(object);
+  }
+
   private static ObjectGraph createSubgraphBlueprintStyle(ObjectGraph parentGraph,
       Object daggerModule) {
     ObjectGraph newGraph;
