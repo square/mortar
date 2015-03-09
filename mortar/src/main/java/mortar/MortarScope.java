@@ -27,7 +27,7 @@ import static java.lang.Integer.toHexString;
 import static java.lang.String.format;
 
 public class MortarScope {
-  public static final String DIVIDER = ":";
+  public static final String DIVIDER = ">>>";
   public static final String ROOT_NAME = "Root";
   public static final String SERVICE_NAME = MortarScope.class.getName();
 
@@ -72,7 +72,7 @@ public class MortarScope {
 
   public String getPath() {
     if (parent == null) return getName();
-    return parent.getPath() + ":" + getName();
+    return parent.getPath() + DIVIDER + getName();
   }
 
   public boolean hasService(String serviceName) {
