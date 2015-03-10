@@ -607,4 +607,25 @@ public class MortarActivityScopeTest {
     assertThat(loadingOrder.get(1)).isSameAs(serviceOnActivityScope);
     assertThat(loadingOrder.get(2)).isSameAs(childBundler);
   }
+
+  /** https://github.com/square/mortar/issues/131 */
+  @Test public void destroyingWhileSaving() {
+    final MortarScope[] currentScreen = new MortarScope[] { null };
+
+    MortarScope screenSwapperScope = activityScope.buildChild("screenOne").build();
+    getBundleService(screenSwapperScope).register(new MyBundler("screenSwapper") {
+      @Override public void onSave(Bundle outState) {
+        currentScreen[0].destroy();
+      }
+    });
+
+    final MortarScope screenOneScope = screenSwapperScope.buildChild("screenOne").build();
+    getBundleService(screenOneScope).register(new MyBundler("bundlerOne"));
+    currentScreen[0] = screenOneScope;
+
+    final MortarScope screenTwoScope = screenSwapperScope.buildChild("screenTwo").build();
+    getBundleService(screenTwoScope).register(new MyBundler("bundlerTwo"));
+
+    getBundleServiceRunner(activityScope).onSaveInstanceState(new Bundle());
+  }
 }
