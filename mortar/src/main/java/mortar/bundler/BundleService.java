@@ -80,12 +80,12 @@ public class BundleService {
   void init() {
     scope.register(new Scoped() {
       @Override public void onEnterScope(MortarScope scope) {
-        runner.scopedServices.put(scope.getPath(), BundleService.this);
+        runner.scopedServices.put(runner.bundleKey(scope), BundleService.this);
       }
 
       @Override public void onExitScope() {
         for (Bundler b : bundlers) b.onExitScope();
-        runner.scopedServices.remove(scope.getPath());
+        runner.scopedServices.remove(runner.bundleKey(scope));
         runner.servicesToBeLoaded.remove(BundleService.this);
       }
     });
@@ -112,15 +112,16 @@ public class BundleService {
   }
 
   private Bundle findScopeBundle(Bundle root) {
-    return root == null ? null : root.getBundle(scope.getPath());
+    return root == null ? null : root.getBundle(runner.bundleKey(scope));
   }
 
   void saveToRootBundle(Bundle rootBundle) {
-    scopeBundle = rootBundle.getBundle(scope.getPath());
+    String key = runner.bundleKey(scope);
+    scopeBundle = rootBundle.getBundle(key);
 
     if (scopeBundle == null) {
       scopeBundle = new Bundle();
-      rootBundle.putBundle(scope.getPath(), scopeBundle);
+      rootBundle.putBundle(key, scopeBundle);
     }
 
     for (Bundler bundler : bundlers) {
