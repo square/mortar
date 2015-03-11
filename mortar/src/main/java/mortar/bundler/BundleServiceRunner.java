@@ -2,7 +2,9 @@ package mortar.bundler;
 
 import android.content.Context;
 import android.os.Bundle;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
@@ -77,9 +79,17 @@ public class BundleServiceRunner {
     rootBundle = outState;
 
     state = State.SAVING;
-    for (Map.Entry<String, BundleService> entry : scopedServices.entrySet()) {
-      entry.getValue().saveToRootBundle(rootBundle);
+
+    // Make a dwindling copy of the services, in case one is deleted as a side effect
+    // of another's onSave.
+    List<Map.Entry<String, BundleService>> servicesToBeSaved =
+        new ArrayList<>(scopedServices.entrySet());
+
+    while (!servicesToBeSaved.isEmpty()) {
+      Map.Entry<String, BundleService> entry = servicesToBeSaved.remove(0);
+      if (scopedServices.containsKey(entry.getKey())) entry.getValue().saveToRootBundle(rootBundle);
     }
+
     state = State.IDLE;
   }
 
