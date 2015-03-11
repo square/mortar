@@ -206,17 +206,24 @@ public class MortarScope {
 
     /**
      * Makes this service available via the new scope's {@link MortarScope#findService}
-     * method. If the service implements {@link Scoped} it will be registered with
-     * the new scope.
+     * method.
      */
     public Builder withService(String serviceName, Object service) {
-      Object existing = serviceProviders.put(serviceName, service);
-      if (existing != null) {
-        throw new IllegalArgumentException(
-            format("New scope \"%s\" already bound to service %s, cannot be rebound to %s", name,
-                existing, service));
+      if (service instanceof Scoped) {
+        throw new IllegalArgumentException(String.format(
+            "For service %s, %s must not be an instance of %s, use \"withScopedService\" instead.",
+            serviceName, service, Scoped.class.getSimpleName()));
       }
-      return this;
+      return doWithService(serviceName, service);
+    }
+
+    /**
+     * Makes this service available via the new scope's {@link MortarScope#findService}
+     * method, and {@link MortarScope#register(Scoped) registers} it with the new scope.
+     * Allows set up and tear down.
+     */
+    public Builder withService(String serviceName, Scoped service) {
+      return doWithService(serviceName, service);
     }
 
     public MortarScope build() {
@@ -229,6 +236,16 @@ public class MortarScope {
         if (service instanceof Scoped) newScope.register((Scoped) service);
       }
       return newScope;
+    }
+
+    private Builder doWithService(String serviceName, Object service) {
+      Object existing = serviceProviders.put(serviceName, service);
+      if (existing != null) {
+        throw new IllegalArgumentException(
+            format("New scope \"%s\" already bound to service %s, cannot be rebound to %s", name,
+                existing, service));
+      }
+      return this;
     }
   }
 }
