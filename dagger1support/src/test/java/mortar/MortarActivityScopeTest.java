@@ -122,10 +122,15 @@ public class MortarActivityScopeTest {
 
   /** Simulate a new proecess by creating brand new scope instances. */
   private void newProcess() {
+    newProcess("activity");
+  }
+
+  private void newProcess(String activityScopeName) {
     MortarScope root = MortarScope.buildRootScope()
         .withService(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new MyModule()))
         .build();
-    activityScope = ObjectGraphService.requireActivityScope(root, new MyBlueprint("activity"));
+    activityScope =
+        ObjectGraphService.requireActivityScope(root, new MyBlueprint(activityScopeName));
   }
 
   @Test(expected = IllegalArgumentException.class) public void nonNullKeyRequired() {
@@ -232,7 +237,10 @@ public class MortarActivityScopeTest {
 
     // Process death: new copy of the bundle, new scope and activity instances
     bundle = new Bundle(bundle);
-    newProcess();
+
+    // Activity scopes often include transient values like task id. Make sure
+    // BundlerServiceRunner isn't stymied by that.
+    newProcess("anotherActivity");
     activity = new FauxActivity();
     activity.create(bundle);
     assertThat(activity.rootBundler.lastLoaded).isNotNull();

@@ -204,6 +204,11 @@ public class MortarScope {
       this.parent = parent;
     }
 
+    /**
+     * Makes this service available via the new scope's {@link MortarScope#findService}
+     * method. If the service implements {@link Scoped} it will be registered with
+     * the new scope.
+     */
     public Builder withService(String serviceName, Object service) {
       Object existing = serviceProviders.put(serviceName, service);
       if (existing != null) {
@@ -218,6 +223,10 @@ public class MortarScope {
       MortarScope newScope = new MortarScope(name, parent, serviceProviders);
       if (parent != null) {
         parent.children.put(name, newScope);
+      }
+
+      for (Object service : serviceProviders.values()) {
+        if (service instanceof Scoped) newScope.register((Scoped) service);
       }
       return newScope;
     }

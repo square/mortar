@@ -10,8 +10,9 @@ import java.util.NavigableSet;
 import java.util.TreeSet;
 import mortar.MortarScope;
 import mortar.Presenter;
+import mortar.Scoped;
 
-public class BundleServiceRunner {
+public class BundleServiceRunner implements Scoped {
   public static final String SERVICE_NAME = BundleServiceRunner.class.getName();
 
   public static BundleServiceRunner getBundleServiceRunner(Context context) {
@@ -34,19 +35,24 @@ public class BundleServiceRunner {
 
   State state = State.IDLE;
 
-  BundleService requireBundleService(MortarScope scope) {
-    // TODO(ray) assert that the given scope is a child of the one this service runner occupies.
-    // Maybe give MortarScope.Builder a getPath method, and
-    // if (!scope.getPath().beginsWith(myPath + MortarScope.DIVIDER)) {
-    //   throw new IllegalArgumentException()
-    // }
+  private String rootScopePath;
 
-    BundleService service = scopedServices.get(scope.getPath());
+  BundleService requireBundleService(MortarScope scope) {
+    BundleService service = scopedServices.get(bundleKey(scope));
     if (service == null) {
       service = new BundleService(this, scope);
       service.init();
     }
     return service;
+  }
+
+  @Override public void onEnterScope(MortarScope scope) {
+    if (rootScopePath != null) throw new IllegalStateException("Cannot double register");
+    rootScopePath = scope.getPath();
+  }
+
+  @Override public void onExitScope() {
+    // Nothing to do.
   }
 
   /**
@@ -104,5 +110,16 @@ public class BundleServiceRunner {
     }
 
     state = State.IDLE;
+  }
+
+  String bundleKey(MortarScope scope) {
+    if (rootScopePath == null) throw new IllegalStateException("Was this service not registered?");
+    String path = scope.getPath();
+    if (!path.startsWith(rootScopePath)) {
+      throw new IllegalArgumentException(String.format("\"%s\" is not under \"%s\"", scope,
+          rootScopePath));
+    }
+
+    return path.substring(rootScopePath.length());
   }
 }
