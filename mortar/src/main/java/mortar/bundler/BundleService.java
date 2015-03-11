@@ -84,6 +84,7 @@ public class BundleService {
       }
 
       @Override public void onExitScope() {
+        if (runner.rootBundle != null) runner.rootBundle.remove(runner.bundleKey(scope));
         for (Bundler b : bundlers) b.onExitScope();
         runner.scopedServices.remove(runner.bundleKey(scope));
         runner.servicesToBeLoaded.remove(BundleService.this);
