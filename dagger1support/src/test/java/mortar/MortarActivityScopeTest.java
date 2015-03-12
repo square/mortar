@@ -636,4 +636,33 @@ public class MortarActivityScopeTest {
 
     getBundleServiceRunner(activityScope).onSaveInstanceState(new Bundle());
   }
+
+  // Make sure that when a scope dies, a new scope with the same name doesn't
+  // accidentally receive the old one's bundle.
+  @Test public void endScopeEndBundle() {
+    MyBundler fooBundler = new MyBundler("fooBundler") {
+      @Override public void onLoad(Bundle savedInstanceState) {
+        assertThat(savedInstanceState).isNull();
+      }
+
+      @Override public void onSave(Bundle outState) {
+        outState.putString("baz", "bang");
+      }
+    };
+
+    // First visit to the foo screen, bundle will be null.
+    MortarScope fooScope = activityScope.buildChild("fooScope").build();
+    getBundleService(fooScope).register(fooBundler);
+
+    // Android saves state
+    Bundle state = new Bundle();
+    getBundleServiceRunner(activityScope).onSaveInstanceState(state);
+
+    // We leave the foo screen.
+    fooScope.destroy();
+
+    // And now we come back to it. New instance's onLoad should also get a null bundle.
+    fooScope = activityScope.buildChild("fooScope").build();
+    getBundleService(fooScope).register(fooBundler);
+  }
 }
