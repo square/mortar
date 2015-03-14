@@ -24,18 +24,18 @@ public class MortarScopeDevHelperTest {
   private static final char BLANK = '\u00a0';
 
   @Test public void nestedScopeHierarchyToString() {
-    MortarScope root = MortarScope.buildRootScope().build();
-    root.buildChild("Cadet").build();
+    MortarScope root = MortarScope.buildRootScope().build("Root");
+    root.buildChild().build("Cadet");
 
-    MortarScope colonel = root.buildChild("Colonel").build();
-    colonel.buildChild("ElderColonel").build();
-    colonel.buildChild("ZeElderColonel").build();
+    MortarScope colonel = root.buildChild().build("Colonel");
+    colonel.buildChild().build("ElderColonel");
+    colonel.buildChild().build("ZeElderColonel");
 
-    MortarScope elder = root.buildChild("Elder").build();
-    elder.buildChild("ElderCadet").build();
-    elder.buildChild("ZeElderCadet").build();
-    elder.buildChild("ElderElder").build();
-    elder.buildChild("AnElderCadet").build();
+    MortarScope elder = root.buildChild().build("Elder");
+    elder.buildChild().build("ElderCadet");
+    elder.buildChild().build("ZeElderCadet");
+    elder.buildChild().build("ElderElder");
+    elder.buildChild().build("AnElderCadet");
 
     String hierarchy = scopeHierarchyToString(root);
     assertThat(hierarchy).isEqualTo("" //
@@ -54,8 +54,8 @@ public class MortarScopeDevHelperTest {
   }
 
   @Test public void startsFromMortarScope() {
-    MortarScope root = MortarScope.buildRootScope().build();
-    MortarScope child = root.buildChild("Child").build();
+    MortarScope root = MortarScope.buildRootScope().build("Root");
+    MortarScope child = root.buildChild().build("Child");
 
     String hierarchy = scopeHierarchyToString(child);
 
@@ -67,9 +67,9 @@ public class MortarScopeDevHelperTest {
   }
 
   @Test public void noSpaceAtLineBeginnings() {
-    MortarScope root = MortarScope.buildRootScope().build();
-    MortarScope child = root.buildChild("Child").build();
-    child.buildChild("Grand Child").build();
+    MortarScope root = MortarScope.buildRootScope().build("Root");
+    MortarScope child = root.buildChild().build("Child");
+    child.buildChild().build("Grand Child");
 
     String hierarchy = scopeHierarchyToString(root);
 

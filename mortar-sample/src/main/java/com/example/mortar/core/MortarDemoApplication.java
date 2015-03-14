@@ -34,21 +34,18 @@ public class MortarDemoApplication extends Application {
   };
   private MortarScope rootScope;
 
-  @Override public void onCreate() {
-    super.onCreate();
-
-    rootScope = MortarScope.buildRootScope()
-        .withService(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new RootModule()))
-        .build();
-  }
-
   public FlowBundler getFlowBundler() {
     return flowBundler;
   }
 
   @Override public Object getSystemService(String name) {
-    Object mortarService = rootScope.getService(name);
-    if (mortarService != null) return mortarService;
+    if (rootScope == null) {
+      rootScope = MortarScope.buildRootScope()
+          .withService(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new RootModule()))
+          .build("Root");
+    }
+
+    if (rootScope.hasService(name)) return rootScope.getService(name);
 
     return super.getSystemService(name);
   }

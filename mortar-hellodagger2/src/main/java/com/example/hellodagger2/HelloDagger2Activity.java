@@ -30,10 +30,10 @@ public class HelloDagger2Activity extends Activity {
     MortarScope activityScope = findChild(getApplicationContext(), getScopeName());
 
     if (activityScope == null) {
-      activityScope = buildChild(getApplicationContext(), getScopeName()) //
+      activityScope = buildChild(getApplicationContext()) //
           .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
           .withService(DaggerService.SERVICE_NAME, createComponent(Main.Component.class))
-          .build();
+          .build(getScopeName());
     }
 
     return activityScope.hasService(name) ? activityScope.getService(name)

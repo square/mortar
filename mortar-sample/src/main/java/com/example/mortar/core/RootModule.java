@@ -46,7 +46,7 @@ public class RootModule {
 
   @Provides @Singleton QuoteService provideQuoteService() {
     RestAdapter restAdapter =
-        new RestAdapter.Builder().setEndpoint("http://www.iheartquotes.com/api/v1/")
+        new RestAdapter.Builder().setEndpoint("http://iheartquotes.com/api/v1/")
             .setConverter(new GsonConverter(new Gson()))
             .build();
     return restAdapter.create(QuoteService.class);

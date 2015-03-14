@@ -49,10 +49,10 @@ public class ScreenScoper {
 
     MortarScope childScope = parentScope.findChild(name);
     if (childScope == null) {
-      childScope = parentScope.buildChild(name)
+      childScope = parentScope.buildChild()
           .withService(ObjectGraphService.SERVICE_NAME,
               ObjectGraphService.create(parentScope, childModule))
-          .build();
+          .build(name);
     }
 
     return childScope;

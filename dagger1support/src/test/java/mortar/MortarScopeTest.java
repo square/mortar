@@ -179,11 +179,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
     initMocks(this);
   }
 
-  @Test public void MortarScopeHasName() {
-    MortarScope scope = createRootScope(create(new Able()));
-    assertThat(scope.getName()).isSameAs(MortarScope.ROOT_NAME);
-  }
-
   @Test public void createMortarScopeUsesModules() {
     MortarScope scope = createRootScope(create(new Able(), new Baker()));
     ObjectGraph objectGraph = getObjectGraph(scope);
@@ -462,8 +457,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
   @Test public void canGetNameFromDestroyed() {
     MortarScope scope = createRootScope(create(new Able()));
+    String name = scope.getName();
+    assertThat(name).isNotNull();
     scope.destroy();
-    assertThat(scope.getName()).isEqualTo(MortarScope.ROOT_NAME);
+    assertThat(scope.getName()).isEqualTo(name);
   }
 
   @Test public void cannotGetObjectGraphFromDestroyed() {
@@ -552,6 +549,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
   private static MortarScope createRootScope(ObjectGraph objectGraph) {
     return MortarScope.buildRootScope()
         .withService(ObjectGraphService.SERVICE_NAME, objectGraph)
-        .build();
+        .build("Root");
   }
 }

@@ -28,10 +28,10 @@ public class HelloActivity extends Activity {
     MortarScope activityScope = findChild(getApplicationContext(), getScopeName());
 
     if (activityScope == null) {
-      activityScope = buildChild(getApplicationContext(), getScopeName()) //
+      activityScope = buildChild(getApplicationContext()) //
           .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
           .withService(HelloPresenter.class.getName(), new HelloPresenter())
-          .build();
+          .build(getScopeName());
     }
 
     return activityScope.hasService(name) ? activityScope.getService(name)

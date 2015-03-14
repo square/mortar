@@ -128,7 +128,7 @@ public class MortarActivityScopeTest {
   private void newProcess(String activityScopeName) {
     MortarScope root = MortarScope.buildRootScope()
         .withService(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new MyModule()))
-        .build();
+        .build(activityScopeName);
     activityScope =
         ObjectGraphService.requireActivityScope(root, new MyBlueprint(activityScopeName));
   }
@@ -620,18 +620,18 @@ public class MortarActivityScopeTest {
   @Test public void destroyingWhileSaving() {
     final MortarScope[] currentScreen = new MortarScope[] { null };
 
-    MortarScope screenSwapperScope = activityScope.buildChild("screenOne").build();
+    MortarScope screenSwapperScope = activityScope.buildChild().build("screenOne");
     getBundleService(screenSwapperScope).register(new MyBundler("screenSwapper") {
       @Override public void onSave(Bundle outState) {
         currentScreen[0].destroy();
       }
     });
 
-    final MortarScope screenOneScope = screenSwapperScope.buildChild("screenOne").build();
+    final MortarScope screenOneScope = screenSwapperScope.buildChild().build("screenOne");
     getBundleService(screenOneScope).register(new MyBundler("bundlerOne"));
     currentScreen[0] = screenOneScope;
 
-    final MortarScope screenTwoScope = screenSwapperScope.buildChild("screenTwo").build();
+    final MortarScope screenTwoScope = screenSwapperScope.buildChild().build("screenTwo");
     getBundleService(screenTwoScope).register(new MyBundler("bundlerTwo"));
 
     getBundleServiceRunner(activityScope).onSaveInstanceState(new Bundle());
@@ -651,7 +651,7 @@ public class MortarActivityScopeTest {
     };
 
     // First visit to the foo screen, bundle will be null.
-    MortarScope fooScope = activityScope.buildChild("fooScope").build();
+    MortarScope fooScope = activityScope.buildChild().build("fooScope");
     getBundleService(fooScope).register(fooBundler);
 
     // Android saves state
@@ -662,7 +662,7 @@ public class MortarActivityScopeTest {
     fooScope.destroy();
 
     // And now we come back to it. New instance's onLoad should also get a null bundle.
-    fooScope = activityScope.buildChild("fooScope").build();
+    fooScope = activityScope.buildChild().build("fooScope");
     getBundleService(fooScope).register(fooBundler);
   }
 }
