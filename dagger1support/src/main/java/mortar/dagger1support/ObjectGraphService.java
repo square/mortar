@@ -75,7 +75,7 @@ public class ObjectGraphService {
    * @see MortarScope.Builder#withService(String, Object)
    * @deprecated This method is provided to ease migration from earlier releases, which
    * coupled Dagger and Activity integration. Instead build new scopes with {@link
-   * MortarScope#buildChild(String)}, and bind {@link ObjectGraphService} and
+   * MortarScope#buildChild()}, and bind {@link ObjectGraphService} and
    * {@link BundleServiceRunner} instances to them.
    */
   @Deprecated public static MortarScope requireActivityScope(MortarScope parentScope,
@@ -86,10 +86,10 @@ public class ObjectGraphService {
       ObjectGraph parentGraph = parentScope.getService(ObjectGraphService.SERVICE_NAME);
       Object daggerModule = blueprint.getDaggerModule();
       Object childGraph = createSubgraphBlueprintStyle(parentGraph, daggerModule);
-      child = parentScope.buildChild(childName)
+      child = parentScope.buildChild()
           .withService(ObjectGraphService.SERVICE_NAME, childGraph)
           .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
-          .build();
+          .build(childName);
     }
     return child;
   }
@@ -104,7 +104,7 @@ public class ObjectGraphService {
    * @see MortarScope.Builder#withService(String, Object)
    * @deprecated This method is provided to ease migration from earlier releases, which
    * required Dagger integration. Instead build new scopes with {@link
-   * MortarScope#buildChild(String)}, and bind {@link ObjectGraphService}  instances to them.
+   * MortarScope#buildChild()}, and bind {@link ObjectGraphService}  instances to them.
    */
   @Deprecated public static MortarScope requireChild(MortarScope parentScope, Blueprint blueprint) {
     String childName = blueprint.getMortarScopeName();
@@ -113,9 +113,9 @@ public class ObjectGraphService {
       ObjectGraph parentGraph = parentScope.getService(ObjectGraphService.SERVICE_NAME);
       Object daggerModule = blueprint.getDaggerModule();
       Object childGraph = createSubgraphBlueprintStyle(parentGraph, daggerModule);
-      child = parentScope.buildChild(childName)
+      child = parentScope.buildChild()
           .withService(ObjectGraphService.SERVICE_NAME, childGraph)
-          .build();
+          .build(childName);
     }
     return child;
   }

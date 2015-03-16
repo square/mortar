@@ -88,9 +88,9 @@ public class MortarDemoActivity extends android.app.Activity
 
     activityScope = parentScope.findChild(scopeName);
     if (activityScope == null) {
-      activityScope = parentScope.buildChild(scopeName)
+      activityScope = parentScope.buildChild()
           .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
-          .build();
+          .build(scopeName);
     }
     ObjectGraphService.inject(this, this);
 

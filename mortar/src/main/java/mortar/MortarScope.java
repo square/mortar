@@ -28,7 +28,6 @@ import static java.lang.String.format;
 
 public class MortarScope {
   public static final String DIVIDER = ">>>";
-  public static final String ROOT_NAME = "Root";
   public static final String SERVICE_NAME = MortarScope.class.getName();
 
   public static MortarScope getScope(Context context) {
@@ -39,12 +38,12 @@ public class MortarScope {
     return getScope(context).findChild(name);
   }
 
-  public static Builder buildChild(Context context, String name) {
-    return getScope(context).buildChild(name);
+  public static Builder buildChild(Context context) {
+    return getScope(context).buildChild();
   }
 
   public static Builder buildRootScope() {
-    return new Builder(ROOT_NAME, null);
+    return new Builder(null);
   }
 
   final Map<String, MortarScope> children = new LinkedHashMap<>();
@@ -132,20 +131,9 @@ public class MortarScope {
     return children.get(childName);
   }
 
-  public Builder buildChild(String childName) {
+  public Builder buildChild() {
     assertNotDead();
-
-    if (childName.contains(DIVIDER)) {
-      throw new IllegalArgumentException(
-          format("Name \"%s\" must not contain '%s'", childName, DIVIDER));
-    }
-
-    if (children.containsKey(childName)) {
-      throw new IllegalArgumentException(
-          format("Scope \"%s\" already has a child named \"%s\"", name, childName));
-    }
-
-    return new Builder(childName, this);
+    return new Builder(this);
   }
 
   /**
@@ -194,13 +182,11 @@ public class MortarScope {
     if (isDestroyed()) throw new IllegalStateException("Scope " + getName() + " was destroyed");
   }
 
-  public final static class Builder {
-    private final String name;
+  public static final class Builder {
     private final MortarScope parent;
     private final Map<String, Object> serviceProviders = new LinkedHashMap<>();
 
-    Builder(String name, MortarScope parent) {
-      this.name = name;
+    Builder(MortarScope parent) {
       this.parent = parent;
     }
 
@@ -226,9 +212,20 @@ public class MortarScope {
       return doWithService(serviceName, service);
     }
 
-    public MortarScope build() {
+    public MortarScope build(String name) {
+
+      if (name.contains(DIVIDER)) {
+        throw new IllegalArgumentException(
+            format("Name \"%s\" must not contain '%s'", name, DIVIDER));
+      }
+
       MortarScope newScope = new MortarScope(name, parent, serviceProviders);
       if (parent != null) {
+        if (parent.children.containsKey(name)) {
+          throw new IllegalArgumentException(
+              format("Scope \"%s\" already has a child named \"%s\"", name, name));
+        }
+
         parent.children.put(name, newScope);
       }
 
@@ -242,7 +239,7 @@ public class MortarScope {
       Object existing = serviceProviders.put(serviceName, service);
       if (existing != null) {
         throw new IllegalArgumentException(
-            format("New scope \"%s\" already bound to service %s, cannot be rebound to %s", name,
+            format("Scope builder already bound to service %s, cannot be rebound to %s",
                 existing, service));
       }
       return this;

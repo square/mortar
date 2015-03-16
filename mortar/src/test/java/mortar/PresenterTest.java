@@ -36,10 +36,10 @@ public class PresenterTest {
   MortarScope activityScope;
 
   @Before public void setUp() {
-    root = MortarScope.buildRootScope().build();
-    activityScope = root.buildChild("name")
+    root = MortarScope.buildRootScope().build("Root");
+    activityScope = root.buildChild()
         .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
-        .build();
+        .build("name");
   }
 
   class ChildPresenter extends Presenter<SomeView> {

@@ -82,10 +82,10 @@ public class PopupPresenterTest {
 
   /** Simulate a new proecess by creating brand new scope instances. */
   private void newProcess() {
-    root = MortarScope.buildRootScope().build();
-    activityScope = root.buildChild("activity")
+    root = MortarScope.buildRootScope().build("Root");
+    activityScope = root.buildChild()
         .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
-        .build();
+        .build("activity");
   }
 
   private Answer<Object> returnScopedService() {

@@ -104,13 +104,13 @@ public class ChatScreen extends Path implements HasParent {
       running = chat.getMessages().subscribe(new Observer<Message>() {
         @Override public void onCompleted() {
           Log.w(getClass().getName(), "That's surprising, never thought this should end.");
-          running = null;
+          running = Subscriptions.empty();
         }
 
         @Override public void onError(Throwable e) {
           Log.w(getClass().getName(), "'sploded, will try again on next config change.");
           Log.w(getClass().getName(), e);
-          running = null;
+          running = Subscriptions.empty();
         }
 
         @Override public void onNext(Message message) {
