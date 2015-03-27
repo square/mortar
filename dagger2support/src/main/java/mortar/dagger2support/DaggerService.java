@@ -30,7 +30,7 @@ public class DaggerService {
       Class<?> generatedClass = Class.forName(generatedName);
       Object builder = generatedClass.getMethod("builder").invoke(null);
 
-      for (Method method : builder.getClass().getMethods()) {
+      for (Method method : builder.getClass().getDeclaredMethods()) {
         Class<?>[] params = method.getParameterTypes();
         if (params.length == 1) {
           Class<?> dependencyClass = params[0];
