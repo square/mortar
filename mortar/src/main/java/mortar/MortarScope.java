@@ -112,7 +112,7 @@ public class MortarScope {
    * and {@link Scoped#onExitScope()} methods called. Redundant registrations are safe,
    * they will not lead to additional calls to these two methods.
    * <p>
-   * Calls to {@link Scoped#onEnterScope(MortarScope) onEnterScope} are dispatched asynchronously.
+   * {@link Scoped#onEnterScope(MortarScope) onEnterScope} is called synchronously.
    *
    * @throws IllegalStateException if this scope has been destroyed
    */
