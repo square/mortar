@@ -31,7 +31,8 @@ public class MortarScope {
   public static final String SERVICE_NAME = MortarScope.class.getName();
 
   public static MortarScope getScope(Context context) {
-    return (MortarScope) context.getSystemService(MortarScope.SERVICE_NAME);
+    final Context application = context.getApplicationContext();
+    return (MortarScope) application.getSystemService(MortarScope.SERVICE_NAME);
   }
 
   public static MortarScope findChild(Context context, String name) {
