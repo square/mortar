@@ -37,14 +37,14 @@ public class ScreenScoper {
   public MortarScope getScreenScope(Resources resources, MortarScope parentScope, final String name,
       final Object screen) {
     ModuleFactory moduleFactory = getModuleFactory(screen);
-    Object childModule;
+    Object[] childModule;
     if (moduleFactory != NO_FACTORY) {
-      childModule = moduleFactory.createDaggerModule(resources, screen);
+      childModule = new Object[]{ moduleFactory.createDaggerModule(resources, screen) };
     } else {
       // We need every screen to have a scope, so that anything it injects is scoped.  We need
       // this even if the screen doesn't declare a module, because Dagger allows injection of
       // objects that are annotated even if they don't appear in a module.
-      childModule = null;
+      childModule = new Object[0];
     }
 
     MortarScope childScope = parentScope.findChild(name);
