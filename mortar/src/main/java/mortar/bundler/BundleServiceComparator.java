@@ -9,7 +9,7 @@ class BundleServiceComparator implements Comparator<BundleService> {
     String[] rightPath = right.scope.getPath().split(MortarScope.DIVIDER);
 
     if (leftPath.length != rightPath.length) {
-      return Integer.compare(leftPath.length, rightPath.length);
+      return leftPath.length < rightPath.length ? -1 : 1;
     }
 
     int segments = leftPath.length;
