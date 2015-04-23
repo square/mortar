@@ -1,0 +1,17 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:1.1.3'
+	}
+}
+
+allprojects {
+	repositories {
+		jcenter()
+		mavenCentral()
+		mavenLocal()
+		maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+	}
+}
