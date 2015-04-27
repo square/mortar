@@ -58,8 +58,8 @@
     <android.platform>19</android.platform>
     <android.support.version>r7</android.support.version>
     <dagger.version>1.2.2</dagger.version>
-    <dagger2.version>2.0-SNAPSHOT</dagger2.version>
-    <dagger2compiler.version>2.0-SNAPSHOT</dagger2compiler.version>
+    <dagger2.version>2.0</dagger2.version>
+    <dagger2compiler.version>2.0</dagger2compiler.version>
 
     <!-- Test Dependencies -->
     <junit.version>4.10</junit.version>
