@@ -23,23 +23,17 @@ import com.example.mortar.model.User;
 import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.FriendView;
 import dagger.Provides;
-import flow.HasParent;
-import flow.Layout;
-import flow.Path;
+import flow.path.Path;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.ViewPresenter;
 
 @Layout(R.layout.friend_view) @WithModule(FriendScreen.Module.class)
-public class FriendScreen extends Path implements HasParent {
+public class FriendScreen extends Path {
   private final int index;
 
   public FriendScreen(int index) {
     this.index = index;
-  }
-
-  @Override public FriendListScreen getParent() {
-    return new FriendListScreen();
   }
 
   @dagger.Module(injects = FriendView.class, addsTo = RootModule.class)

@@ -54,8 +54,13 @@
     </dependency>
     <dependency>
       <groupId>com.squareup.flow</groupId>
-      <artifactId>flow-sample</artifactId>
-      <version>0.9-SNAPSHOT</version>
+      <artifactId>flow</artifactId>
+      <version>0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.flow</groupId>
+      <artifactId>flow-path</artifactId>
+      <version>0.9</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex</groupId>

@@ -17,11 +17,11 @@ package com.example.mortar.core;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import com.example.flow.pathview.FramePathContainerView;
-import com.example.flow.pathview.SimplePathContainer;
 import com.example.mortar.R;
 import com.example.mortar.mortarflow.MortarContextFactory;
-import flow.Path;
+import com.example.mortar.screen.FramePathContainerView;
+import com.example.mortar.screen.SimplePathContainer;
+import flow.path.Path;
 
 public class MortarScreenSwitcherFrame extends FramePathContainerView {
   public MortarScreenSwitcherFrame(Context context, AttributeSet attrs) {

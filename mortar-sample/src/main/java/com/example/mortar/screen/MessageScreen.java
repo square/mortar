@@ -24,9 +24,7 @@ import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.MessageView;
 import dagger.Provides;
 import flow.Flow;
-import flow.HasParent;
-import flow.Layout;
-import flow.Path;
+import flow.path.Path;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.ViewPresenter;
@@ -34,17 +32,13 @@ import rx.Observable;
 import rx.functions.Action1;
 
 @Layout(R.layout.message_view) @WithModule(MessageScreen.Module.class)
-public class MessageScreen extends Path implements HasParent {
+public class MessageScreen extends Path {
   private final int chatId;
   private final int messageId;
 
   public MessageScreen(int chatId, int messageId) {
     this.chatId = chatId;
     this.messageId = messageId;
-  }
-
-  @Override public ChatScreen getParent() {
-    return new ChatScreen(chatId);
   }
 
   @dagger.Module(injects = MessageView.class, addsTo = RootModule.class)
@@ -83,7 +77,7 @@ public class MessageScreen extends Path implements HasParent {
       if (message == null) return;
       int position = message.from.id;
       if (position != -1) {
-        Flow.get(getView()).goTo(new FriendScreen(position));
+        Flow.get(getView()).set(new FriendScreen(position));
       }
     }
   }
