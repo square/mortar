@@ -20,7 +20,6 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import javax.inject.Inject;
-import mortar.dagger2support.DaggerService;
 
 public class MainView extends LinearLayout {
   @Inject Main.Presenter presenter;

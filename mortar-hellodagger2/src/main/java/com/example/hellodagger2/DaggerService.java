@@ -1,4 +1,4 @@
-package mortar.dagger2support;
+package com.example.hellodagger2;
 
 import android.content.Context;
 import java.lang.reflect.Method;
