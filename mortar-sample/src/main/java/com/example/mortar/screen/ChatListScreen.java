@@ -24,8 +24,7 @@ import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.ChatListView;
 import dagger.Provides;
 import flow.Flow;
-import flow.Layout;
-import flow.Path;
+import flow.path.Path;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -56,7 +55,7 @@ public class ChatListScreen extends Path {
     }
 
     public void onConversationSelected(int position) {
-      Flow.get(getView()).goTo(new ChatScreen(position));
+      Flow.get(getView()).set(new ChatScreen(position));
     }
   }
 }

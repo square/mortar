@@ -41,7 +41,7 @@ considering which graph will do the injection.
 An application will typically have a singleton MortarScope instance.
 Its job is to serve as a delegate to the app's `getSystemService` method, something like:
 
-```
+```java
 public class MyApplication extends Application {
   private MortarScope rootScope;
 
@@ -64,7 +64,7 @@ To make a scope provide other services, like a [Dagger ObjectGraph][og],
 you register them while building the scope. That would make our Application's
 `getSystemService` method look like this:
 
-```
+```java
   @Override public Object getSystemService(String name) {
     if (rootScope == null) {
       rootScope = MortarScope.buildRootScope()
@@ -78,7 +78,7 @@ you register them while building the scope. That would make our Application's
 
 Now any part of our app that has access to a `Context` can inject itself:
 
-```
+```java
 public class MyView extends LinearLayout {
   @Inject SomeService service;
 
@@ -96,7 +96,7 @@ while building it set up the `BundleServiceRunner`. You'll also notify
 the BundleServiceRunner each time `onCreate` and `onSaveInstanceState` are 
 called, to make the persistence bundle available to the rest of the app. 
 
-```
+```java
 public class MyActivity extends Activity {
   private MortarScope activityScope;
 
@@ -179,6 +179,7 @@ License
 [mvp]: http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93presenter
 [dagger]: http://square.github.io/dagger/
 [dagger2]: http://google.github.io/dagger/
+[jar]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.squareup.mortar&a=mortar&v=LATEST
 [og]: https://square.github.io/dagger/javadoc/dagger/ObjectGraph.html
 [ogplus]: https://github.com/square/dagger/blob/dagger-parent-1.1.0/core/src/main/java/dagger/ObjectGraph.java#L96
 [presenter]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Presenter.java

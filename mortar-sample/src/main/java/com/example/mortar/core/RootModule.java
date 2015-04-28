@@ -15,15 +15,15 @@
  */
 package com.example.mortar.core;
 
-import com.example.flow.GsonParceler;
 import com.example.mortar.android.ActionBarOwner;
 import com.example.mortar.model.Chats;
 import com.example.mortar.model.QuoteService;
+import com.example.mortar.screen.GsonParceler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dagger.Module;
 import dagger.Provides;
-import flow.Parceler;
+import flow.StateParceler;
 import javax.inject.Singleton;
 import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
@@ -40,13 +40,13 @@ public class RootModule {
     return new GsonBuilder().create();
   }
 
-  @Provides @Singleton Parceler provideParcer(Gson gson) {
+  @Provides @Singleton StateParceler provideParcer(Gson gson) {
     return new GsonParceler(gson);
   }
 
   @Provides @Singleton QuoteService provideQuoteService() {
     RestAdapter restAdapter =
-        new RestAdapter.Builder().setEndpoint("http://iheartquotes.com/api/v1/")
+        new RestAdapter.Builder().setEndpoint("http://www.iheartquotes.com/api/v1/")
             .setConverter(new GsonConverter(new Gson()))
             .build();
     return restAdapter.create(QuoteService.class);

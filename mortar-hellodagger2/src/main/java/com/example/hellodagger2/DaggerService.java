@@ -1,4 +1,4 @@
-package mortar.dagger2support;
+package com.example.hellodagger2;
 
 import android.content.Context;
 import java.lang.reflect.Method;
@@ -24,13 +24,13 @@ public class DaggerService {
     String packageName = componentClass.getPackage().getName();
     // Accounts for inner classes, ie MyApplication$Component
     String simpleName = fqn.substring(packageName.length() + 1);
-    String generatedName = (packageName + ".Dagger_" + simpleName).replace('$', '_');
+    String generatedName = (packageName + ".Dagger" + simpleName).replace('$', '_');
 
     try {
       Class<?> generatedClass = Class.forName(generatedName);
       Object builder = generatedClass.getMethod("builder").invoke(null);
 
-      for (Method method : builder.getClass().getMethods()) {
+      for (Method method : builder.getClass().getDeclaredMethods()) {
         Class<?>[] params = method.getParameterTypes();
         if (params.length == 1) {
           Class<?> dependencyClass = params[0];

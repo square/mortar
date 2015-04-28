@@ -24,16 +24,14 @@ import com.example.mortar.mortarscreen.WithModule;
 import com.example.mortar.view.FriendListView;
 import dagger.Provides;
 import flow.Flow;
-import flow.HasParent;
-import flow.Layout;
-import flow.Path;
+import flow.path.Path;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.ViewPresenter;
 
 @Layout(R.layout.friend_list_view) @WithModule(FriendListScreen.Module.class)
-public class FriendListScreen extends Path implements HasParent {
+public class FriendListScreen extends Path {
 
   @dagger.Module(injects = FriendListView.class, addsTo = RootModule.class)
   public static class Module {
@@ -57,11 +55,7 @@ public class FriendListScreen extends Path implements HasParent {
     }
 
     public void onFriendSelected(int position) {
-      Flow.get(getView()).goTo(new FriendScreen(position));
+      Flow.get(getView()).set(new FriendScreen(position));
     }
-  }
-
-  @Override public ChatListScreen getParent() {
-    return new ChatListScreen();
   }
 }
