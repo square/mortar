@@ -28,9 +28,7 @@ import com.example.mortar.view.ChatView;
 import com.example.mortar.view.Confirmation;
 import dagger.Provides;
 import flow.Flow;
-import flow.HasParent;
-import flow.Layout;
-import flow.Path;
+import flow.path.Path;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import mortar.PopupPresenter;
@@ -41,15 +39,11 @@ import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
 
 @Layout(R.layout.chat_view) @WithModule(ChatScreen.Module.class)
-public class ChatScreen extends Path implements HasParent {
+public class ChatScreen extends Path {
   private final int conversationIndex;
 
   public ChatScreen(int conversationIndex) {
     this.conversationIndex = conversationIndex;
-  }
-
-  @Override public ChatListScreen getParent() {
-    return new ChatListScreen();
   }
 
   @dagger.Module(injects = ChatView.class, addsTo = RootModule.class)
@@ -125,7 +119,7 @@ public class ChatScreen extends Path implements HasParent {
     }
 
     public void onConversationSelected(int position) {
-      Flow.get(getView().getContext()).goTo(new MessageScreen(chat.getId(), position));
+      Flow.get(getView().getContext()).set(new MessageScreen(chat.getId(), position));
     }
 
     public void visibilityChanged(boolean visible) {

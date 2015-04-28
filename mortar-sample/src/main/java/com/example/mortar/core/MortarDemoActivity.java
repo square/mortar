@@ -17,20 +17,23 @@ package com.example.mortar.core;
 
 import android.app.ActionBar;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import com.example.flow.pathview.HandlesBack;
-import com.example.flow.pathview.HandlesUp;
-import com.example.flow.util.FlowBundler;
 import com.example.mortar.R;
 import com.example.mortar.android.ActionBarOwner;
+import com.example.mortar.screen.ChatListScreen;
 import com.example.mortar.screen.FriendListScreen;
+import com.example.mortar.screen.GsonParceler;
+import com.example.mortar.screen.HandlesBack;
+import com.google.gson.Gson;
 import flow.Flow;
-import flow.HasParent;
-import flow.Path;
-import flow.PathContainerView;
+import flow.FlowDelegate;
+import flow.History;
+import flow.path.Path;
+import flow.path.PathContainerView;
 import javax.inject.Inject;
 import mortar.MortarScope;
 import mortar.MortarScopeDevHelper;
@@ -55,24 +58,22 @@ public class MortarDemoActivity extends android.app.Activity
 
   private PathContainerView container;
   private HandlesBack containerAsHandlesBack;
-  private HandlesUp containerAsHandlesUp;
-  private Flow flow;
+  private FlowDelegate flowDelegate;
 
   @Override public Context getContext() {
     return this;
   }
 
   @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
-    Path newScreen = traversal.destination.current();
-    boolean hasUp = newScreen instanceof HasParent;
+    Path newScreen = traversal.destination.top();
     String title = newScreen.getClass().getSimpleName();
-    ActionBarOwner.MenuAction menu =
-        hasUp ? null : new ActionBarOwner.MenuAction("Friends", new Action0() {
-          @Override public void call() {
-            flow.goTo(new FriendListScreen());
-          }
-        });
-    actionBarOwner.setConfig(new ActionBarOwner.Config(false, hasUp, title, menu));
+    ActionBarOwner.MenuAction menu = new ActionBarOwner.MenuAction("Friends", new Action0() {
+      @Override public void call() {
+        Flow.get(MortarDemoActivity.this).set(new FriendListScreen());
+      }
+    });
+    actionBarOwner.setConfig(
+        new ActionBarOwner.Config(false, !(newScreen instanceof ChatListScreen), title, menu));
 
     container.dispatch(traversal, callback);
   }
@@ -80,7 +81,9 @@ public class MortarDemoActivity extends android.app.Activity
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    flow = getFlowBundler().onCreate(savedInstanceState);
+    GsonParceler parceler = new GsonParceler(new Gson());
+    @SuppressWarnings("deprecation") FlowDelegate.NonConfigurationInstance nonConfig =
+        (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
 
     MortarScope parentScope = MortarScope.getScope(getApplication());
 
@@ -101,21 +104,35 @@ public class MortarDemoActivity extends android.app.Activity
     setContentView(R.layout.root_layout);
     container = (PathContainerView) findViewById(R.id.container);
     containerAsHandlesBack = (HandlesBack) container;
-    containerAsHandlesUp = (HandlesUp) container;
+    flowDelegate = FlowDelegate.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
+        History.single(new ChatListScreen()), this);
+  }
+
+  @Override protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    flowDelegate.onNewIntent(intent);
   }
 
   @Override protected void onResume() {
     super.onResume();
-    flow.setDispatcher(this);
+    flowDelegate.onResume();
   }
 
   @Override protected void onPause() {
-    flow.removeDispatcher(this);
+    flowDelegate.onPause();
     super.onPause();
   }
 
+  @SuppressWarnings("deprecation") // https://code.google.com/p/android/issues/detail?id=151346
+  @Override public Object onRetainNonConfigurationInstance() {
+    return flowDelegate.onRetainNonConfigurationInstance();
+  }
+
   @Override public Object getSystemService(String name) {
-    if (Flow.isFlowSystemService(name)) return flow;
+    if (flowDelegate != null) {
+      Object flowService = flowDelegate.getSystemService(name);
+      if (flowService != null) return flowService;
+    }
 
     return activityScope != null && activityScope.hasService(name) ? activityScope.getService(name)
         : super.getSystemService(name);
@@ -123,7 +140,7 @@ public class MortarDemoActivity extends android.app.Activity
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    getFlowBundler().onSaveInstanceState(outState);
+    flowDelegate.onSaveInstanceState(outState);
     getBundleServiceRunner(this).
         onSaveInstanceState(outState);
   }
@@ -135,7 +152,7 @@ public class MortarDemoActivity extends android.app.Activity
 
   /** Inform the view about up events. */
   @Override public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == android.R.id.home) return containerAsHandlesUp.onUpPressed();
+    if (item.getItemId() == android.R.id.home) return containerAsHandlesBack.onBackPressed();
     return super.onOptionsItemSelected(item);
   }
 
@@ -194,9 +211,5 @@ public class MortarDemoActivity extends android.app.Activity
       actionBarMenuAction = action;
       invalidateOptionsMenu();
     }
-  }
-
-  private FlowBundler getFlowBundler() {
-    return ((MortarDemoApplication) getApplication()).getFlowBundler();
   }
 }
