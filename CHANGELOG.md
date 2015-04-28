@@ -1,6 +1,20 @@
 Change Log
 ==========
 
+Version 0.17 *(2015-04-27)*
+------------------
+  **API Quake!**
+
+  * Mortar is now decoupled from dependency injection in general, and from Dagger in particular.
+
+  * Mortar core is now a service provider, meant to back Context#getSystemService, and handles registration of Scoped  objects.
+
+  * MortarActivityScope is gone, replaced by BundleService and BundleServiceRunner. (Presenter is now built on those services, but basically unchanged.)
+
+  * Dagger support has moved to ObjectGraphService. Blueprint moved with it, and is deprecated.
+
+  * Main sample application continues to be overly complicated and confusing, working on it.
+
 Version 0.16 *(2014-06-02)*
 ------------------
   * Repairs idempotence of MortarScope#destroyChild

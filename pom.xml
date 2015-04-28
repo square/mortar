@@ -39,7 +39,6 @@
   <modules>
     <module>mortar</module>
     <module>dagger1support</module>
-    <module>dagger2support</module>
     <module>mortar-helloworld</module>
     <module>mortar-hellodagger2</module>
     <module>mortar-sample</module>
