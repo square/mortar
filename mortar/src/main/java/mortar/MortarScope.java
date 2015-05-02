@@ -96,7 +96,7 @@ public class MortarScope {
   @SuppressWarnings("unchecked") //
   private <T> T findService(String serviceName) {
     if (!isDestroyed()) {
-      if (MortarScope.class.getName().equals(serviceName)) return (T) this;
+      if (SERVICE_NAME.equals(serviceName)) return (T) this;
 
       T service = (T) services.get(serviceName);
       if (service != null) return service;
