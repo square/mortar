@@ -74,6 +74,10 @@ public class MortarScope {
     return parent.getPath() + DIVIDER + getName();
   }
 
+  /**
+   * Returns true if the service associated with the given name is available &
+   * if the scope is not destroyed
+   */
   public boolean hasService(String serviceName) {
     return !isDestroyed() && findService(serviceName) != null;
   }
@@ -95,14 +99,13 @@ public class MortarScope {
 
   @SuppressWarnings("unchecked") //
   private <T> T findService(String serviceName) {
-    if (!isDestroyed()) {
-      if (SERVICE_NAME.equals(serviceName)) return (T) this;
+    assertNotDead();
+    if (SERVICE_NAME.equals(serviceName)) return (T) this;
 
-      T service = (T) services.get(serviceName);
-      if (service != null) return service;
+    T service = (T) services.get(serviceName);
+    if (service != null) return service;
 
-      if (parent != null) return parent.findService(serviceName);
-    }
+    if (parent != null) return parent.findService(serviceName);
 
     return null;
   }
@@ -237,10 +240,14 @@ public class MortarScope {
 
     private Builder doWithService(String serviceName, Object service) {
       Object existing = serviceProviders.put(serviceName, service);
+      if (service == null) {
+        throw new NullPointerException("service == null");
+      }
       if (existing != null) {
         throw new IllegalArgumentException(
-            format("Scope builder already bound to service %s, cannot be rebound to %s",
-                existing, service));
+            format(
+                "Scope builder already bound \"%s\" to service \"%s\", cannot be rebound to \"%s\"",
+                serviceName, existing.getClass().getName(), service.getClass().getName()));
       }
       return this;
     }

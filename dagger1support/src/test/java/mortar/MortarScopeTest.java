@@ -264,10 +264,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     root.destroy();
     verify(scoped).onExitScope();
 
-    IllegalArgumentException caught = null;
+    IllegalStateException caught = null;
     try {
       getObjectGraph(activityScope);
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalStateException e) {
       caught = e;
     }
     assertThat(caught).isNotNull();
@@ -367,10 +367,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     root.destroy();
     verify(scoped).onExitScope();
 
-    IllegalArgumentException caught = null;
+    IllegalStateException caught = null;
     try {
       assertThat(getObjectGraph(child)).isNull();
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalStateException e) {
       caught = e;
     }
     assertThat(caught).isNotNull();
@@ -467,10 +467,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     MortarScope scope = createRootScope(create(new Able()));
     scope.destroy();
 
-    IllegalArgumentException caught = null;
+    IllegalStateException caught = null;
     try {
       getObjectGraph(scope);
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalStateException e) {
       caught = e;
     }
     assertThat(caught).isNotNull();
