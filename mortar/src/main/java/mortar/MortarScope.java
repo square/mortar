@@ -198,6 +198,11 @@ public class MortarScope {
      * method.
      */
     public Builder withService(String serviceName, Object service) {
+      if (service instanceof Scoped) {
+        throw new IllegalArgumentException(String.format(
+            "For service %s, %s must not be an instance of %s, use \"withScopedService\" instead.",
+            serviceName, service, Scoped.class.getSimpleName()));
+      }
       return doWithService(serviceName, service);
     }
 
