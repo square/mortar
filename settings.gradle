@@ -1,0 +1,14 @@
+rootProject.name = 'mortar-parent'
+include ':mortar'
+include ':dagger1support'
+include ':dagger2support'
+include ':mortar-helloworld'
+include ':mortar-hellodagger2'
+include ':mortar-sample'
+
+project(':mortar').projectDir = "$rootDir/mortar" as File
+project(':dagger1support').projectDir = "$rootDir/dagger1support" as File
+project(':dagger2support').projectDir = "$rootDir/dagger2support" as File
+project(':mortar-helloworld').projectDir = "$rootDir/mortar-helloworld" as File
+project(':mortar-hellodagger2').projectDir = "$rootDir/mortar-hellodagger2" as File
+project(':mortar-sample').projectDir = "$rootDir/mortar-sample" as File

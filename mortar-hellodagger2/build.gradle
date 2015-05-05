@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion 21
+	buildToolsVersion "21.1.2"
+
+	defaultConfig {
+		applicationId "com.example.hellodagger2"
+		minSdkVersion 15
+		targetSdkVersion 21
+		versionCode 1
+		versionName "1.0.0"
+	}
+	sourceSets {
+		main {
+			manifest.srcFile 'AndroidManifest.xml'
+			res.srcDirs = ['res'];
+		}
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+	}
+	lintOptions {
+		abortOnError false
+	}
+}
+
+description = 'Hello Dagger2'
+
+dependencies {
+	compile project(':mortar')
+	compile project(':dagger2support')
+	compile 'com.google.android:support-v4:r7'
+	compile 'com.google.dagger:dagger:2.0-SNAPSHOT'
+	provided 'com.google.dagger:dagger-compiler:2.0-SNAPSHOT'
+	provided 'org.glassfish:javax.annotation:10.0-b28'
+}

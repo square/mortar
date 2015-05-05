@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion 21
+	buildToolsVersion "21.1.2"
+
+	defaultConfig {
+		applicationId "com.example.mortar"
+		minSdkVersion 15
+		targetSdkVersion 21
+		versionCode 1
+		versionName "1.0.0"
+	}
+	sourceSets {
+		main {
+			manifest.srcFile 'AndroidManifest.xml'
+			res.srcDirs = ['res'];
+		}
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+	}
+	lintOptions {
+		abortOnError false
+	}
+}
+description = 'Mortar Sample'
+dependencies {
+	compile project(':mortar')
+	compile project(':dagger1support')
+	compile 'com.google.android:support-v4:r7'
+	compile 'com.squareup.retrofit:retrofit:1.6.1'
+	compile 'io.reactivex:rxjava:1.0.5'
+	compile 'io.reactivex:rxandroid:0.24.0'
+	compile 'com.google.code.gson:gson:2.3'
+	compile 'com.squareup.dagger:dagger:1.2.2'
+	compile 'com.squareup.flow:flow:0.9-SNAPSHOT'
+	compile 'com.squareup.flow:flow-sample:0.9-SNAPSHOT@jar'
+	provided 'com.squareup.dagger:dagger-compiler:1.2.2'
+	provided 'com.google.code.findbugs:jsr305:3.0.0'
+}
+
