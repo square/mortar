@@ -27,7 +27,8 @@ import org.robolectric.annotation.Config;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 // Robolectric allows us to use Bundles.
-@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class PresenterTest {
   static class SomeView {
   }

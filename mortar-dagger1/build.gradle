@@ -1,0 +1,46 @@
+import com.android.builder.core.BuilderConstants;
+
+buildscript {
+  dependencies {
+    classpath deps.android_gradle_plugin
+    classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
+  }
+}
+apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    versionName VERSION_NAME
+  }
+}
+
+dependencies {
+  compile project(':mortar')
+  compile 'com.squareup.dagger:dagger:1.2.1'
+  apt 'com.squareup.dagger:dagger-compiler:1.2.1'
+  testCompile 'com.squareup.dagger:dagger-compiler:1.2.1'
+  testCompile 'junit:junit:4.10'
+  testCompile 'org.easytesting:fest-assert-core:2.0M10'
+  testCompile 'org.mockito:mockito-core:1.9.5'
+  testCompile 'org.robolectric:robolectric:2.2'
+}
+
+
+android.libraryVariants.all { variant ->
+  def name = variant.buildType.name
+  if (!BuilderConstants.DEBUG.equals(name)) {
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    task.from variant.javaCompile.destinationDir
+    artifacts.add('archives', task);
+  }
+}
+
+if (hasProperty("POM_DEVELOPER_ID")) {
+  apply from: '../gradle-mvn-push.gradle'
+}

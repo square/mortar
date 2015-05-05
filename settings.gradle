@@ -1,0 +1,5 @@
+include ':mortar'
+include ':mortar-dagger1'
+include ':mortar-hellodagger2'
+include ':mortar-helloworld'
+include ':mortar-sample'

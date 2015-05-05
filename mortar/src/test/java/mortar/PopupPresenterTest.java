@@ -42,7 +42,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 // Robolectric allows us to use Bundles.
-@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class PopupPresenterTest {
 
   static class TestPopupPresenter extends PopupPresenter<Parcelable, String> {
