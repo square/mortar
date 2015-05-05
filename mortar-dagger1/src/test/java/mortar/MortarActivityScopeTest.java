@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import mortar.bundler.BundleService;
 import mortar.bundler.BundleServiceRunner;
 import mortar.bundler.Bundler;
@@ -46,7 +47,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 // Robolectric allows us to use Bundles.
-@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class MortarActivityScopeTest {
   private static class MyBundler implements Bundler {
     final String name;
