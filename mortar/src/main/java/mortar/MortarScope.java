@@ -30,8 +30,20 @@ public class MortarScope {
   public static final String DIVIDER = ">>>";
   public static final String SERVICE_NAME = MortarScope.class.getName();
 
+  /**
+   * Retrieves a MortarScope from the given context. If none is found, retrieves a MortarScope from
+   * the application context.
+   *
+   * @return null if no scope is found in either the given context or the application context
+   */
   public static MortarScope getScope(Context context) {
-    return (MortarScope) context.getSystemService(MortarScope.SERVICE_NAME);
+    //noinspection ResourceType
+    Object scope = context.getSystemService(SERVICE_NAME);
+    if (scope == null) {
+      //noinspection ResourceType
+      scope = context.getApplicationContext().getSystemService(SERVICE_NAME);
+    }
+    return (MortarScope) scope;
   }
 
   public static MortarScope findChild(Context context, String name) {
