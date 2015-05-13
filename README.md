@@ -69,7 +69,7 @@ you register them while building the scope. That would make our Application's
     if (rootScope == null) {
       rootScope = MortarScope.buildRootScope()
         .with(ObjectGraphService.SERVICE_NAME, ObjectGraph.create(new RootModule()))
-        .build();
+        .build(getScopeName());
     }
 
     return rootScope.hasService(name) ? rootScope.getService(name) : super.getSystemService(name);
@@ -104,10 +104,10 @@ public class MyActivity extends Activity {
     MortarScope activityScope = MortarScope.findChild(getApplicationContext(), getScopeName());
 
     if (activityScope == null) {
-      activityScope = MortarScope.buildChild(getApplicationContext(), getScopeName()) //
+      activityScope = MortarScope.buildChild(getApplicationContext()) //
           .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
           .withService(HelloPresenter.class.getName(), new HelloPresenter())
-          .build();
+          .build(getScopeName());
     }
 
     return activityScope.hasService(name) ? activityScope.getService(name)
