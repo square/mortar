@@ -46,7 +46,7 @@ public class MyApplication extends Application {
   private MortarScope rootScope;
 
   @Override public Object getSystemService(String name) {
-    if (rootScope == null) rootScope = MortarScope.buildRootScope().build();
+    if (rootScope == null) rootScope = MortarScope.buildRootScope().build(getScopeName());
 
     return rootScope.hasService(name) ? rootScope.getService(name) : super.getSystemService(name);
   }
