@@ -40,6 +40,11 @@ public class MortarScope {
     //noinspection ResourceType
     Object scope = context.getSystemService(SERVICE_NAME);
     if (scope == null) {
+      // Essentially a workaround for the lifecycle interval where an Activity's
+      // base context is not yet set to the Application, but the Application
+      // context is available and contains a MortarScope that provides needed
+      // services. Thanks, Android!
+
       //noinspection ResourceType
       scope = context.getApplicationContext().getSystemService(SERVICE_NAME);
     }
