@@ -1,5 +1,6 @@
 package mortar;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -112,5 +113,28 @@ public class MortarScopeTest {
     } catch (IllegalStateException e) {
       assertThat(e).hasMessageContaining("destroyed");
     }
+  }
+
+  @Test public void tearDownChildrenBeforeParent() {
+    MortarScope rootScope = scopeBuilder.build("Root");
+    MortarScope childScope = rootScope.buildChild().build("ChildOne");
+    final AtomicBoolean childDestroyed = new AtomicBoolean(false);
+    childScope.register(new Scoped() {
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
+      @Override public void onExitScope() {
+        childDestroyed.set(true);
+      }
+    });
+    rootScope.register(new Scoped() {
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
+      @Override public void onExitScope() {
+        assertThat(childDestroyed.get()).isTrue();
+      }
+    });
+    rootScope.destroy();
   }
 }

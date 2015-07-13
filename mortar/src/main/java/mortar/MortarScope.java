@@ -177,19 +177,19 @@ public class MortarScope {
     if (dead) return;
     dead = true;
 
-    // TODO(ray) Wouldn't it make more sense to tear down the children first?
-    // And perhaps we shouldn't actually mark this scope dead until it's children
-    // have died first. If we do that, take some care that re-entrant calls
-    // to destroy() don't lead to redundant onExitScope calls. Maybe need an
-    // enum State {LIVE, DYING, DEAD}.
+    List<MortarScope> snapshot = new ArrayList<>(children.values());
+    for (MortarScope child : snapshot) {
+      child.destroy();
+    }
 
-    for (Scoped s : tearDowns) s.onExitScope();
+    for (Scoped s : tearDowns) {
+      s.onExitScope();
+    }
     tearDowns.clear();
     services.clear();
-    if (parent != null) parent.children.remove(getName());
-
-    List<MortarScope> snapshot = new ArrayList<>(children.values());
-    for (MortarScope child : snapshot) child.destroy();
+    if (parent != null) {
+      parent.children.remove(getName());
+    }
   }
 
   @Override public String toString() {
