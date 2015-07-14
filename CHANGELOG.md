@@ -1,6 +1,17 @@
 Change Log
 ==========
 
+Version 0.18 *(2015-07-14)*
+------------------
+ * Destroying a scope recursively destroys its children first, like it used to.
+   (0.17 API quake incorrectly reversed this.)
+
+ * Now throws (fail fast!) when doing service lookup in a dead scope. 
+
+ * Manually falls back to app context when a service is not found, to work 
+   around the interval in a new activity's life where its base context
+   is not yet set.
+
 Version 0.17 *(2015-04-27)*
 ------------------
   **API Quake!**
