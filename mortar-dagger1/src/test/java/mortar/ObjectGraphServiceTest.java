@@ -23,7 +23,6 @@ import java.lang.annotation.Retention;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 import javax.inject.Qualifier;
-import mortar.dagger1support.Blueprint;
 import mortar.dagger1support.ObjectGraphService;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,11 +30,10 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import static dagger.ObjectGraph.create;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static java.util.Arrays.asList;
+import static mortar.dagger1support.ObjectGraphService.SERVICE_NAME;
+import static mortar.dagger1support.ObjectGraphService.create;
 import static mortar.dagger1support.ObjectGraphService.getObjectGraph;
-import static mortar.dagger1support.ObjectGraphService.requireChild;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -65,95 +63,33 @@ import static org.mockito.MockitoAnnotations.initMocks;
   @Qualifier @Retention(RUNTIME) @interface Eggplant {
   }
 
-  @Module(injects = HasApple.class) class Able {
+  @Module(injects = HasApple.class) class AppleModule {
     @Provides @Apple String provideApple() {
       return Apple.class.getName();
     }
   }
 
-  class AbleBlueprint implements Blueprint {
-    @Override public String getMortarScopeName() {
-      return Apple.class.getName();
-    }
-
-    @Override public Object getDaggerModule() {
-      return new Able();
-    }
-  }
-
-  @Module(injects = HasBagel.class) class Baker {
+  @Module(injects = HasBagel.class) class BagelModule {
     @Provides @Bagel String provideBagel() {
       return Bagel.class.getName();
     }
   }
 
-  class BakerBlueprint implements Blueprint {
-    @Override public String getMortarScopeName() {
-      return Bagel.class.getName();
-    }
-
-    @Override public Object getDaggerModule() {
-      return new Baker();
-    }
-  }
-
-  @Module(injects = HasCarrot.class) class Charlie {
+  @Module(injects = HasCarrot.class) class CarrotModule {
     @Provides @Carrot String provideCharlie() {
       return Carrot.class.getName();
     }
   }
 
-  class CharlieBlueprint implements Blueprint {
-    @Override public String getMortarScopeName() {
-      return Carrot.class.getName();
-    }
-
-    @Override public Object getDaggerModule() {
-      return new Charlie();
-    }
-  }
-
-  @Module(injects = HasDogfood.class) class Delta {
+  @Module(injects = HasDogfood.class) class DogfoodModule {
     @Provides @Dogfood String provideDogfood() {
       return Dogfood.class.getName();
     }
   }
 
-  class DeltaBlueprint implements Blueprint {
-    @Override public String getMortarScopeName() {
-      return Dogfood.class.getName();
-    }
-
-    @Override public Object getDaggerModule() {
-      return new Delta();
-    }
-  }
-
-  @Module(injects = HasEggplant.class) class Echo {
+  @Module(injects = HasEggplant.class) class EggplanModule {
     @Provides @Eggplant String provideEggplant() {
       return Eggplant.class.getName();
-    }
-  }
-
-  class MoreModules implements Blueprint {
-
-    @Override public String getMortarScopeName() {
-      return "Moar";
-    }
-
-    @Override public Object getDaggerModule() {
-      return asList(new Delta(), new Echo());
-    }
-  }
-
-  class NoModules implements Blueprint {
-
-    @Override public String getMortarScopeName() {
-      return "Nothing";
-    }
-
-    @Override public Object getDaggerModule() {
-      return null;
     }
   }
 
@@ -182,7 +118,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void createMortarScopeUsesModules() {
-    MortarScope scope = createRootScope(create(new Able(), new Baker()));
+    MortarScope scope = createRootScope(ObjectGraph.create(new AppleModule(), new BagelModule()));
     ObjectGraph objectGraph = getObjectGraph(scope);
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
@@ -195,28 +131,28 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void destroyRoot() {
-    MortarScope scope = createRootScope(create(new Able()));
+    MortarScope scope = createRootScope(ObjectGraph.create(new AppleModule()));
     scope.register(scoped);
     scope.destroy();
     verify(scoped).onExitScope();
   }
 
   @Test public void activityScopeName() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    String name = Bagel.class.getName();
+    MortarScope activityScope =
+        root.buildChild().withService(SERVICE_NAME, create(root, new BagelModule())).build(name);
 
-    String bagel = Bagel.class.getName();
-    assertThat(activityScope.getName()).isEqualTo(bagel);
-    assertThat(root.findChild(bagel)).isSameAs(activityScope);
-    assertThat(requireChild(root, new BakerBlueprint())).isSameAs(activityScope);
-    assertThat(ObjectGraphService.requireActivityScope(root, new BakerBlueprint())).isSameAs(
-        activityScope);
+    assertThat(activityScope.getName()).isEqualTo(name);
+    assertThat(root.findChild(name)).isSameAs(activityScope);
     assertThat(root.findChild("herman")).isNull();
   }
 
   @Test public void getActivityScopeWithOneModule() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    String name = Bagel.class.getName();
+    MortarScope activityScope =
+        root.buildChild().withService(SERVICE_NAME, create(root, new BagelModule())).build(name);
     ObjectGraph objectGraph = getObjectGraph(activityScope);
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
@@ -229,8 +165,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void getActivityScopeWithMoreModules() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new MoreModules());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new DogfoodModule(), new EggplanModule()))
+        .build("moar");
+
     ObjectGraph objectGraph = getObjectGraph(activityScope);
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
@@ -244,21 +183,23 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void destroyActivityScopeDirect() {
-    MortarScope root = createRootScope(create(new Able()));
-    BakerBlueprint blueprint = new BakerBlueprint();
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, blueprint);
-    assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    String name = Bagel.class.getName();
+    MortarScope activityScope =
+        root.buildChild().withService(SERVICE_NAME, create(root, new BagelModule())).build(name);
+
     activityScope.register(scoped);
     activityScope.destroy();
     verify(scoped).onExitScope();
-    assertThat(root.findChild(blueprint.getMortarScopeName())).isNull();
+    assertThat(root.findChild(name)).isNull();
   }
 
   @Test public void destroyActivityScopeRecursive() {
-    MortarScope root = createRootScope(create(new Able()));
-    BakerBlueprint blueprint = new BakerBlueprint();
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, blueprint);
-    assertThat(root.findChild(blueprint.getMortarScopeName())).isSameAs(activityScope);
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+
     activityScope.register(scoped);
     root.destroy();
     verify(scoped).onExitScope();
@@ -272,22 +213,33 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void activityChildScopeName() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new CharlieBlueprint());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
 
-    String carrot = Carrot.class.getName();
-    assertThat(child.getName()).isEqualTo(carrot);
-    assertThat(activityScope.findChild(carrot)).isSameAs(child);
-    assertThat(requireChild(activityScope, new CharlieBlueprint())).isSameAs(child);
+    String childScopeName = Carrot.class.getName();
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build(childScopeName);
+
+    assertThat(child.getName()).isEqualTo(childScopeName);
+    assertThat(activityScope.findChild(childScopeName)).isSameAs(child);
     assertThat(activityScope.findChild("herman")).isNull();
   }
 
   @Test public void requireGrandchildWithOneModule() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new CharlieBlueprint());
-    MortarScope grandchild = requireChild(child, new DeltaBlueprint());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build("child");
+    MortarScope grandchild = child.buildChild()
+        .withService(SERVICE_NAME, create(child, new DogfoodModule()))
+        .build("grandchild");
+
     ObjectGraph objectGraph = getObjectGraph(grandchild);
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
@@ -302,10 +254,16 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void requireGrandchildWithMoreModules() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new CharlieBlueprint());
-    MortarScope grandchild = requireChild(child, new MoreModules());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build("child");
+    MortarScope grandchild = child.buildChild()
+        .withService(SERVICE_NAME, create(child, new DogfoodModule(), new EggplanModule()))
+        .build("grandchild");
 
     ObjectGraph objectGraph = getObjectGraph(grandchild);
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
@@ -322,10 +280,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void requireGrandchildWithNoModules() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new CharlieBlueprint());
-    MortarScope grandchild = requireChild(child, new NoModules());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build("child");
+    MortarScope grandchild = child.buildChild().build("grandchild");
 
     ObjectGraph objectGraph = getObjectGraph(grandchild);
     assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
@@ -341,23 +303,31 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void destroyActivityChildScopeDirect() {
-    MortarScope root = createRootScope(create(new Able()));
-    CharlieBlueprint blueprint = new CharlieBlueprint();
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, blueprint);
-    assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build("child");
+
+    assertThat(activityScope.findChild("child")).isSameAs(child);
     child.register(scoped);
     child.destroy();
     verify(scoped).onExitScope();
-    assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isNull();
+    assertThat(activityScope.findChild("child")).isNull();
   }
 
   @Test public void destroyActivityChildScopeRecursive() {
-    MortarScope root = createRootScope(create(new Able()));
-    CharlieBlueprint blueprint = new CharlieBlueprint();
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, blueprint);
-    assertThat(activityScope.findChild(blueprint.getMortarScopeName())).isSameAs(child);
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build("child");
+
+    assertThat(activityScope.findChild("child")).isSameAs(child);
     child.register(scoped);
     root.destroy();
     verify(scoped).onExitScope();
@@ -371,53 +341,26 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void activityGrandchildScopeName() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new CharlieBlueprint());
-    MortarScope grandchild = requireChild(child, new DeltaBlueprint());
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
+    MortarScope activityScope = root.buildChild()
+        .withService(SERVICE_NAME, create(root, new BagelModule()))
+        .build("activity");
+    MortarScope child = activityScope.buildChild()
+        .withService(SERVICE_NAME, create(activityScope, new CarrotModule()))
+        .build("child");
+    MortarScope grandchild = child.buildChild()
+        .withService(SERVICE_NAME, create(child, new DogfoodModule()))
+        .build("grandchild");
 
-    String dogfood = Dogfood.class.getName();
-    assertThat(grandchild.getName()).isEqualTo(dogfood);
-    assertThat(child.findChild(dogfood)).isSameAs(grandchild);
-    assertThat(requireChild(child, new DeltaBlueprint())).isSameAs(grandchild);
+    assertThat(grandchild.getName()).isEqualTo("grandchild");
+    assertThat(child.findChild("grandchild")).isSameAs(grandchild);
     assertThat(child.findChild("herman")).isNull();
-  }
-
-  @Test public void requireChildWithOneModule() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new CharlieBlueprint());
-
-    ObjectGraph objectGraph = getObjectGraph(child);
-    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
-    assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
-    assertThat(objectGraph.get(HasCarrot.class).string).isEqualTo(Carrot.class.getName());
-  }
-
-  @Test public void requireChildWithMoreModules() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope activityScope = ObjectGraphService.requireActivityScope(root, new BakerBlueprint());
-    MortarScope child = requireChild(activityScope, new MoreModules());
-
-    ObjectGraph objectGraph = getObjectGraph(child);
-    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
-    assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
-    assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
-    assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
-  }
-
-  @Test public void requireChildWithNoModules() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope child = requireChild(root, new NoModules());
-
-    ObjectGraph objectGraph = getObjectGraph(child);
-    assertThat(objectGraph.get(HasApple.class).string).isEqualTo(Apple.class.getName());
   }
 
   @Test public void handlesRecursiveDestroy() {
     final AtomicInteger i = new AtomicInteger(0);
 
-    final MortarScope scope = createRootScope(create(new Able()));
+    final MortarScope scope = createRootScope(ObjectGraph.create(new AppleModule()));
     scope.register(new Scoped() {
       @Override public void onEnterScope(MortarScope scope) {
       }
@@ -432,7 +375,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void inject() {
-    final MortarScope root = createRootScope(create(new Able()));
+    final MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
     when(context.getSystemService(any(String.class))).then(new Answer<Object>() {
       @Override public Object answer(InvocationOnMock invocation) throws Throwable {
         return root.getService((String) invocation.getArguments()[0]);
@@ -444,13 +387,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void getScope() {
-    MortarScope root = createRootScope(create(new Able()));
+    MortarScope root = createRootScope(ObjectGraph.create(new AppleModule()));
     wireScopeToMockContext(root, context);
     assertThat(MortarScope.getScope(context)).isSameAs(root);
   }
 
   @Test public void canGetNameFromDestroyed() {
-    MortarScope scope = createRootScope(create(new Able()));
+    MortarScope scope = createRootScope(ObjectGraph.create(new AppleModule()));
     String name = scope.getName();
     assertThat(name).isNotNull();
     scope.destroy();
@@ -458,7 +401,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void cannotGetObjectGraphFromDestroyed() {
-    MortarScope scope = createRootScope(create(new Able()));
+    MortarScope scope = createRootScope(ObjectGraph.create(new AppleModule()));
     scope.destroy();
 
     try {
@@ -470,11 +413,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
   }
 
   @Test public void cannotGetObjectGraphFromContextOfDestroyed() {
-    MortarScope scope = createRootScope(create(new Able()));
+    MortarScope scope = createRootScope(ObjectGraph.create(new AppleModule()));
     Context context = mockContext(scope);
     scope.destroy();
 
-    IllegalStateException caught = null;
     try {
       getObjectGraph(context);
       fail("Expected IllegalStateException");
@@ -483,16 +425,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
     }
   }
 
-  @Test(expected = IllegalStateException.class) public void cannotRequireChildFromDestroyed() {
-    MortarScope scope = createRootScope(create(new Able()));
-    scope.destroy();
-    requireChild(scope, new AbleBlueprint());
-  }
-
   private static MortarScope createRootScope(ObjectGraph objectGraph) {
-    return MortarScope.buildRootScope()
-        .withService(ObjectGraphService.SERVICE_NAME, objectGraph)
-        .build("Root");
+    return MortarScope.buildRootScope().withService(SERVICE_NAME, objectGraph).build("Root");
   }
 
   private static Context mockContext(final MortarScope root) {
