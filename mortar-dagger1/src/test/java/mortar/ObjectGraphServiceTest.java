@@ -39,11 +39,13 @@ import static mortar.dagger1support.ObjectGraphService.requireChild;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@SuppressWarnings("InnerClassMayBeStatic") public class MortarScopeTest {
+@SuppressWarnings("InnerClassMayBeStatic") public class ObjectGraphServiceTest {
 
   @Mock Context context;
   @Mock Scoped scoped;
@@ -186,11 +188,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
     try {
       objectGraph.get(HasCarrot.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void destroyRoot() {
@@ -221,11 +222,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
     try {
       objectGraph.get(HasCarrot.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void getActivityScopeWithMoreModules() {
@@ -237,11 +237,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
     try {
       objectGraph.get(HasCarrot.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void destroyActivityScopeDirect() {
@@ -264,13 +263,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
     root.destroy();
     verify(scoped).onExitScope();
 
-    IllegalStateException caught = null;
     try {
       getObjectGraph(activityScope);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
   @Test public void activityChildScopeName() {
@@ -297,11 +295,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
     try {
       objectGraph.get(HasEggplant.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void requireGrandchildWithMoreModules() {
@@ -318,11 +315,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
     try {
       objectGraph.get(String.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void requireGrandchildWithNoModules() {
@@ -338,11 +334,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
     try {
       objectGraph.get(String.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void destroyActivityChildScopeDirect() {
@@ -367,13 +362,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
     root.destroy();
     verify(scoped).onExitScope();
 
-    IllegalStateException caught = null;
     try {
-      assertThat(getObjectGraph(child)).isNull();
+      getObjectGraph(child);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
   @Test public void activityGrandchildScopeName() {
@@ -451,7 +445,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
   @Test public void getScope() {
     MortarScope root = createRootScope(create(new Able()));
-    when(context.getSystemService(MortarScope.SERVICE_NAME)).thenReturn(root);
+    wireScopeToMockContext(root, context);
     assertThat(MortarScope.getScope(context)).isSameAs(root);
   }
 
@@ -467,25 +461,26 @@ import static org.mockito.MockitoAnnotations.initMocks;
     MortarScope scope = createRootScope(create(new Able()));
     scope.destroy();
 
-    IllegalStateException caught = null;
     try {
       getObjectGraph(scope);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
-  @Test(expected = IllegalStateException.class) public void cannotRegisterOnDestroyed() {
+  @Test public void cannotGetObjectGraphFromContextOfDestroyed() {
     MortarScope scope = createRootScope(create(new Able()));
+    Context context = mockContext(scope);
     scope.destroy();
-    scope.register(scoped);
-  }
 
-  @Test(expected = IllegalStateException.class) public void cannotFindChildFromDestroyed() {
-    MortarScope scope = createRootScope(create(new Able()));
-    scope.destroy();
-    scope.findChild("foo");
+    IllegalStateException caught = null;
+    try {
+      getObjectGraph(context);
+      fail("Expected IllegalStateException");
+    } catch (IllegalStateException e) {
+      // pass
+    }
   }
 
   @Test(expected = IllegalStateException.class) public void cannotRequireChildFromDestroyed() {
@@ -494,61 +489,24 @@ import static org.mockito.MockitoAnnotations.initMocks;
     requireChild(scope, new AbleBlueprint());
   }
 
-  @Test public void destroyIsIdempotent() {
-    MortarScope root = createRootScope(create(new Able()));
-    MortarScope child = requireChild(root, new NoModules());
-
-    final AtomicInteger destroys = new AtomicInteger(0);
-    child.register(new Scoped() {
-      @Override public void onEnterScope(MortarScope scope) {
-      }
-
-      @Override public void onExitScope() {
-        destroys.addAndGet(1);
-      }
-    });
-
-    child.destroy();
-    assertThat(destroys.get()).isEqualTo(1);
-
-    child.destroy();
-    assertThat(destroys.get()).isEqualTo(1);
-  }
-
-  @Test public void rootDestroyIsIdempotent() {
-    MortarScope scope = createRootScope(create(new Able()));
-
-    final AtomicInteger destroys = new AtomicInteger(0);
-    scope.register(new Scoped() {
-      @Override public void onEnterScope(MortarScope scope) {
-      }
-
-      @Override public void onExitScope() {
-        destroys.addAndGet(1);
-      }
-    });
-
-    scope.destroy();
-    assertThat(destroys.get()).isEqualTo(1);
-
-    scope.destroy();
-    assertThat(destroys.get()).isEqualTo(1);
-  }
-
-  @Test public void isDestroyedStartsFalse() {
-    MortarScope root = createRootScope(create(new Able()));
-    assertThat(root.isDestroyed()).isFalse();
-  }
-
-  @Test public void isDestroyedGetsSet() {
-    MortarScope root = createRootScope(create(new Able()));
-    root.destroy();
-    assertThat(root.isDestroyed()).isTrue();
-  }
-
   private static MortarScope createRootScope(ObjectGraph objectGraph) {
     return MortarScope.buildRootScope()
         .withService(ObjectGraphService.SERVICE_NAME, objectGraph)
         .build("Root");
+  }
+
+  private static Context mockContext(final MortarScope root) {
+    Context appContext = mock(Context.class);
+    return wireScopeToMockContext(root, appContext);
+  }
+
+  private static Context wireScopeToMockContext(final MortarScope root, Context appContext) {
+    when(appContext.getSystemService(anyString())).thenAnswer(new Answer<Object>() {
+      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
+        String name = (String) invocation.getArguments()[0];
+        return root.hasService(name) ? root.getService(name) : null;
+      }
+    });
+    return appContext;
   }
 }
