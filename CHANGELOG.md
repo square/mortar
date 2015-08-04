@@ -4,13 +4,14 @@ Change Log
 Version 0.19 *(TBD)*
 ------------------
  * Fixes ambiguous service lookup behavior of destroyed scopes:
-
     * `MortarScope.getScope(context).isDead()` returns true when you'd expect it to.
-
     * `ObjectGraph.inject(context, object)` throws if the backing scope is dead, as opposed to the current behavior where we instead try (and generally fail with a confusing message) to inject from an ancestor scope.
-
     * The behavior of `MortarScope.hasService(String)` is not changed in destroyed scopes. It always says yes if the service is provided by the receiving scope or an ancestor.
 
+ * Deletes deprecated classes and methods:
+    * `Blueprint`
+    * `ObjectGraphService#requireActivityScope`
+    * `ObjectGraphService#requireChild`
 
 Version 0.18 *(2015-07-14)*
 ------------------

@@ -3,9 +3,7 @@ package mortar.dagger1support;
 import android.app.Activity;
 import android.content.Context;
 import dagger.ObjectGraph;
-import java.util.Collection;
 import mortar.MortarScope;
-import mortar.bundler.BundleServiceRunner;
 
 /**
  * Provides utility methods for using Mortar with Dagger 1.
@@ -48,75 +46,5 @@ public class ObjectGraphService {
    */
   public static void inject(MortarScope scope, Object object) {
     getObjectGraph(scope).inject(object);
-  }
-
-  private static ObjectGraph createSubgraphBlueprintStyle(ObjectGraph parentGraph,
-      Object daggerModule) {
-    ObjectGraph newGraph;
-    if (daggerModule == null) {
-      newGraph = parentGraph.plus();
-    } else if (daggerModule instanceof Collection) {
-      Collection c = (Collection) daggerModule;
-      newGraph = parentGraph.plus(c.toArray(new Object[c.size()]));
-    } else {
-      newGraph = parentGraph.plus(daggerModule);
-    }
-    return newGraph;
-  }
-
-  /**
-   * Returns the existing {@link MortarScope} scope for the given {@link Activity}, or
-   * uses the {@link Blueprint} to create one if none is found. The scope will provide
-   * {@link mortar.bundler.BundleService} and {@link BundleServiceRunner}.
-   * <p/>
-   * It is expected that this method will be called from {@link Activity#onCreate}. Calling
-   * it at other times may lead to surprises.
-   *
-   * @see MortarScope.Builder#withService(String, Object)
-   * @deprecated This method is provided to ease migration from earlier releases, which
-   * coupled Dagger and Activity integration. Instead build new scopes with {@link
-   * MortarScope#buildChild()}, and bind {@link ObjectGraphService} and
-   * {@link BundleServiceRunner} instances to them.
-   */
-  @Deprecated public static MortarScope requireActivityScope(MortarScope parentScope,
-      Blueprint blueprint) {
-    String childName = blueprint.getMortarScopeName();
-    MortarScope child = parentScope.findChild(childName);
-    if (child == null) {
-      ObjectGraph parentGraph = parentScope.getService(ObjectGraphService.SERVICE_NAME);
-      Object daggerModule = blueprint.getDaggerModule();
-      Object childGraph = createSubgraphBlueprintStyle(parentGraph, daggerModule);
-      child = parentScope.buildChild()
-          .withService(ObjectGraphService.SERVICE_NAME, childGraph)
-          .withService(BundleServiceRunner.SERVICE_NAME, new BundleServiceRunner())
-          .build(childName);
-    }
-    return child;
-  }
-
-  /**
-   * Returns the existing child whose name matches the given {@link Blueprint}'s
-   * {@link Blueprint#getMortarScopeName()} value. If there is none, a new child is created
-   * based on {@link Blueprint#getDaggerModule()}. Note that
-   * {@link Blueprint#getDaggerModule()} is not called otherwise.
-   *
-   * @throws IllegalStateException if this scope has been destroyed
-   * @see MortarScope.Builder#withService(String, Object)
-   * @deprecated This method is provided to ease migration from earlier releases, which
-   * required Dagger integration. Instead build new scopes with {@link
-   * MortarScope#buildChild()}, and bind {@link ObjectGraphService}  instances to them.
-   */
-  @Deprecated public static MortarScope requireChild(MortarScope parentScope, Blueprint blueprint) {
-    String childName = blueprint.getMortarScopeName();
-    MortarScope child = parentScope.findChild(childName);
-    if (child == null) {
-      ObjectGraph parentGraph = parentScope.getService(ObjectGraphService.SERVICE_NAME);
-      Object daggerModule = blueprint.getDaggerModule();
-      Object childGraph = createSubgraphBlueprintStyle(parentGraph, daggerModule);
-      child = parentScope.buildChild()
-          .withService(ObjectGraphService.SERVICE_NAME, childGraph)
-          .build(childName);
-    }
-    return child;
   }
 }
