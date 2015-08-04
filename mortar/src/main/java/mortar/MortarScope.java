@@ -28,7 +28,8 @@ import static java.lang.String.format;
 
 public class MortarScope {
   public static final String DIVIDER = ">>>";
-  public static final String SERVICE_NAME = MortarScope.class.getName();
+
+  private static final String MORTAR_SERVICE = MortarScope.class.getName();
 
   /**
    * Retrieves a MortarScope from the given context. If none is found, retrieves a MortarScope from
@@ -38,7 +39,7 @@ public class MortarScope {
    */
   public static MortarScope getScope(Context context) {
     //noinspection ResourceType
-    Object scope = context.getSystemService(SERVICE_NAME);
+    Object scope = context.getSystemService(MORTAR_SERVICE);
     if (scope == null) {
       // Essentially a workaround for the lifecycle interval where an Activity's
       // base context is not yet set to the Application, but the Application
@@ -46,7 +47,7 @@ public class MortarScope {
       // services. Thanks, Android!
 
       //noinspection ResourceType
-      scope = context.getApplicationContext().getSystemService(SERVICE_NAME);
+      scope = context.getApplicationContext().getSystemService(MORTAR_SERVICE);
     }
     return (MortarScope) scope;
   }
@@ -57,6 +58,10 @@ public class MortarScope {
 
   public static Builder buildChild(Context context) {
     return getScope(context).buildChild();
+  }
+
+  public static boolean isDestroyed(Context context) {
+    return getScope(context).isDestroyed();
   }
 
   public static Builder buildRootScope() {
@@ -92,21 +97,22 @@ public class MortarScope {
   }
 
   /**
-   * Returns true if the service associated with the given name is available &
-   * if the scope is not destroyed
+   * Returns true if the service associated with the given name is provided by mortar.
+   * It is safe to call this method on destroyed scopes.
    */
   public boolean hasService(String serviceName) {
-    return !isDestroyed() && findService(serviceName) != null;
+    return serviceName.equals(MORTAR_SERVICE) || findService(serviceName, false) != null;
   }
 
   /**
    * Returns the service associated with the given name.
    *
    * @throws IllegalArgumentException if no such service can be found
+   * @throws IllegalStateException if this scope is dead
    * @see #hasService
    */
   public <T> T getService(String serviceName) {
-    T service = findService(serviceName);
+    T service = findService(serviceName, true);
     if (service == null) {
       throw new IllegalArgumentException(format("No service found named \"%s\"", serviceName));
     }
@@ -115,14 +121,21 @@ public class MortarScope {
   }
 
   @SuppressWarnings("unchecked") //
-  private <T> T findService(String serviceName) {
-    assertNotDead();
-    if (SERVICE_NAME.equals(serviceName)) return (T) this;
+  private <T> T findService(String serviceName, boolean strict) {
+    // Always honor requests for the scope itself, even if we're destroyed.
+    // Otherwise things like if (MortarScope.getScope(context).isDestroyed()) are impossible.
+    if (MORTAR_SERVICE.equals(serviceName)) return (T) this;
+
+    if (strict) {
+      assertNotDead();
+    }
 
     T service = (T) services.get(serviceName);
     if (service != null) return service;
 
-    if (parent != null) return parent.findService(serviceName);
+    if (parent != null) {
+      return parent.findService(serviceName, strict);
+    }
 
     return null;
   }
@@ -169,9 +182,9 @@ public class MortarScope {
   }
 
   /**
-   * Sends {@link Scoped#onExitScope()} to all registrants and then clears the
-   * registration list. Recursively destroys all children. Parent scope drops its reference
-   * to this instance. Redundant calls to this method are safe.
+   * Sends {@link Scoped#onExitScope()} to all registrants. Parent scope drops its reference to
+   * this instance. Prior to this, recursively destroys all children. Redundant calls to this method
+   * are safe.
    */
   public void destroy() {
     if (dead) return;
@@ -186,7 +199,10 @@ public class MortarScope {
       s.onExitScope();
     }
     tearDowns.clear();
-    services.clear();
+    Set<String> keys = services.keySet();
+    for (String key : keys) {
+      services.put(key, "Dead service");
+    }
     if (parent != null) {
       parent.children.remove(getName());
     }
@@ -261,10 +277,9 @@ public class MortarScope {
         throw new NullPointerException("service == null");
       }
       if (existing != null) {
-        throw new IllegalArgumentException(
-            format(
-                "Scope builder already bound \"%s\" to service \"%s\", cannot be rebound to \"%s\"",
-                serviceName, existing.getClass().getName(), service.getClass().getName()));
+        throw new IllegalArgumentException(format(
+            "Scope builder already bound \"%s\" to service \"%s\", cannot be rebound to \"%s\"",
+            serviceName, existing.getClass().getName(), service.getClass().getName()));
       }
       return this;
     }

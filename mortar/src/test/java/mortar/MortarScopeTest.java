@@ -1,17 +1,29 @@
 package mortar;
 
+import android.content.Context;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static mortar.MortarScope.DIVIDER;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MortarScopeTest {
+  @Mock Scoped scoped;
+
   MortarScope.Builder scopeBuilder;
 
   @Before public void setUp() {
+    initMocks(this);
     scopeBuilder = MortarScope.buildRootScope();
   }
 
@@ -136,5 +148,138 @@ public class MortarScopeTest {
       }
     });
     rootScope.destroy();
+  }
+
+  @Test public void getScope() {
+    MortarScope root = scopeBuilder.build("root");
+    Context context = mockContext(root);
+    assertThat(MortarScope.getScope(context)).isSameAs(root);
+  }
+
+  @Test public void getScopeReturnsDeadScope() {
+    MortarScope root = scopeBuilder.build("root");
+    Context context = mockContext(root);
+    root.destroy();
+    assertThat(MortarScope.getScope(context)).isSameAs(root);
+  }
+
+  @Test public void hasService() {
+    String foo = "FOO";
+    MortarScope root = scopeBuilder
+        .withService("FOO", foo)
+        .build("root");
+    assertThat(root.hasService("FOO")).isTrue();
+    assertThat(root.hasService("BAR")).isFalse();
+  }
+
+  @Test public void hasServiceOnDestroyedIsSame() {
+    String foo = "FOO";
+    MortarScope root = scopeBuilder
+        .withService("FOO", foo)
+        .build("root");
+    root.destroy();
+    assertThat(root.hasService("FOO")).isTrue();
+    assertThat(root.hasService("BAR")).isFalse();
+  }
+
+  @Test public void hasServiceNestedDestroySanityCheck() {
+    String high = "HIGH";
+    MortarScope root = scopeBuilder
+        .withService(high, high)
+        .build("root");
+
+    String low = "LOW";
+    MortarScope child = scopeBuilder
+        .withService(low, low)
+        .build("child");
+
+    root.destroy();
+    assertThat(child.hasService(high)).isTrue();
+    assertThat(child.hasService(low)).isTrue();
+    assertThat(child.hasService("BAR")).isFalse();
+  }
+
+  @Test(expected = IllegalStateException.class) public void cannotRegisterOnDestroyed() {
+    MortarScope scope = scopeBuilder.build("root");
+    scope.destroy();
+    scope.register(scoped);
+  }
+
+  @Test(expected = IllegalStateException.class) public void cannotFindChildFromDestroyed() {
+    MortarScope scope = scopeBuilder.build("root");
+    scope.destroy();
+    scope.findChild("foo");
+  }
+
+  @Test public void destroyIsIdempotent() {
+    MortarScope root = scopeBuilder.build("root");
+    MortarScope child = root.buildChild().build("ChildOne");
+
+    final AtomicInteger destroys = new AtomicInteger(0);
+    child.register(new Scoped() {
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
+      @Override public void onExitScope() {
+        destroys.addAndGet(1);
+      }
+    });
+
+    child.destroy();
+    assertThat(destroys.get()).isEqualTo(1);
+
+    child.destroy();
+    assertThat(destroys.get()).isEqualTo(1);
+  }
+
+  @Test public void rootDestroyIsIdempotent() {
+    MortarScope scope = scopeBuilder.build("root");
+
+    final AtomicInteger destroys = new AtomicInteger(0);
+    scope.register(new Scoped() {
+      @Override public void onEnterScope(MortarScope scope) {
+      }
+
+      @Override public void onExitScope() {
+        destroys.addAndGet(1);
+      }
+    });
+
+    scope.destroy();
+    assertThat(destroys.get()).isEqualTo(1);
+
+    scope.destroy();
+    assertThat(destroys.get()).isEqualTo(1);
+  }
+
+  @Test public void isDestroyedStartsFalse() {
+    MortarScope root = scopeBuilder.build("root");
+    assertThat(root.isDestroyed()).isFalse();
+  }
+
+  @Test public void isDestroyedGetsSet() {
+    MortarScope root = scopeBuilder.build("root");
+    root.destroy();
+    assertThat(root.isDestroyed()).isTrue();
+  }
+
+  @Test public void staticIsDestroyed() {
+    MortarScope root = scopeBuilder.build("root");
+    Context context = mockContext(root);
+    assertThat(MortarScope.isDestroyed(context)).isFalse();
+    root.destroy();
+    assertThat(MortarScope.isDestroyed(context)).isTrue();
+  }
+
+  private Context mockContext(MortarScope root) {
+    final MortarScope scope = root;
+    Context appContext = mock(Context.class);
+    when(appContext.getSystemService(anyString())).thenAnswer(new Answer<Object>() {
+      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
+        String name = (String) invocation.getArguments()[0];
+        return scope.hasService(name) ? scope.getService(name) : null;
+      }
+    });
+    return appContext;
   }
 }
