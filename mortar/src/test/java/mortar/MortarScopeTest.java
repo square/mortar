@@ -199,16 +199,26 @@ public class MortarScopeTest {
     assertThat(child.hasService("BAR")).isFalse();
   }
 
-  @Test(expected = IllegalStateException.class) public void cannotRegisterOnDestroyed() {
+  @Test public void cannotRegisterOnDestroyed() {
     MortarScope scope = scopeBuilder.build("root");
     scope.destroy();
-    scope.register(scoped);
+    try {
+      scope.register(scoped);
+      fail();
+    } catch (IllegalStateException e) {
+      // pass
+    }
   }
 
-  @Test(expected = IllegalStateException.class) public void cannotFindChildFromDestroyed() {
+  @Test public void cannotFindChildFromDestroyed() {
     MortarScope scope = scopeBuilder.build("root");
     scope.destroy();
-    scope.findChild("foo");
+    try {
+      scope.findChild("foo");
+      fail();
+    } catch (IllegalStateException e) {
+      // pass
+    }
   }
 
   @Test public void destroyIsIdempotent() {

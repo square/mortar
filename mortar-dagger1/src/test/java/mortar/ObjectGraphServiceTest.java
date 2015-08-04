@@ -188,11 +188,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
     try {
       objectGraph.get(HasCarrot.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void destroyRoot() {
@@ -223,11 +222,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasBagel.class).string).isEqualTo(Bagel.class.getName());
     try {
       objectGraph.get(HasCarrot.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void getActivityScopeWithMoreModules() {
@@ -239,11 +237,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
     try {
       objectGraph.get(HasCarrot.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void destroyActivityScopeDirect() {
@@ -266,13 +263,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
     root.destroy();
     verify(scoped).onExitScope();
 
-    IllegalStateException caught = null;
     try {
       getObjectGraph(activityScope);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
   @Test public void activityChildScopeName() {
@@ -299,11 +295,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasDogfood.class).string).isEqualTo(Dogfood.class.getName());
     try {
       objectGraph.get(HasEggplant.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void requireGrandchildWithMoreModules() {
@@ -320,11 +315,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     assertThat(objectGraph.get(HasEggplant.class).string).isEqualTo(Eggplant.class.getName());
     try {
       objectGraph.get(String.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void requireGrandchildWithNoModules() {
@@ -340,11 +334,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
     try {
       objectGraph.get(String.class);
+      fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException e) {
       // pass
-      return;
     }
-    fail("Expected IllegalArgumentException");
   }
 
   @Test public void destroyActivityChildScopeDirect() {
@@ -369,13 +362,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
     root.destroy();
     verify(scoped).onExitScope();
 
-    IllegalStateException caught = null;
     try {
-      assertThat(getObjectGraph(child)).isNull();
+      getObjectGraph(child);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
   @Test public void activityGrandchildScopeName() {
@@ -469,13 +461,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
     MortarScope scope = createRootScope(create(new Able()));
     scope.destroy();
 
-    IllegalStateException caught = null;
     try {
       getObjectGraph(scope);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
   @Test public void cannotGetObjectGraphFromContextOfDestroyed() {
@@ -486,10 +477,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
     IllegalStateException caught = null;
     try {
       getObjectGraph(context);
+      fail("Expected IllegalStateException");
     } catch (IllegalStateException e) {
-      caught = e;
+      // pass
     }
-    assertThat(caught).isNotNull();
   }
 
   @Test(expected = IllegalStateException.class) public void cannotRequireChildFromDestroyed() {
