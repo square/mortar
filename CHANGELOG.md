@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 0.19 *(TBD)*
+Version 0.19 *(2015-08-04)*
 ------------------
  * Fixes ambiguous service lookup behavior of destroyed scopes:
     * `MortarScope.getScope(context).isDead()` returns true when you'd expect it to.
