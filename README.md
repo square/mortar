@@ -8,13 +8,12 @@ It leverages [Context#getSystemService][services] to act as an a la carte suppli
 of services like dependency injection, bundle persistence, and whatever else
 your app needs to provide itself.
 
-One of the most useful services Mortar can provide is its  
-[BundleService][bundle-service], which gives any View (or any object with access to the
-Activity context) safe access to the Activity lifecycle's persistence bundle.
-For fans of the [Model View Presenter][mvp] pattern, we provide a persisted
-[Presenter][presenter] class that builds on BundleService. Presenters are completely
-isolated from View concerns. They're particularly good at surviving
-configuration changes, weathering the storm as Android destroys your portrait
+One of the most useful services Mortar can provide is its' [BundleService][bundle-service],
+which gives any View (or any object with access to the Activity context) safe access to
+the Activity lifecycle's persistence bundle. For fans of the [Model View Presenter][mvp]
+pattern, we provide a persisted [Presenter][presenter] class that builds on BundleService.
+Presenters are completely isolated from View concerns. They're particularly good at
+surviving configuration changes, weathering the storm as Android destroys your portrait
 Activity and Views and replaces them with landscape doppelgangers.
 
 Mortar can similarly make [Dagger][dagger] ObjectGraphs (or [Dagger2][dagger2]
@@ -32,9 +31,9 @@ an object being built by a set of wizard screens.
 
 These nested scopes can shadow the services provided by higher level scopes.
 For example, a [Dagger extension graph][ogplus] specific to your wizard session
-can cover the one normally available, transparently to the wizard Views &mdash;
-they can make calls like `ObjectGraphService.inject(getContext(), this)` without
-considering which graph will do the injection.
+can cover the one normally available, transparently to the wizard Views.
+Calls like `ObjectGraphService.inject(getContext(), this)` are now possible
+without considering which graph will do the injection.
 
 ## The Big Picture
 
@@ -55,7 +54,8 @@ public class MyApplication extends Application {
 
 This exposes a single, core service, the scope itself. From the scope you can
 spawn child scopes, and you can register objects that implement the
-[Scoped][scoped] with it for setup and tear-down calls.
+[Scoped](https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Scoped.java#L18)
+interface with it for setup and tear-down calls.
 
   * `Scoped#onEnterScope(MortarScope)`
   * `Scoped#onExitScope(MortarScope)`
@@ -129,7 +129,7 @@ public class MyActivity extends Activity {
 
 With that in place, any object in your app can sign up with the `BundleService`
 to save and restore its state. This is nice for views, since Bundles are less
-of a hassle than the `Parcelable`s required by `View#onSaveInstanceState`,
+of a hassle than the `Parcelable` objects required by `View#onSaveInstanceState`,
 and a boon to any business objects in the rest of your app. 
 
 Download
@@ -144,7 +144,9 @@ Download [the latest JAR][jar] or grab via Maven:
     <version>(insert latest version)</version>
 </dependency>
 ```
-or Gradle:
+
+Gradle:
+
 ```groovy
 compile 'com.squareup.mortar:mortar:(latest version)'
 ```
