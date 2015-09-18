@@ -51,9 +51,8 @@ public abstract class Presenter<V> {
   };
 
   /**
-   * Called to give this presenter control of a view, ideally from {@link
-   * android.view.View#onFinishInflate}. If a view is to be re-used, make an additional call from
-   * {@link android.view.View#onAttachedToWindow()}. (Redundant calls will safely no-op.) Sets the
+   * Called to give this presenter control of a view, typically from 
+   * {@link android.view.View#onAttachedToWindow()}. Sets the
    * view that will be returned from {@link #getView()}.
    * <p/>
    * This presenter will be immediately {@link BundleService#register registered}
