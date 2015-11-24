@@ -38,7 +38,7 @@ public class MortarScope {
    * @return null if no scope is found in either the given context or the application context
    */
   public static MortarScope getScope(Context context) {
-    //noinspection ResourceType
+    //noinspection ResourceType,WrongConstant
     Object scope = context.getSystemService(MORTAR_SERVICE);
     if (scope == null) {
       // Essentially a workaround for the lifecycle interval where an Activity's
@@ -46,7 +46,7 @@ public class MortarScope {
       // context is available and contains a MortarScope that provides needed
       // services. Thanks, Android!
 
-      //noinspection ResourceType
+      //noinspection ResourceType,WrongConstant
       scope = context.getApplicationContext().getSystemService(MORTAR_SERVICE);
     }
     return (MortarScope) scope;

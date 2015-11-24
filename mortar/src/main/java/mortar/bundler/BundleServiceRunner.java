@@ -16,6 +16,7 @@ public class BundleServiceRunner implements Scoped {
   public static final String SERVICE_NAME = BundleServiceRunner.class.getName();
 
   public static BundleServiceRunner getBundleServiceRunner(Context context) {
+    //noinspection ResourceType,WrongConstant
     return (BundleServiceRunner) context.getSystemService(SERVICE_NAME);
   }
 
