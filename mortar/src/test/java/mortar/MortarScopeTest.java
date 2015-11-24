@@ -281,9 +281,46 @@ public class MortarScopeTest {
     assertThat(MortarScope.isDestroyed(context)).isTrue();
   }
 
+  @Test public void alreadyRegisteredInRoot() {
+    MortarScope root = scopeBuilder.build("root-123");
+    MortarScope child = root.buildChild().build("child");
+    when(scoped.toString()).thenReturn("scoped-123");
+
+    root.register(scoped);
+
+    try {
+      child.register(scoped);
+      fail("Expected IllegalStateException.");
+    } catch (IllegalStateException ex) {
+      assertThat(ex.getMessage())
+          .contains("already registered")
+          .contains("scoped-123")
+          .contains("root-123");
+    }
+  }
+
+  @Test public void alreadyRegisteredInChild() {
+    MortarScope root = scopeBuilder.build("root");
+    MortarScope child = root.buildChild().build("child-123");
+    when(scoped.toString()).thenReturn("scoped-123");
+
+    child.register(scoped);
+
+    try {
+      root.register(scoped);
+      fail("Expected IllegalStateException.");
+    } catch (IllegalStateException ex) {
+      assertThat(ex.getMessage())
+          .contains("already registered")
+          .contains("scoped-123")
+          .contains("child-123");
+    }
+  }
+
   private Context mockContext(MortarScope root) {
     final MortarScope scope = root;
     Context appContext = mock(Context.class);
+    //noinspection ResourceType
     when(appContext.getSystemService(anyString())).thenAnswer(new Answer<Object>() {
       @Override public Object answer(InvocationOnMock invocation) throws Throwable {
         String name = (String) invocation.getArguments()[0];

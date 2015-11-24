@@ -19,6 +19,7 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,17 +142,61 @@ public class MortarScope {
   }
 
   /**
+   * Find the scope from the root of the hierarchy, in which the scoped object is registered.
+   */
+  private MortarScope searchFromRoot(Scoped scoped)
+  {
+    // Ascend to the root.
+    MortarScope root = this;
+    while (root.parent != null) {
+      root = root.parent;
+    }
+
+    // Do the non-recursive search.
+    List<MortarScope> scopes = new LinkedList<>();
+    scopes.add(root);
+
+    while (!scopes.isEmpty()) {
+      // Check first scope in the list.
+      MortarScope scope = scopes.get(0);
+
+      if (scope.tearDowns.contains(scoped)) {
+        return scope;
+      }
+
+      // Replace the first scope with its children (breadth-first search).
+      scopes.addAll(scope.children.values());
+      scopes.remove(0);
+    }
+
+    return null;
+  }
+
+  /**
    * Register the given {@link Scoped} instance to have its {@link Scoped#onEnterScope(MortarScope)}
    * and {@link Scoped#onExitScope()} methods called. Redundant registrations are safe,
    * they will not lead to additional calls to these two methods.
    * <p>
    * {@link Scoped#onEnterScope(MortarScope) onEnterScope} is called synchronously.
    *
-   * @throws IllegalStateException if this scope has been destroyed
+   * @throws IllegalStateException if this scope has been destroyed, or if the scoped object
+   * is already registered with another scope in the same scope hierarchy.
    */
   public void register(Scoped scoped) {
     assertNotDead();
-    if (tearDowns.add(scoped)) scoped.onEnterScope(this);
+    if (tearDowns.contains(scoped)) {
+      // Ignore redundant registrations.
+      return;
+    }
+
+    MortarScope scope = searchFromRoot(scoped);
+    if (scope != null) {
+      throw new IllegalStateException(
+          format("\"%s\" is already registered within \"%s\".", scoped, scope));
+    }
+
+    tearDowns.add(scoped);
+    scoped.onEnterScope(this);
   }
 
   /**
@@ -199,6 +244,7 @@ public class MortarScope {
       s.onExitScope();
     }
     tearDowns.clear();
+
     Set<String> keys = services.keySet();
     for (String key : keys) {
       services.put(key, "Dead service");
@@ -232,7 +278,7 @@ public class MortarScope {
      */
     public Builder withService(String serviceName, Object service) {
       if (service instanceof Scoped) {
-        throw new IllegalArgumentException(String.format(
+        throw new IllegalArgumentException(format(
             "For service %s, %s must not be an instance of %s, use \"withScopedService\" instead.",
             serviceName, service, Scoped.class.getSimpleName()));
       }
