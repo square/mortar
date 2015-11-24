@@ -23,6 +23,7 @@ public class ObjectGraphService {
   }
 
   public static ObjectGraph getObjectGraph(Context context) {
+    //noinspection ResourceType,WrongConstant
     return (ObjectGraph) context.getSystemService(ObjectGraphService.SERVICE_NAME);
   }
 
