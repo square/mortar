@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.20 *(2015-12-02)*
+------------------
+ * Detect multi-registered objects in different scopes of the same hierarchy, and throw an IllegalStateException. This ensures that `Scoped#onEnterScope` and `Scoped#onExitScope` calls are paired up.
+
 Version 0.19 *(2015-08-04)*
 ------------------
  * Fixes ambiguous service lookup behavior of destroyed scopes:
