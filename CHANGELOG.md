@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 0.20 *(2015-12-02)*
+Version 0.20 *(2016-2-01)*
 ------------------
  * Detect multi-registered objects in different scopes of the same hierarchy, and throw an IllegalStateException. This ensures that `Scoped#onEnterScope` and `Scoped#onExitScope` calls are paired up.
 
