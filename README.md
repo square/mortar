@@ -8,7 +8,7 @@ It leverages [Context#getSystemService][services] to act as an a la carte suppli
 of services like dependency injection, bundle persistence, and whatever else
 your app needs to provide itself.
 
-One of the most useful services Mortar can provide is its' [BundleService][bundle-service],
+One of the most useful services Mortar can provide is its [BundleService][bundle-service],
 which gives any View (or any object with access to the Activity context) safe access to
 the Activity lifecycle's persistence bundle. For fans of the [Model View Presenter][mvp]
 pattern, we provide a persisted [Presenter][presenter] class that builds on BundleService.
