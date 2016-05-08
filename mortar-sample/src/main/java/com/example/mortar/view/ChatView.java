@@ -23,12 +23,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import mortar.HasContext;
 import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.model.Message;
 import com.example.mortar.screen.ChatScreen;
 import javax.inject.Inject;
 
-public class ChatView extends ListView {
+public class ChatView extends ListView implements HasContext {
   @Inject ChatScreen.Presenter presenter;
 
   private final ConfirmerPopup confirmerPopup;

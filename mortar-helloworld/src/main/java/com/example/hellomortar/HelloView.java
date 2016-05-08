@@ -19,8 +19,9 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import mortar.HasContext;
 
-public class HelloView extends LinearLayout {
+public class HelloView extends LinearLayout implements HasContext {
   private final HelloPresenter presenter;
 
   private TextView textView;

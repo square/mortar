@@ -19,11 +19,12 @@ package com.example.mortar.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.TextView;
+import mortar.HasContext;
 import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.screen.FriendScreen;
 import javax.inject.Inject;
 
-public class FriendView extends TextView  {
+public class FriendView extends TextView implements HasContext {
   @Inject FriendScreen.Presenter presenter;
 
   public FriendView(Context context, AttributeSet attrs) {

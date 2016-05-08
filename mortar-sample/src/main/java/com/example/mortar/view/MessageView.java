@@ -21,12 +21,13 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import mortar.HasContext;
 import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.R;
 import com.example.mortar.screen.MessageScreen;
 import javax.inject.Inject;
 
-public class MessageView extends LinearLayout {
+public class MessageView extends LinearLayout implements HasContext {
   @Inject MessageScreen.Presenter presenter;
 
   private TextView userView;

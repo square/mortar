@@ -22,13 +22,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import mortar.HasContext;
 import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.model.Chat;
 import com.example.mortar.screen.ChatListScreen;
 import java.util.List;
 import javax.inject.Inject;
 
-public class ChatListView extends ListView {
+public class ChatListView extends ListView implements HasContext {
   @Inject ChatListScreen.Presenter presenter;
 
   public ChatListView(Context context, AttributeSet attrs) {
