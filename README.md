@@ -182,7 +182,7 @@ License
 [dagger]: http://square.github.io/dagger/
 [dagger2]: http://google.github.io/dagger/
 [jar]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.squareup.mortar&a=mortar&v=LATEST
-[og]: https://square.github.io/dagger/javadoc/dagger/ObjectGraph.html
+[og]: https://square.github.io/dagger/1.x/dagger/dagger/ObjectGraph.html
 [ogplus]: https://github.com/square/dagger/blob/dagger-parent-1.1.0/core/src/main/java/dagger/ObjectGraph.java#L96
 [presenter]: https://github.com/square/mortar/blob/master/mortar/src/main/java/mortar/Presenter.java
 [rant]: http://corner.squareup.com/2014/10/advocating-against-android-fragments.html
