@@ -16,7 +16,7 @@ public final class MortarContextFactory implements PathContextFactory {
 
   @Override public Context setUpContext(Path path, Context parentContext) {
     MortarScope screenScope =
-        screenScoper.getScreenScope(parentContext, path.getClass().getName(), path);
+        screenScoper.getScreenScope(parentContext, path.toString(), path);
     return new TearDownContext(parentContext, screenScope);
   }
 
