@@ -19,9 +19,11 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import mortar.HasContext;
+
 import javax.inject.Inject;
 
-public class MainView extends LinearLayout {
+public class MainView extends LinearLayout implements HasContext {
   @Inject Main.Presenter presenter;
 
   private TextView textView;

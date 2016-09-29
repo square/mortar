@@ -22,13 +22,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import mortar.HasContext;
 import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.model.User;
 import com.example.mortar.screen.FriendListScreen;
 import java.util.List;
 import javax.inject.Inject;
 
-public class FriendListView extends ListView {
+public class FriendListView extends ListView implements HasContext {
   @Inject FriendListScreen.Presenter presenter;
 
   public FriendListView(Context context, AttributeSet attrs) {

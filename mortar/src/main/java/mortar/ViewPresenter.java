@@ -15,10 +15,9 @@
  */
 package mortar;
 
-import android.view.View;
 import mortar.bundler.BundleService;
 
-public class ViewPresenter<V extends View> extends Presenter<V> {
+public class ViewPresenter<V extends HasContext> extends Presenter<V> {
   @Override protected final BundleService extractBundleService(V view) {
     return BundleService.getBundleService(view.getContext());
   }
