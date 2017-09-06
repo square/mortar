@@ -25,4 +25,6 @@ subprojects {
   version = VERSION_NAME
 
   apply plugin: 'maven'
+
+  tasks.withType(Javadoc).all { enabled = false }
 }
