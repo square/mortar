@@ -26,6 +26,7 @@ import java.util.Set;
 
 import static java.lang.Integer.toHexString;
 import static java.lang.String.format;
+import static java.util.Collections.unmodifiableList;
 
 public class MortarScope {
   public static final String DIVIDER = ">>>";
@@ -102,50 +103,83 @@ public class MortarScope {
    * It is safe to call this method on destroyed scopes.
    */
   public boolean hasService(String serviceName) {
-    return serviceName.equals(MORTAR_SERVICE) || findService(serviceName, false) != null;
+    return serviceName.equals(MORTAR_SERVICE) || !findServices(serviceName, false).isEmpty();
   }
 
   /**
-   * Returns the service associated with the given name.
+   * Returns the nearest service associated with the given name.
    *
    * @throws IllegalArgumentException if no such service can be found
    * @throws IllegalStateException if this scope is dead
    * @see #hasService
+   * @see #getServices
    */
+  @SuppressWarnings("unchecked") //
   public <T> T getService(String serviceName) {
-    T service = findService(serviceName, true);
-    if (service == null) {
+    // Always honor requests for the scope itself, even if we're destroyed.
+    // Otherwise things like if (MortarScope.getScope(context).isDestroyed()) are impossible.
+    if (!MORTAR_SERVICE.equals(serviceName)) {
+      assertNotDead();
+    }
+    if (services.containsKey(serviceName)) {
+      return (T) services.get(serviceName);
+    }
+
+    return (T) this.getServices(serviceName).get(0);
+  }
+
+  /**
+   * Returns the services associated with the given name, in this scope and in parents.
+   * List is ordered from bottom to top.
+   *
+   * @throws IllegalArgumentException if no such service can be found
+   * @throws IllegalStateException if this scope is dead
+   * @see #hasService
+   * @see #getService
+   */
+  public List<Object> getServices(String serviceName) {
+    // Always honor requests for the scope itself, even if we're destroyed.
+    // Otherwise things like if (MortarScope.getScope(context).isDestroyed()) are impossible.
+    if (!MORTAR_SERVICE.equals(serviceName)) {
+      assertNotDead();
+    }
+    return unmodifiableList(findServices(serviceName, true));
+  }
+
+  /**
+   * Base service finding method. Note that returned list is mutable.
+   */
+  private List<Object> findServices(final String serviceName, boolean strict) {
+    final List<Object> found = new ArrayList<>();
+
+    acceptVisitor(new ScopeVisitor() {
+      @Override public void visit(MortarScope scope) {
+        if (MORTAR_SERVICE.equals(serviceName)) {
+          found.add(scope);
+        } else if (scope.services.containsKey(serviceName)) {
+          found.add(scope.services.get(serviceName));
+        }
+      }
+    });
+
+    if (strict && found.isEmpty()) {
       throw new IllegalArgumentException(format("No service found named \"%s\"", serviceName));
     }
 
-    return service;
+    return found;
   }
 
-  @SuppressWarnings("unchecked") //
-  private <T> T findService(String serviceName, boolean strict) {
-    // Always honor requests for the scope itself, even if we're destroyed.
-    // Otherwise things like if (MortarScope.getScope(context).isDestroyed()) are impossible.
-    if (MORTAR_SERVICE.equals(serviceName)) return (T) this;
-
-    if (strict) {
-      assertNotDead();
-    }
-
-    T service = (T) services.get(serviceName);
-    if (service != null) return service;
-
+  private void acceptVisitor(ScopeVisitor visitor) {
+    visitor.visit(this);
     if (parent != null) {
-      return parent.findService(serviceName, strict);
+      parent.acceptVisitor(visitor);
     }
-
-    return null;
   }
 
   /**
    * Find the scope from the root of the hierarchy, in which the scoped object is registered.
    */
-  private MortarScope searchFromRoot(Scoped scoped)
-  {
+  private MortarScope searchFromRoot(Scoped scoped) {
     // Ascend to the root.
     MortarScope root = this;
     while (root.parent != null) {
@@ -255,12 +289,16 @@ public class MortarScope {
   }
 
   @Override public String toString() {
-    return "MortarScope@" + toHexString(System.identityHashCode(this)) + "{" +
-        "name='" + getName() + '\'' +
-        '}';
+    return "MortarScope@"
+        + toHexString(System.identityHashCode(this))
+        + "{"
+        + "name='"
+        + getName()
+        + '\''
+        + '}';
   }
 
-  void assertNotDead() {
+  private void assertNotDead() {
     if (isDestroyed()) throw new IllegalStateException("Scope " + getName() + " was destroyed");
   }
 
@@ -273,7 +311,7 @@ public class MortarScope {
     }
 
     /**
-     * Makes this service available via the new scope's {@link MortarScope#findService}
+     * Makes this service available via the new scope's {@link MortarScope#getService}
      * method.
      */
     public Builder withService(String serviceName, Object service) {
@@ -286,12 +324,40 @@ public class MortarScope {
     }
 
     /**
-     * Makes this service available via the new scope's {@link MortarScope#findService}
+     * Makes this service available via the new scope's {@link MortarScope#getService}
      * method, and {@link MortarScope#register(Scoped) registers} it with the new scope.
      * Allows set up and tear down.
      */
     public Builder withService(String serviceName, Scoped service) {
       return doWithService(serviceName, service);
+    }
+
+    public boolean hasService(String serviceName) {
+      return serviceProviders.containsKey(serviceName) //
+          || parent != null && parent.hasService(serviceName);
+    }
+
+    public <T> T getService(String serviceName) {
+      parent.assertNotDead();
+
+      if (serviceProviders.containsKey(serviceName)) {
+        //noinspection unchecked
+        return (T) serviceProviders.get(serviceName);
+      }
+
+      return parent.getService(serviceName);
+    }
+
+    public List<Object> getServices(String serviceName) {
+      parent.assertNotDead();
+
+      List<Object> services = parent.findServices(serviceName, false);
+
+      if (serviceProviders.containsKey(serviceName)) {
+        services.add(0, serviceProviders.get(serviceName));
+      }
+
+      return unmodifiableList(services);
     }
 
     public MortarScope build(String name) {
@@ -329,5 +395,9 @@ public class MortarScope {
       }
       return this;
     }
+  }
+
+  private interface ScopeVisitor {
+    void visit(MortarScope scope);
   }
 }
