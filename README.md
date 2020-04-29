@@ -1,5 +1,9 @@
 # Mortar
 
+## Deprecated
+
+Mortar had a good run and served us well, but new use is strongly discouraged. The app suite at Square that drove its creation is in the process of replacing Mortar with [Square Workflow](https://square.github.io/workflow/).
+
 ## What's a Mortar?
 
 Mortar provides a simplified, composable overlay for the Android lifecycle,
