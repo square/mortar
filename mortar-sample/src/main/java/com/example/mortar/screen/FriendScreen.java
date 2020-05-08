@@ -54,7 +54,7 @@ public class FriendScreen extends Path {
     @Override public void onLoad(Bundle savedInstanceState) {
       super.onLoad(savedInstanceState);
       if (!hasView()) return;
-      getView().setText(friend.name);
+      getView().setFriendName(friend.name);
     }
   }
 }

@@ -18,17 +18,28 @@ package com.example.mortar.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.example.mortar.R;
 import mortar.dagger1support.ObjectGraphService;
 import com.example.mortar.screen.FriendScreen;
 import javax.inject.Inject;
 
-public class FriendView extends TextView  {
+public class FriendView extends LinearLayout {
   @Inject FriendScreen.Presenter presenter;
+
+  private TextView friendNameView;
 
   public FriendView(Context context, AttributeSet attrs) {
     super(context, attrs);
     ObjectGraphService.inject(context, this);
+  }
+
+  @Override protected void onFinishInflate() {
+    super.onFinishInflate();
+    friendNameView = (TextView) findViewById(R.id.friend);
   }
 
   @Override protected void onAttachedToWindow() {
@@ -39,5 +50,9 @@ public class FriendView extends TextView  {
   @Override protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     presenter.dropView(this);
+  }
+
+  public void setFriendName(String name) {
+    friendNameView.setText(name);
   }
 }
